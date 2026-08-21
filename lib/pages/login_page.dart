@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import 'user_dashboard.dart';
+import 'admin_dashboard.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -71,9 +73,25 @@ class _LoginPageState extends State<LoginPage> {
 
                           if (!context.mounted) return;
 
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Login berhasil')),
-                          );
+                          final role = await _authService.getRole();
+
+                          if (!context.mounted) return;
+
+                          if (role == 'user') {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const UserDashboard(),
+                              ),
+                            );
+                          } else if (role == 'admin') {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const AdminDashboard(),
+                              ),
+                            );
+                          }
                         } catch (e) {
                           if (!context.mounted) return;
 
