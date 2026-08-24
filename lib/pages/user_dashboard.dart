@@ -13,10 +13,25 @@ class _UserDashboardState extends State<UserDashboard> {
 
   String? userName;
 
+  Map<String, dynamic>? room;
+
   @override
   void initState() {
     super.initState();
     _loadUser();
+    _loadRoom();
+  }
+
+  Future<void> _loadRoom() async {
+    final profile = await _authService.getProfile();
+    if (profile == null) return;
+    final data = await _authService.getRoom();
+
+    if (data != null && mounted) {
+      setState(() {
+        room = data;
+      });
+    }
   }
 
   Future<void> _loadUser() async {
@@ -108,9 +123,9 @@ class _UserDashboardState extends State<UserDashboard> {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
-                      'Kamar 03',
+                      room?['room_number'] ?? '-',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -119,11 +134,11 @@ class _UserDashboardState extends State<UserDashboard> {
 
                     SizedBox(height: 8),
 
-                    Text('Kapasitas: 2 orang'),
+                    Text('Kapasitas: ${room?['capacity'] ?? '-'} orang'),
 
                     SizedBox(height: 4),
 
-                    Text('Status: Terisi'),
+                    Text('Status: ${room?['status'] ?? '-'}'),
                   ],
                 ),
               ),

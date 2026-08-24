@@ -40,4 +40,38 @@ class AuthService {
 
     return profile['role'] as String?;
   }
+
+  Future<Map<String, dynamic>?> getRoom() async {
+    final user = _supabase.auth.currentUser;
+
+    if (user == null) {
+      return null;
+    }
+
+    final data = await _supabase
+        .from('occupancies')
+        .select('''
+        room_id,
+        contract_start,
+        contract_end,
+        rent_price,
+        status,
+        rooms (
+          room_number,
+          capacity,
+          status,
+          facilities,
+          description
+        )
+      ''')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .maybeSingle();
+
+    if (data == null) {
+      return null;
+    }
+
+    return data['rooms'];
+  }
 }
