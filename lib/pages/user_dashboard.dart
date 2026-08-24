@@ -14,12 +14,14 @@ class _UserDashboardState extends State<UserDashboard> {
   String? userName;
 
   Map<String, dynamic>? room;
+  Map<String, dynamic>? payment;
 
   @override
   void initState() {
     super.initState();
     _loadUser();
     _loadRoom();
+    _loadPayment();
   }
 
   Future<void> _loadRoom() async {
@@ -40,6 +42,16 @@ class _UserDashboardState extends State<UserDashboard> {
     if (profile != null && mounted) {
       setState(() {
         userName = profile['name'];
+      });
+    }
+  }
+
+  Future<void> _loadPayment() async {
+    final data = await _authService.getPayment();
+
+    if (data != null && mounted) {
+      setState(() {
+        payment = data;
       });
     }
   }
@@ -80,8 +92,8 @@ class _UserDashboardState extends State<UserDashboard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Rp 1.650.000',
+                    Text(
+                      'Rp ${payment?['amount'] ?? '-'}',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -90,8 +102,8 @@ class _UserDashboardState extends State<UserDashboard> {
 
                     const SizedBox(height: 8),
 
-                    const Text(
-                      'Belum dibayar',
+                    Text(
+                      payment?['status'] ?? '-',
                       style: TextStyle(color: Colors.red),
                     ),
 

@@ -74,4 +74,22 @@ class AuthService {
 
     return data['rooms'];
   }
+
+  Future<Map<String, dynamic>?> getPayment() async {
+    final user = _supabase.auth.currentUser;
+
+    if (user == null) {
+      return null;
+    }
+
+    final data = await _supabase
+        .from('payments')
+        .select()
+        .eq('tenant_id', user.id)
+        .order('period', ascending: false)
+        .limit(1)
+        .maybeSingle();
+
+    return data;
+  }
 }
