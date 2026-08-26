@@ -13,11 +13,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   int totalRooms = 0;
   int occupiedRooms = 0;
+  int tenantCount = 0;
 
   @override
   void initState() {
     super.initState();
     _loadRoomStats();
+    _loadTenantCount();
   }
 
   Future<void> _loadRoomStats() async {
@@ -28,6 +30,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
     setState(() {
       totalRooms = data['total'] ?? 0;
       occupiedRooms = data['terisi'] ?? 0;
+    });
+  }
+
+  Future<void> _loadTenantCount() async {
+    final data = await _authService.getTenantCount();
+
+    if (!mounted) return;
+
+    setState(() {
+      tenantCount = data;
     });
   }
 
@@ -61,7 +73,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 Expanded(
                   child: _buildStatCard(
                     'Jumlah Penghuni',
-                    '10',
+                    '$tenantCount',
                     'Penghuni aktif',
                     Icons.people,
                   ),
