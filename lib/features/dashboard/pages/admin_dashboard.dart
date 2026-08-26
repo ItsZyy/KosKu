@@ -1,7 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import '../../rooms/data/room_service.dart';
+import '../../payments/data/payment_service.dart';
+import '../../complaints/data/complaint_service.dart';
+import '../../dashboard/data/dashboard_service.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -11,7 +14,10 @@ class AdminDashboard extends StatefulWidget {
 }
 
 class _AdminDashboardState extends State<AdminDashboard> {
-  final _authService = AuthService();
+  final _roomService = RoomService();
+  final _paymentService = PaymentService();
+  final _complaintService = ComplaintService();
+  final _dashboardService = DashboardService();
 
   int totalRooms = 0;
   int occupiedRooms = 0;
@@ -29,7 +35,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Future<void> _loadRoomStats() async {
-    final data = await _authService.getRoomStats();
+    final data = await _roomService.getRoomStats();
 
     if (!mounted) return;
 
@@ -40,7 +46,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Future<void> _loadTenantCount() async {
-    final data = await _authService.getTenantCount();
+    final data = await _dashboardService.getTenantCount();
 
     if (!mounted) return;
 
@@ -50,7 +56,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Future<void> _loadIncome() async {
-    final data = await _authService.getTotalIncome();
+    final data = await _paymentService.getTotalIncome();
 
     if (!mounted) return;
 
@@ -60,7 +66,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Future<void> _loadActiveComplaints() async {
-    final data = await _authService.getActiveComplaints();
+    final data = await _complaintService.getActiveComplaints();
 
     if (!mounted) return;
 
@@ -180,6 +186,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
               context,
               'Kelola Pembayaran',
               Icons.payment,
+              () {},
+            ),
+
+            _buildActionButton(
+              context,
+              'Tambah Pengumuman Baru',
+              Icons.campaign_sharp,
               () {},
             ),
           ],

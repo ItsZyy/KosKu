@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
-import 'user_dashboard.dart';
-import 'admin_dashboard.dart';
+import '../data/auth_service.dart';
+import '../../profile/data/profile_service.dart';
+import '../../dashboard/pages/user_dashboard.dart';
+import '../../dashboard/pages/admin_dashboard.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,6 +15,7 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _authService = AuthService();
+  final _profileService = ProfileService();
 
   bool _isLoading = false;
 
@@ -73,7 +75,7 @@ class _LoginPageState extends State<LoginPage> {
 
                           if (!context.mounted) return;
 
-                          final role = await _authService.getRole();
+                          final role = await _profileService.getRole();
 
                           if (!context.mounted) return;
 

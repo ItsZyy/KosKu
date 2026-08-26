@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import '../../profile/data/profile_service.dart';
+import '../../rooms/data/room_service.dart';
+import '../../payments/data/payment_service.dart';
 
 class UserDashboard extends StatefulWidget {
   const UserDashboard({super.key});
@@ -9,7 +11,9 @@ class UserDashboard extends StatefulWidget {
 }
 
 class _UserDashboardState extends State<UserDashboard> {
-  final _authService = AuthService();
+  final _profileService = ProfileService();
+  final _roomService = RoomService();
+  final _paymentService = PaymentService();
 
   String? userName;
 
@@ -25,9 +29,9 @@ class _UserDashboardState extends State<UserDashboard> {
   }
 
   Future<void> _loadRoom() async {
-    final profile = await _authService.getProfile();
+    final profile = await _profileService.getProfile();
     if (profile == null) return;
-    final data = await _authService.getRoom();
+    final data = await _roomService.getRoom();
 
     if (data != null && mounted) {
       setState(() {
@@ -37,7 +41,7 @@ class _UserDashboardState extends State<UserDashboard> {
   }
 
   Future<void> _loadUser() async {
-    final profile = await _authService.getProfile();
+    final profile = await _profileService.getProfile();
 
     if (profile != null && mounted) {
       setState(() {
@@ -47,7 +51,7 @@ class _UserDashboardState extends State<UserDashboard> {
   }
 
   Future<void> _loadPayment() async {
-    final data = await _authService.getPayment();
+    final data = await _paymentService.getPayment();
 
     if (data != null && mounted) {
       setState(() {
