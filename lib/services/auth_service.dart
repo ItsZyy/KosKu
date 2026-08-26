@@ -110,4 +110,19 @@ class AuthService {
 
     return data.length;
   }
+
+  Future<int> getTotalIncome() async {
+    final data = await _supabase
+        .from('payments')
+        .select('amount')
+        .eq('status', 'lunas');
+
+    int total = 0;
+
+    for (final payment in data) {
+      total += (payment['amount '] as num).toInt();
+    }
+
+    return total;
+  }
 }

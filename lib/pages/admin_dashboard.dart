@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 
@@ -14,12 +16,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
   int totalRooms = 0;
   int occupiedRooms = 0;
   int tenantCount = 0;
+  int totalIncome = 0;
 
   @override
   void initState() {
     super.initState();
     _loadRoomStats();
     _loadTenantCount();
+    _loadIncome();
   }
 
   Future<void> _loadRoomStats() async {
@@ -40,6 +44,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
     setState(() {
       tenantCount = data;
+    });
+  }
+
+  Future<void> _loadIncome() async {
+    final data = await _authService.getTotalIncome();
+
+    if (!mounted) return;
+
+    setState(() {
+      totalIncome = data;
     });
   }
 
@@ -88,7 +102,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 Expanded(
                   child: _buildStatCard(
                     'Pendapatan',
-                    'Rp 8 Juta',
+                    'Rp $totalIncome',
                     'Bulan ini',
                     Icons.payments,
                   ),
