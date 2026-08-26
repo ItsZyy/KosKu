@@ -125,4 +125,13 @@ class AuthService {
 
     return total;
   }
+
+  Future<int> getActiveComplaints() async {
+    final data = await _supabase.from('complaints').select('id').inFilter(
+      'status',
+      ['menunggu', 'diproses'],
+    );
+
+    return data.length;
+  }
 }

@@ -17,6 +17,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   int occupiedRooms = 0;
   int tenantCount = 0;
   int totalIncome = 0;
+  int activeComplaints = 0;
 
   @override
   void initState() {
@@ -24,6 +25,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     _loadRoomStats();
     _loadTenantCount();
     _loadIncome();
+    _loadActiveComplaints();
   }
 
   Future<void> _loadRoomStats() async {
@@ -54,6 +56,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
     setState(() {
       totalIncome = data;
+    });
+  }
+
+  Future<void> _loadActiveComplaints() async {
+    final data = await _authService.getActiveComplaints();
+
+    if (!mounted) return;
+
+    setState(() {
+      activeComplaints = data;
     });
   }
 
@@ -111,7 +123,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 Expanded(
                   child: _buildStatCard(
                     'Keluhan Aktif',
-                    '3',
+                    '$activeComplaints',
                     'Perlu ditangani',
                     Icons.report_problem,
                   ),
