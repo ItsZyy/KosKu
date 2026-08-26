@@ -92,4 +92,13 @@ class AuthService {
 
     return data;
   }
+
+  Future<Map<String, int>> getRoomStats() async {
+    final data = await _supabase.from('rooms').select('id, status');
+
+    int total = data.length;
+    int terisi = data.where((room) => room['status'] == 'Terisi').length;
+
+    return {'total': total, 'terisi': terisi};
+  }
 }

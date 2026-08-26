@@ -1,7 +1,35 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 
-class AdminDashboard extends StatelessWidget {
+class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
+
+  @override
+  State<AdminDashboard> createState() => _AdminDashboardState();
+}
+
+class _AdminDashboardState extends State<AdminDashboard> {
+  final _authService = AuthService();
+
+  int totalRooms = 0;
+  int occupiedRooms = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRoomStats();
+  }
+
+  Future<void> _loadRoomStats() async {
+    final data = await _authService.getRoomStats();
+
+    if (!mounted) return;
+
+    setState(() {
+      totalRooms = data['total'] ?? 0;
+      occupiedRooms = data['terisi'] ?? 0;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +52,7 @@ class AdminDashboard extends StatelessWidget {
                 Expanded(
                   child: _buildStatCard(
                     'Total Kamar',
-                    '7 / 12',
+                    '$occupiedRooms / $totalRooms',
                     'Kamar terisi',
                     Icons.meeting_room,
                   ),
