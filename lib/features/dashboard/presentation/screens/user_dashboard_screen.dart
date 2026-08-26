@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import '../../profile/data/profile_service.dart';
-import '../../rooms/data/room_service.dart';
-import '../../payments/data/payment_service.dart';
+import '../../../profile/data/profile_service.dart';
+import '../../../rooms/data/room_service.dart';
+import '../../../payments/data/payment_service.dart';
 
-class UserDashboard extends StatefulWidget {
-  const UserDashboard({super.key});
+class UserDashboardScreen extends StatefulWidget {
+  const UserDashboardScreen({super.key});
 
   @override
-  State<UserDashboard> createState() => _UserDashboardState();
+  State<UserDashboardScreen> createState() => _UserDashboardScreenState();
 }
 
-class _UserDashboardState extends State<UserDashboard> {
+class _UserDashboardScreenState extends State<UserDashboardScreen> {
   final _profileService = ProfileService();
   final _roomService = RoomService();
   final _paymentService = PaymentService();

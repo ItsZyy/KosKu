@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import '../data/auth_service.dart';
-import '../../profile/data/profile_service.dart';
-import '../../dashboard/pages/user_dashboard.dart';
-import '../../dashboard/pages/admin_dashboard.dart';
+import '../../data/auth_service.dart';
+import '../../../profile/data/profile_service.dart';
+import '../../../dashboard/presentation/screens/user_dashboard_screen.dart';
+import '../../../dashboard/presentation/screens/admin_dashboard_screen.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _authService = AuthService();
@@ -83,14 +83,14 @@ class _LoginPageState extends State<LoginPage> {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const UserDashboard(),
+                                builder: (context) => const UserDashboardScreen(),
                               ),
                             );
                           } else if (role == 'admin') {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const AdminDashboard(),
+                                builder: (context) => const AdminDashboardScreen(),
                               ),
                             );
                           }

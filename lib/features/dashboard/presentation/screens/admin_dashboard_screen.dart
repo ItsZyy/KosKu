@@ -1,19 +1,21 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import '../../rooms/data/room_service.dart';
-import '../../payments/data/payment_service.dart';
-import '../../complaints/data/complaint_service.dart';
-import '../../dashboard/data/dashboard_service.dart';
+import '../../../rooms/data/room_service.dart';
+import '../../../payments/data/payment_service.dart';
+import '../../../complaints/data/complaint_service.dart';
+import '../../data/dashboard_service.dart';
+import '../widgets/stat_card.dart';
+import '../widgets/action_button_card.dart';
 
-class AdminDashboard extends StatefulWidget {
-  const AdminDashboard({super.key});
+class AdminDashboardScreen extends StatefulWidget {
+  const AdminDashboardScreen({super.key});
 
   @override
-  State<AdminDashboard> createState() => _AdminDashboardState();
+  State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
 }
 
-class _AdminDashboardState extends State<AdminDashboard> {
+class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   final _roomService = RoomService();
   final _paymentService = PaymentService();
   final _complaintService = ComplaintService();
@@ -94,20 +96,20 @@ class _AdminDashboardState extends State<AdminDashboard> {
             Row(
               children: [
                 Expanded(
-                  child: _buildStatCard(
-                    'Total Kamar',
-                    '$occupiedRooms / $totalRooms',
-                    'Kamar terisi',
-                    Icons.meeting_room,
+                  child: StatCard(
+                    title: 'Total Kamar',
+                    value: '$occupiedRooms / $totalRooms',
+                    subtitle: 'Kamar terisi',
+                    icon: Icons.meeting_room,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _buildStatCard(
-                    'Jumlah Penghuni',
-                    '$tenantCount',
-                    'Penghuni aktif',
-                    Icons.people,
+                  child: StatCard(
+                    title: 'Jumlah Penghuni',
+                    value: '$tenantCount',
+                    subtitle: 'Penghuni aktif',
+                    icon: Icons.people,
                   ),
                 ),
               ],
@@ -118,20 +120,20 @@ class _AdminDashboardState extends State<AdminDashboard> {
             Row(
               children: [
                 Expanded(
-                  child: _buildStatCard(
-                    'Pendapatan',
-                    'Rp $totalIncome',
-                    'Bulan ini',
-                    Icons.payments,
+                  child: StatCard(
+                    title: 'Pendapatan',
+                    value: 'Rp $totalIncome',
+                    subtitle: 'Bulan ini',
+                    icon: Icons.payments,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _buildStatCard(
-                    'Keluhan Aktif',
-                    '$activeComplaints',
-                    'Perlu ditangani',
-                    Icons.report_problem,
+                  child: StatCard(
+                    title: 'Keluhan Aktif',
+                    value: '$activeComplaints',
+                    subtitle: 'Perlu ditangani',
+                    icon: Icons.report_problem,
                   ),
                 ),
               ],
@@ -166,81 +168,37 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
             const SizedBox(height: 12),
 
-            _buildActionButton(context, 'Tambah Kamar', Icons.add_home, () {}),
-
-            _buildActionButton(
-              context,
-              'Tambah Penghuni',
-              Icons.person_add,
-              () {},
+            ActionButtonCard(
+              title: 'Tambah Kamar',
+              icon: Icons.add_home,
+              onPressed: () {},
             ),
 
-            _buildActionButton(
-              context,
-              'Kelola Kontrak',
-              Icons.description,
-              () {},
+            ActionButtonCard(
+              title: 'Tambah Penghuni',
+              icon: Icons.person_add,
+              onPressed: () {},
             ),
 
-            _buildActionButton(
-              context,
-              'Kelola Pembayaran',
-              Icons.payment,
-              () {},
+            ActionButtonCard(
+              title: 'Kelola Kontrak',
+              icon: Icons.description,
+              onPressed: () {},
             ),
 
-            _buildActionButton(
-              context,
-              'Tambah Pengumuman Baru',
-              Icons.campaign_sharp,
-              () {},
+            ActionButtonCard(
+              title: 'Kelola Pembayaran',
+              icon: Icons.payment,
+              onPressed: () {},
+            ),
+
+            ActionButtonCard(
+              title: 'Tambah Pengumuman Baru',
+              icon: Icons.campaign_sharp,
+              onPressed: () {},
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildStatCard(
-    String title,
-    String value,
-    String subtitle,
-    IconData icon,
-  ) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon),
-            const SizedBox(height: 12),
-            Text(title, style: const TextStyle(fontSize: 14)),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-            Text(subtitle, style: const TextStyle(color: Colors.grey)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButton(
-    BuildContext context,
-    String title,
-    IconData icon,
-    VoidCallback onPressed,
-  ) {
-    return Card(
-      child: ListTile(
-        leading: Icon(icon),
-        title: Text(title),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onPressed,
       ),
     );
   }
