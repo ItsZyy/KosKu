@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
-import 'features/auth/presentation/screens/login_screen.dart';
+import 'core/theme/app_theme.dart';
+import 'core/router/app_router.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,11 +22,9 @@ class KosKuApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'KosKu',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2563EB)),
-        useMaterial3: true,
-      ),
-      home: const LoginScreen(),
+      theme: AppTheme.light,
+      initialRoute: AppRouter.login,
+      routes: AppRouter.routes,
     );
   }
 }
