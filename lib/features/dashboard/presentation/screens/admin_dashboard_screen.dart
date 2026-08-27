@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import '../../../rooms/data/room_service.dart';
-import '../../../payments/data/payment_service.dart';
-import '../../../complaints/data/complaint_service.dart';
-import '../../data/dashboard_service.dart';
+import '../../../rooms/data/services/room_service.dart';
+import '../../../payments/data/services/payment_service.dart';
+import '../../../complaints/data/services/complaint_service.dart';
+import '../../data/services/dashboard_service.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/action_button_card.dart';
 

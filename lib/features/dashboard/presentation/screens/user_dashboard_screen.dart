@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../profile/data/profile_service.dart';
-import '../../../rooms/data/room_service.dart';
-import '../../../payments/data/payment_service.dart';
+import '../../../profile/data/services/profile_service.dart';
+import '../../../rooms/data/services/room_service.dart';
+import '../../../payments/data/services/payment_service.dart';
 
 class UserDashboardScreen extends StatefulWidget {
   const UserDashboardScreen({super.key});

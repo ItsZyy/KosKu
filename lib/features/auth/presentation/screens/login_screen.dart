@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../data/auth_service.dart';
-import '../../../profile/data/profile_service.dart';
+import '../../data/services/auth_service.dart';
+import '../../../profile/data/services/profile_service.dart';
 import '../../../dashboard/presentation/screens/user_dashboard_screen.dart';
 import '../../../dashboard/presentation/screens/admin_dashboard_screen.dart';
 
