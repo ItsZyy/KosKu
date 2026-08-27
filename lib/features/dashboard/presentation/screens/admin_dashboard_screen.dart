@@ -7,6 +7,7 @@ import '../../../complaints/data/services/complaint_service.dart';
 import '../../data/services/dashboard_service.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/action_button_card.dart';
+import '../../../announcements/presentation/screens/add_announcement_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -195,7 +196,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ActionButtonCard(
               title: 'Tambah Pengumuman Baru',
               icon: Icons.campaign_sharp,
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AddAnnouncementScreen(),
+                  ),
+                );
+              },
             ),
           ],
         ),

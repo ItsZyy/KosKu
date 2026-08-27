@@ -15,7 +15,8 @@ class AnnouncementCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (announcement.imageUrl != null)
+            if (announcement.imageUrl != null &&
+                announcement.imageUrl!.isNotEmpty)
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Image.network(
@@ -23,10 +24,18 @@ class AnnouncementCard extends StatelessWidget {
                   width: double.infinity,
                   height: 180,
                   fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const SizedBox(
+                      height: 180,
+                      child: Center(child: Icon(Icons.broken_image, size: 40)),
+                    );
+                  },
                 ),
               ),
 
-            if (announcement.imageUrl != null) const SizedBox(height: 12),
+            if (announcement.imageUrl != null &&
+                announcement.imageUrl!.isNotEmpty)
+              const SizedBox(height: 12),
 
             Text(
               announcement.title,
