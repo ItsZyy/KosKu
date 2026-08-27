@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../../../profile/data/services/profile_service.dart';
 import '../../../rooms/data/services/room_service.dart';
 import '../../../payments/data/services/payment_service.dart';
+import '../../../announcements/data/models/announcement_model.dart';
+import '../../../announcements/data/services/announcement_service.dart';
+import '../../../announcements/presentation/widgets/announcement_card.dart';
 
 class UserDashboardScreen extends StatefulWidget {
   const UserDashboardScreen({super.key});
@@ -14,11 +17,13 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
   final _profileService = ProfileService();
   final _roomService = RoomService();
   final _paymentService = PaymentService();
+  final _announcementService = AnnouncementService();
 
   String? userName;
 
   Map<String, dynamic>? room;
   Map<String, dynamic>? payment;
+  AnnouncementModel? announcement;
 
   @override
   void initState() {
@@ -26,6 +31,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     _loadUser();
     _loadRoom();
     _loadPayment();
+    _loadAnnouncement();
   }
 
   Future<void> _loadRoom() async {
@@ -56,6 +62,16 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     if (data != null && mounted) {
       setState(() {
         payment = data;
+      });
+    }
+  }
+
+  Future<void> _loadAnnouncement() async {
+    final data = await _announcementService.getAnnouncements();
+
+    if (data.isNotEmpty && mounted) {
+      setState(() {
+        announcement = data.first;
       });
     }
   }
@@ -162,19 +178,15 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
 
             const SizedBox(height: 24),
 
-            const Text(
-              'Pengumuman',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-
+            announcement != null
+                ? AnnouncementCard(announcement: announcement!)
+                : const Card(
+                    child: ListTile(
+                      title: Text('Pengumuman'),
+                      subtitle: Text('Belum ada pengumuman terbaru'),
+                    ),
+                  ),
             const SizedBox(height: 12),
-
-            const Card(
-              child: ListTile(
-                title: Text('Pengumuman Kos'),
-                subtitle: Text('Belum ada pengumuman terbaru.'),
-              ),
-            ),
           ],
         ),
       ),
