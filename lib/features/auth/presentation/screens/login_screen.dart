@@ -4,6 +4,9 @@ import '../../../profile/data/services/profile_service.dart';
 import '../../../dashboard/presentation/screens/user_dashboard_screen.dart';
 import '../../../dashboard/presentation/screens/admin_dashboard_screen.dart';
 
+import '../widgets/login_header.dart';
+import '../widgets/login_card.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -26,98 +29,70 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  Future<void> _handleLogin() async {
+    setState(() => _isLoading = true);
+
+    try {
+      await _authService.login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      if (!mounted) return;
+      final role = await _profileService.getRole();
+
+      if (!mounted) return;
+      if (role == 'user') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const UserDashboardScreen()),
+        );
+      } else if (role == 'admin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Login gagal: $e'),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login KosKu')),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(),
-              ),
+      backgroundColor: const Color(0xFFF8F9FA),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              children: [
+                const LoginHeader(),
+                const SizedBox(height: 32),
+                LoginCard(
+                  emailController: _emailController,
+                  passwordController: _passwordController,
+                  isLoading: _isLoading,
+                  onSubmit: _handleLogin,
+                ),
+              ],
             ),
-
-            const SizedBox(height: 16),
-
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                border: OutlineInputBorder(),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isLoading
-                    ? null
-                    : () async {
-                        setState(() {
-                          _isLoading = true;
-                        });
-
-                        try {
-                          await _authService.login(
-                            email: _emailController.text.trim(),
-                            password: _passwordController.text,
-                          );
-
-                          if (!context.mounted) return;
-
-                          final role = await _profileService.getRole();
-
-                          if (!context.mounted) return;
-
-                          if (role == 'user') {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const UserDashboardScreen(),
-                              ),
-                            );
-                          } else if (role == 'admin') {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const AdminDashboardScreen(),
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          if (!context.mounted) return;
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Login gagal: $e')),
-                          );
-                        } finally {
-                          if (!context.mounted) return;
-
-                          setState(() {
-                            _isLoading = false;
-                          });
-                        }
-                      },
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Login'),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
