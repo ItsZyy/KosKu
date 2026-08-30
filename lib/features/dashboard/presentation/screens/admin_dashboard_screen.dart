@@ -8,6 +8,7 @@ import '../../data/services/dashboard_service.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/action_button_card.dart';
 import '../../../announcements/presentation/screens/add_announcement_screen.dart';
+import '../../../rooms/presentation/screens/add_room_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -172,7 +173,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ActionButtonCard(
               title: 'Tambah Kamar',
               icon: Icons.add_home,
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AddRoomScreen(),
+                  ),
+                );
+              },
             ),
 
             ActionButtonCard(
