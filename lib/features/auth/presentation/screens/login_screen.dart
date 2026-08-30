@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/services/auth_service.dart';
 import '../../../profile/data/services/profile_service.dart';
-import '../../../dashboard/presentation/screens/user_dashboard_screen.dart';
-import '../../../dashboard/presentation/screens/admin_main_screen.dart';
+import '../../../../core/router/app_router.dart';
 
 import '../widgets/login_header.dart';
 import '../widgets/login_card.dart';
@@ -42,16 +41,11 @@ class _LoginScreenState extends State<LoginScreen> {
       final role = await _profileService.getRole();
 
       if (!mounted) return;
+
       if (role == 'user') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const UserDashboardScreen()),
-        );
+        Navigator.pushReplacementNamed(context, AppRouter.userDashboard);
       } else if (role == 'admin') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const AdminMainScreen()),
-        );
+        Navigator.pushReplacementNamed(context, AppRouter.adminDashboard);
       }
     } catch (e) {
       if (!mounted) return;
