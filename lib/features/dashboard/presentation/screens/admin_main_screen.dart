@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'admin_dashboard_screen.dart';
 import '../../../rooms/presentation/screens/room_screen.dart';
-import '../../../announcements/presentation/screens/announcements_screen.dart';
+import '../../../payments/presentation/screens/admin_payments_screen.dart';
 
 class AdminMainScreen extends StatefulWidget {
   const AdminMainScreen({super.key});
@@ -16,7 +16,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
 
   final List<Widget> _pages = const [
     AdminDashboardScreen(),
-    AnnouncementsScreen(),
+    AdminPaymentsScreen(),
     RoomsScreen(),
     Center(child: Text('Laporan belum dibuat')),
     Center(child: Text('Profile belum dibuat')),
