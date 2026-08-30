@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../data/services/auth_service.dart';
 import '../../../profile/data/services/profile_service.dart';
 import '../../../dashboard/presentation/screens/user_dashboard_screen.dart';
-import '../../../dashboard/presentation/screens/admin_dashboard_screen.dart';
+import '../../../dashboard/presentation/screens/admin_main_screen.dart';
 
 import '../widgets/login_header.dart';
 import '../widgets/login_card.dart';
@@ -50,7 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
       } else if (role == 'admin') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+          MaterialPageRoute(builder: (_) => const AdminMainScreen()),
         );
       }
     } catch (e) {
