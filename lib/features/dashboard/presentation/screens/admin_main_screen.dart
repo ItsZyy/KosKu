@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kosku/features/complaints/presentation/screens/reports_screen.dart';
 
 import 'admin_dashboard_screen.dart';
 import '../../../rooms/presentation/screens/room_screen.dart';
@@ -18,7 +19,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
     AdminDashboardScreen(),
     AdminPaymentsScreen(),
     RoomsScreen(),
-    Center(child: Text('Laporan belum dibuat')),
+    ReportsScreen(),
     Center(child: Text('Profile belum dibuat')),
   ];
 
