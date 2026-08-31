@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -25,7 +25,6 @@ class _AddRoomScreenState extends State<AddRoomScreen> {
   String _status = 'Kosong';
 
   XFile? _selectedImage;
-  Uint8List? _imageBytes;
 
   bool _isLoading = false;
 
@@ -48,20 +47,17 @@ class _AddRoomScreenState extends State<AddRoomScreen> {
 
       if (pickedImage == null) return;
 
-      final bytes = await pickedImage.readAsBytes();
-
       if (!mounted) return;
 
       setState(() {
         _selectedImage = pickedImage;
-        _imageBytes = bytes;
       });
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Gagal memilih foto: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal memilih foto: $e')),
+      );
     }
   }
 
@@ -93,9 +89,11 @@ class _AddRoomScreenState extends State<AddRoomScreen> {
     });
 
     try {
-      // Upload foto akan kita sambungkan setelah RoomService
-      // memiliki method uploadImage().
       String? imageUrl;
+
+      if (_selectedImage != null) {
+        imageUrl = await _roomService.uploadImage(File(_selectedImage!.path));
+      }
 
       await _roomService.createRoom(
         roomNumber: _roomNumberController.text.trim(),
@@ -194,7 +192,7 @@ class _AddRoomScreenState extends State<AddRoomScreen> {
             const SizedBox(height: 8),
 
             DropdownButtonFormField<String>(
-              value: _status,
+              initialValue: _status,
               decoration: const InputDecoration(border: OutlineInputBorder()),
               items: const [
                 DropdownMenuItem(value: 'Kosong', child: Text('Kosong')),
@@ -255,14 +253,17 @@ class _AddRoomScreenState extends State<AddRoomScreen> {
 
             const SizedBox(height: 8),
 
-            if (_imageBytes != null) ...[
+            if (_selectedImage != null) ...[
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.memory(
-                  _imageBytes!,
+                child: Image.file(
+                  File(_selectedImage!.path),
                   width: double.infinity,
                   height: 200,
                   fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Center(child: Icon(Icons.image_outlined));
+                  },
                 ),
               ),
               const SizedBox(height: 12),

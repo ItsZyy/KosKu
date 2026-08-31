@@ -26,7 +26,7 @@ class RoomModel {
       id: map['id'] as String,
       roomNumber: map['room_number'] as String,
       price: (map['price'] as num).toDouble(),
-      capacity: map['capacity'] as int,
+      capacity: (map['capacity'] as num).toInt(),
       status: map['status'] as String,
       facilities: map['facilities'] as String,
       description: map['description'] as String,

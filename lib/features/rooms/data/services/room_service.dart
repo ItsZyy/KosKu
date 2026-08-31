@@ -1,10 +1,38 @@
+import 'dart:io';
+
 import 'package:kosku/features/rooms/data/models/room_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class RoomService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  // mengambil kamar yang sedang di tempati oleh penghuni #user/penghuni
+  // Upload foto kamar ke Supabase Storage
+  Future<String> uploadImage(File image) async {
+    final user = _supabase.auth.currentUser;
+
+    if (user == null) {
+      throw Exception('User belum login');
+    }
+
+    final fileName = '${user.id}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+    final filePath = 'rooms/$fileName';
+
+    await _supabase.storage
+        .from('room-images')
+        .upload(
+          filePath,
+          image,
+          fileOptions: const FileOptions(
+            contentType: 'image/jpeg',
+            upsert: false,
+          ),
+        );
+
+    return _supabase.storage.from('room-images').getPublicUrl(filePath);
+  }
+
+  // user - melihat kamar yang sedang ditempati
   Future<Map<String, dynamic>?> getRoom() async {
     final user = _supabase.auth.currentUser;
 
@@ -15,19 +43,21 @@ class RoomService {
     final data = await _supabase
         .from('occupancies')
         .select('''
-        room_id,
-        contract_start,
-        contract_end,
-        rent_price,
-        status,
-        rooms (
-          room_number,
-          capacity,
+          room_id,
+          contract_start,
+          contract_end,
+          rent_price,
           status,
-          facilities,
-          description
-        )
-      ''')
+          rooms (
+            id,
+            room_number,
+            capacity,
+            status,
+            facilities,
+            description,
+            image_url
+          )
+        ''')
         .eq('user_id', user.id)
         .eq('status', 'active')
         .maybeSingle();
@@ -36,22 +66,36 @@ class RoomService {
       return null;
     }
 
-    return data['rooms'];
+    final room = data['rooms'];
+
+    if (room == null) {
+      return null;
+    }
+
+    return {
+      'room_id': data['room_id'],
+      'contract_start': data['contract_start'],
+      'contract_end': data['contract_end'],
+      'rent_price': data['rent_price'],
+      'status': data['status'],
+      'room': room,
+    };
   }
 
-  // statik room di dashboard admin #pemilik
+  // admin - statistik kamar
   Future<Map<String, int>> getRoomStats() async {
     final data = await _supabase.from('rooms').select('id, status');
 
-    int total = data.length;
-    int terisi = data.where((room) => room['status'] == 'Terisi').length;
+    final total = data.length;
+
+    final terisi = data.where((room) {
+      return room['status'] == 'Terisi';
+    }).length;
 
     return {'total': total, 'terisi': terisi};
   }
 
-  // admin room management
-
-  //mengambil semua kamar
+  // admin - lihat semua kamar
   Future<List<RoomModel>> getRooms() async {
     final data = await _supabase
         .from('rooms')
@@ -61,7 +105,52 @@ class RoomService {
     return data.map<RoomModel>((item) => RoomModel.fromMap(item)).toList();
   }
 
-  //tambah kamar
+  // admin - lihat user yang menempati kamar
+  Future<Map<String, Map<String, dynamic>>> getRoomUsers() async {
+    final data = await _supabase
+        .from('occupancies')
+        .select('''
+          room_id,
+          user_id,
+          status,
+          contract_start,
+          contract_end,
+          profiles!occupancies_user_id_fkey (
+            id,
+            name
+          )
+        ''')
+        .eq('status', 'active');
+
+    final Map<String, Map<String, dynamic>> users = {};
+
+    for (final item in data) {
+      final roomId = item['room_id']?.toString();
+
+      if (roomId == null) {
+        continue;
+      }
+
+      final profileData = item['profiles'];
+
+      Map<String, dynamic>? profile;
+
+      if (profileData is Map) {
+        profile = Map<String, dynamic>.from(profileData);
+      }
+
+      users[roomId] = {
+        'name': profile?['name']?.toString(),
+        'user_id': item['user_id']?.toString(),
+        'contract_start': item['contract_start']?.toString(),
+        'contract_end': item['contract_end']?.toString(),
+      };
+    }
+
+    return users;
+  }
+
+  // admin - tambah kamar
   Future<void> createRoom({
     required String roomNumber,
     required double price,
@@ -82,7 +171,7 @@ class RoomService {
     });
   }
 
-  // Edit/ubah kamar
+  // admin - ubah kamar
   Future<void> updateRoom({
     required String id,
     required String roomNumber,
@@ -107,7 +196,7 @@ class RoomService {
         .eq('id', id);
   }
 
-  // hapus kamar
+  // admin - hapus kamar
   Future<void> deleteRoom(String id) async {
     await _supabase.from('rooms').delete().eq('id', id);
   }
