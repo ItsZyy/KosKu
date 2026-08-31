@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kosku/features/complaints/presentation/screens/reports_screen.dart';
-
+import 'package:kosku/features/profile/presentation/screens/admin_profile_screen.dart';
 import 'admin_dashboard_screen.dart';
 import '../../../rooms/presentation/screens/room_screen.dart';
 import '../../../payments/presentation/screens/admin_payments_screen.dart';
@@ -20,13 +20,14 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
     AdminPaymentsScreen(),
     RoomsScreen(),
     ReportsScreen(),
-    Center(child: Text('Profile belum dibuat')),
+    AdminProfileScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _pages),
+
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
