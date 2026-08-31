@@ -157,20 +157,20 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      room?['room_number'] ?? '-',
-                      style: TextStyle(
+                      room?['room']?['room_number']?.toString() ?? '-',
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-
-                    SizedBox(height: 8),
-
-                    Text('Kapasitas: ${room?['capacity'] ?? '-'} orang'),
-
-                    SizedBox(height: 4),
-
-                    Text('Status: ${room?['status'] ?? '-'}'),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Kapasitas: ${room?['room']?['capacity']?.toString() ?? '-'} orang',
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Status: ${room?['room']?['status']?.toString() ?? '-'}',
+                    ),
                   ],
                 ),
               ),
