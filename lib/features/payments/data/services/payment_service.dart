@@ -66,4 +66,31 @@ class PaymentService {
 
     return List<Map<String, dynamic>>.from(data);
   }
+
+  // Riwayat pembayaran milik penghuni yang sedang login
+  Future<List<Map<String, dynamic>>> getPaymentHistory() async {
+    final user = _supabase.auth.currentUser;
+
+    if (user == null) {
+      return [];
+    }
+
+    final data = await _supabase
+        .from('payments')
+        .select()
+        .eq('user_id', user.id)
+        .order('period', ascending: false);
+
+    return List<Map<String, dynamic>>.from(data);
+  }
+
+  Future<Map<String, dynamic>?> getPaymentInfo() async {
+    final data = await _supabase
+        .from('payment_info')
+        .select()
+        .limit(1)
+        .maybeSingle();
+
+    return data;
+  }
 }

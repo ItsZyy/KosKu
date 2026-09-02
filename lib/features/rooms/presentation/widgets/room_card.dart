@@ -320,7 +320,7 @@ class RoomCard extends StatelessWidget {
           Expanded(
             child: ElevatedButton(
               onPressed: onAddUser,
-              child: const Text('Tambah User'),
+              child: const Text('Tambah Penghuni'),
             ),
           ),
         ],
@@ -332,7 +332,7 @@ class RoomCard extends StatelessWidget {
         Expanded(
           child: OutlinedButton(
             onPressed: onRent,
-            child: const Text('Sewakan'),
+            child: const Text('Lihat Detail Kamar'),
           ),
         ),
 
@@ -341,7 +341,7 @@ class RoomCard extends StatelessWidget {
         Expanded(
           child: ElevatedButton(
             onPressed: onAddUser,
-            child: const Text('Tambah User'),
+            child: const Text('Tambah Penghuni'),
           ),
         ),
       ],

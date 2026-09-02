@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'user_dashboard_screen.dart';
+import '../../../payments/presentation/screens/user_payment_screen.dart';
+// import '../../../complaints/presentation/screens/complaints_screen.dart';
+// import '../../../profile/presentation/screens/user_profile_screen.dart';
 
 class UserMainScreen extends StatefulWidget {
   const UserMainScreen({super.key});
@@ -12,7 +15,12 @@ class UserMainScreen extends StatefulWidget {
 class _UserMainScreenState extends State<UserMainScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [UserDashboardScreen()];
+  final List<Widget> _pages = const [
+    UserDashboardScreen(),
+    UserPaymentScreen(),
+    // ComplaintsScreen(),
+    // UserProfileScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
