@@ -1,190 +1,186 @@
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
+import 'app_text_styles.dart';
 
-/// Typography utama KosKu menggunakan font Poppins.
-class AppTextStyles {
-  AppTextStyles._();
+class AppTheme {
+  AppTheme._();
 
-  static const String fontFamily = 'Poppins';
+  static ThemeData get light {
+    final colorScheme = ColorScheme(
+      brightness: Brightness.light,
+      primary: AppColors.primary,
+      onPrimary: AppColors.onPrimary,
+      primaryContainer: AppColors.primarySoft,
+      onPrimaryContainer: AppColors.primary,
+      secondary: AppColors.secondary,
+      onSecondary: AppColors.onSecondary,
+      secondaryContainer: AppColors.secondarySoft,
+      onSecondaryContainer: AppColors.secondary,
+      tertiary: AppColors.info,
+      onTertiary: AppColors.onInfo,
+      error: AppColors.error,
+      onError: AppColors.onError,
+      errorContainer: AppColors.errorSoft,
+      onErrorContainer: AppColors.error,
+      surface: AppColors.surface,
+      onSurface: AppColors.textPrimary,
+      onSurfaceVariant: AppColors.textSecondary,
+      outline: AppColors.border,
+      surfaceContainerHighest: AppColors.border,
+      shadow: AppColors.textDisabled,
+    );
 
-  // Font weight
-  static const FontWeight _regular = FontWeight.w400;
-  static const FontWeight _medium = FontWeight.w500;
-  static const FontWeight _semibold = FontWeight.w600;
-  static const FontWeight _bold = FontWeight.w700;
+    final textTheme = TextTheme(
+      displayLarge: AppTextStyles.displayLarge,
+      displayMedium: AppTextStyles.displayMedium,
+      displaySmall: AppTextStyles.displaySmall,
+      headlineLarge: AppTextStyles.headlineLarge,
+      headlineMedium: AppTextStyles.headlineMedium,
+      headlineSmall: AppTextStyles.headlineSmall,
+      titleLarge: AppTextStyles.titleLarge,
+      titleMedium: AppTextStyles.titleMedium,
+      titleSmall: AppTextStyles.titleSmall,
+      bodyLarge: AppTextStyles.bodyLarge,
+      bodyMedium: AppTextStyles.bodyMedium,
+      bodySmall: AppTextStyles.bodySmall,
+      labelLarge: AppTextStyles.labelLarge,
+      labelMedium: AppTextStyles.labelMedium,
+      labelSmall: AppTextStyles.labelSmall,
+    );
 
-  // Display
-  static const TextStyle displayLarge = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 36,
-    height: 1.2,
-    fontWeight: _bold,
-    color: AppColors.textPrimary,
-  );
+    final appBarTheme = AppBarTheme(
+      backgroundColor: AppColors.surface,
+      foregroundColor: AppColors.textPrimary,
+      elevation: 0,
+      centerTitle: false,
+      titleTextStyle: AppTextStyles.titleLarge,
+      surfaceTintColor: Colors.transparent,
+    );
 
-  static const TextStyle displayMedium = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 30,
-    height: 1.2,
-    fontWeight: _bold,
-    color: AppColors.textPrimary,
-  );
+    final cardTheme = CardThemeData(
+      color: AppColors.card,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: AppColors.border),
+      ),
+    );
 
-  static const TextStyle displaySmall = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 26,
-    height: 1.25,
-    fontWeight: _bold,
-    color: AppColors.textPrimary,
-  );
+    final inputDecorationTheme = InputDecorationTheme(
+      filled: true,
+      fillColor: AppColors.inputBackground,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: AppColors.border),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: AppColors.border),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: AppColors.primary),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: AppColors.error),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: AppColors.error),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textHint),
+      labelStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+      prefixIconColor: AppColors.textSecondary,
+      suffixIconColor: AppColors.textSecondary,
+    );
 
-  // Headline
-  static const TextStyle headlineLarge = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 24,
-    height: 1.3,
-    fontWeight: _semibold,
-    color: AppColors.textPrimary,
-  );
+    final elevatedButtonTheme = ElevatedButtonThemeData(
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) return AppColors.textDisabled;
+          return AppColors.primary;
+        }),
+        foregroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) return AppColors.textHint;
+          return AppColors.onPrimary;
+        }),
+        textStyle: WidgetStateProperty.all(AppTextStyles.button),
+        padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 24, vertical: 14)),
+        shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+        elevation: WidgetStateProperty.all(0),
+      ),
+    );
 
-  static const TextStyle headlineMedium = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 20,
-    height: 1.3,
-    fontWeight: _semibold,
-    color: AppColors.textPrimary,
-  );
+    final outlinedButtonTheme = OutlinedButtonThemeData(
+      style: ButtonStyle(
+        foregroundColor: WidgetStateProperty.all(AppColors.primary),
+        textStyle: WidgetStateProperty.all(AppTextStyles.button),
+        padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 24, vertical: 14)),
+        shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+        side: WidgetStateProperty.all(BorderSide(color: AppColors.primary)),
+      ),
+    );
 
-  static const TextStyle headlineSmall = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 18,
-    height: 1.35,
-    fontWeight: _semibold,
-    color: AppColors.textPrimary,
-  );
+    final textButtonTheme = TextButtonThemeData(
+      style: ButtonStyle(
+        foregroundColor: WidgetStateProperty.all(AppColors.primary),
+        textStyle: WidgetStateProperty.all(AppTextStyles.labelMedium),
+        padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+      ),
+    );
 
-  // Title
-  static const TextStyle titleLarge = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 16,
-    height: 1.4,
-    fontWeight: _semibold,
-    color: AppColors.textPrimary,
-  );
+    final navigationBarTheme = NavigationBarThemeData(
+      backgroundColor: AppColors.surface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      indicatorColor: AppColors.primarySoft,
+      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return AppTextStyles.labelMedium.copyWith(color: AppColors.primary);
+        }
+        return AppTextStyles.labelMedium.copyWith(color: AppColors.textSecondary);
+      }),
+      iconTheme: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return IconThemeData(color: AppColors.primary);
+        }
+        return IconThemeData(color: AppColors.textSecondary);
+      }),
+    );
 
-  static const TextStyle titleMedium = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 15,
-    height: 1.4,
-    fontWeight: _medium,
-    color: AppColors.textPrimary,
-  );
+    final dialogTheme = DialogThemeData(
+      backgroundColor: AppColors.surface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      titleTextStyle: AppTextStyles.headlineSmall,
+      contentTextStyle: AppTextStyles.bodyMedium,
+    );
 
-  static const TextStyle titleSmall = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 14,
-    height: 1.4,
-    fontWeight: _medium,
-    color: AppColors.textPrimary,
-  );
+    final dividerTheme = DividerThemeData(
+      color: AppColors.divider,
+      thickness: 1,
+      space: 1,
+    );
 
-  // Body
-  static const TextStyle bodyLarge = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 16,
-    height: 1.5,
-    fontWeight: _regular,
-    color: AppColors.textPrimary,
-  );
-
-  static const TextStyle bodyMedium = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 14,
-    height: 1.5,
-    fontWeight: _regular,
-    color: AppColors.textPrimary,
-  );
-
-  static const TextStyle bodySmall = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 12,
-    height: 1.5,
-    fontWeight: _regular,
-    color: AppColors.textSecondary,
-  );
-
-  // Label
-  static const TextStyle labelLarge = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 14,
-    height: 1.2,
-    fontWeight: _semibold,
-    color: AppColors.textPrimary,
-  );
-
-  static const TextStyle labelMedium = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 12,
-    height: 1.2,
-    fontWeight: _medium,
-    color: AppColors.textPrimary,
-  );
-
-  static const TextStyle labelSmall = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 11,
-    height: 1.2,
-    fontWeight: _medium,
-    color: AppColors.textSecondary,
-  );
-
-  // Utility
-  static const TextStyle button = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 14,
-    height: 1.2,
-    fontWeight: _semibold,
-    color: AppColors.onPrimary,
-  );
-
-  static const TextStyle caption = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 11,
-    height: 1.3,
-    fontWeight: _regular,
-    color: AppColors.textSecondary,
-  );
-
-  static const TextStyle link = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 14,
-    height: 1.4,
-    fontWeight: _medium,
-    color: AppColors.primary,
-  );
-
-  static const TextStyle error = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 12,
-    height: 1.3,
-    fontWeight: _medium,
-    color: AppColors.error,
-  );
-
-  static const TextStyle success = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 12,
-    height: 1.3,
-    fontWeight: _medium,
-    color: AppColors.success,
-  );
-
-  static const TextStyle warning = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 12,
-    height: 1.3,
-    fontWeight: _medium,
-    color: AppColors.warning,
-  );
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: colorScheme,
+      textTheme: textTheme,
+      appBarTheme: appBarTheme,
+      cardTheme: cardTheme,
+      inputDecorationTheme: inputDecorationTheme,
+      elevatedButtonTheme: elevatedButtonTheme,
+      outlinedButtonTheme: outlinedButtonTheme,
+      textButtonTheme: textButtonTheme,
+      navigationBarTheme: navigationBarTheme,
+      dialogTheme: dialogTheme,
+      dividerTheme: dividerTheme,
+      scaffoldBackgroundColor: AppColors.background,
+    );
+  }
 }
