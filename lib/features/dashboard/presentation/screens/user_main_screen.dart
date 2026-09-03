@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'user_dashboard_screen.dart';
 import '../../../payments/presentation/screens/user_payment_screen.dart';
-// import '../../../complaints/presentation/screens/complaints_screen.dart';
-// import '../../../profile/presentation/screens/user_profile_screen.dart';
+import '../../../complaints/presentation/screens/complaint_screen.dart';
 
 class UserMainScreen extends StatefulWidget {
   const UserMainScreen({super.key});
@@ -18,14 +17,15 @@ class _UserMainScreenState extends State<UserMainScreen> {
   final List<Widget> _pages = const [
     UserDashboardScreen(),
     UserPaymentScreen(),
-    // ComplaintsScreen(),
-    // UserProfileScreen(),
+    ComplaintsScreen(),
+    Center(child: Text('Profil belum dibuat')),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _pages),
+
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
