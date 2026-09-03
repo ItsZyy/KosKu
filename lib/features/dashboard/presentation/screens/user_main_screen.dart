@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'user_dashboard_screen.dart';
 import '../../../payments/presentation/screens/user_payment_screen.dart';
 import '../../../complaints/presentation/screens/complaint_screen.dart';
+import '../../../profile/presentation/screens/user_profile_screen.dart';
 
 class UserMainScreen extends StatefulWidget {
   const UserMainScreen({super.key});
@@ -18,7 +19,7 @@ class _UserMainScreenState extends State<UserMainScreen> {
     UserDashboardScreen(),
     UserPaymentScreen(),
     ComplaintsScreen(),
-    Center(child: Text('Profil belum dibuat')),
+    UserProfileScreen(),
   ];
 
   @override

@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 
 class ProfileInfoCard extends StatelessWidget {
+  final String title;
   final String name;
   final String email;
   final String phone;
   final String address;
+  final String addressLabel;
+  final String nameLabel;
 
   const ProfileInfoCard({
     super.key,
+    this.title = 'Informasi Pemilik',
     required this.name,
     required this.email,
     required this.phone,
     required this.address,
+    this.addressLabel = 'Alamat Kostan',
+    this.nameLabel = 'Nama Lengkap',
   });
 
   @override
@@ -22,18 +28,26 @@ class ProfileInfoCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Informasi Pemilik',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
+
             const SizedBox(height: 16),
-            _buildInfo(Icons.person_outline, 'Nama Lengkap', name),
+
+            _buildInfo(Icons.person_outline, nameLabel, name),
+
             const Divider(),
+
             _buildInfo(Icons.email_outlined, 'Email', email),
+
             const Divider(),
+
             _buildInfo(Icons.phone_outlined, 'Nomor Telepon', phone),
+
             const Divider(),
-            _buildInfo(Icons.home_outlined, 'Alamat Kostan', address),
+
+            _buildInfo(Icons.home_outlined, addressLabel, address),
           ],
         ),
       ),
@@ -58,7 +72,7 @@ class ProfileInfoCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  value,
+                  value.isNotEmpty ? value : '-',
                   style: const TextStyle(fontWeight: FontWeight.w500),
                 ),
               ],
