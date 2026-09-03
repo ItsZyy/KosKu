@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
 
-/// Typography utama KosKu menggunakan font Poppins.
 class AppTextStyles {
   AppTextStyles._();
 
   static const String fontFamily = 'Poppins';
 
-  // Font weight
   static const FontWeight _regular = FontWeight.w400;
   static const FontWeight _medium = FontWeight.w500;
   static const FontWeight _semibold = FontWeight.w600;
