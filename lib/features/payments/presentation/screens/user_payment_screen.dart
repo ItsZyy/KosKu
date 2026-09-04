@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../data/models/payment_model.dart';
 import '../../data/services/payment_service.dart';
+import '../widgets/payment_header_card.dart';
 import '../widgets/payment_method_card.dart';
 import '../widgets/payment_history_card.dart';
 
@@ -14,11 +18,12 @@ class UserPaymentScreen extends StatefulWidget {
 class _UserPaymentScreenState extends State<UserPaymentScreen> {
   final _paymentService = PaymentService();
 
-  Map<String, dynamic>? _payment;
+  Payment? _payment;
   Map<String, dynamic>? _paymentInfo;
   List<Map<String, dynamic>> _paymentHistory = [];
 
   bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -27,8 +32,13 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
   }
 
   Future<void> _loadPayments() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
     try {
-      final payment = await _paymentService.getPayment();
+      final payment = await _paymentService.getCurrentPayment();
       final history = await _paymentService.getPaymentHistory();
       final paymentInfo = await _paymentService.getPaymentInfo();
 
@@ -44,329 +54,193 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
       if (!mounted) return;
 
       setState(() {
+        _error = e.toString();
         _isLoading = false;
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal mengambil data pembayaran: $e')),
-      );
     }
-  }
-
-  String _formatRupiah(dynamic amount) {
-    if (amount == null) {
-      return '-';
-    }
-
-    final value = int.tryParse(amount.toString());
-
-    if (value == null) {
-      return amount.toString();
-    }
-
-    return 'Rp ${value.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (match) => '${match[1]}.')}';
-  }
-
-  String _formatPeriod(dynamic period) {
-    if (period == null) {
-      return '-';
-    }
-
-    final date = DateTime.tryParse(period.toString());
-
-    if (date == null) {
-      return period.toString();
-    }
-
-    const months = [
-      'Januari',
-      'Februari',
-      'Maret',
-      'April',
-      'Mei',
-      'Juni',
-      'Juli',
-      'Agustus',
-      'September',
-      'Oktober',
-      'November',
-      'Desember',
-    ];
-
-    return '${months[date.month - 1]} ${date.year}';
   }
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Tagihan')),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_error != null) {
+      return _buildError();
     }
 
     final payment = _payment;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Tagihan')),
-      body: RefreshIndicator(
-        onRefresh: _loadPayments,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Detail Pembayaran',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+    return RefreshIndicator(
+      onRefresh: _loadPayments,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Detail Pembayaran',
+              style: AppTextStyles.headlineLarge,
+            ),
+
+            const SizedBox(height: 8),
+
+            Text(
+              'Kelola tagihan dan riwayat transaksi Anda.',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textSecondary,
               ),
+            ),
 
-              const SizedBox(height: 8),
+            const SizedBox(height: 24),
 
-              const Text(
-                'Kelola tagihan dan riwayat transaksi Anda.',
-                style: TextStyle(color: Colors.grey),
-              ),
-
-              const SizedBox(height: 24),
-
-              // DETAIL PEMBAYARAN
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: payment == null
-                      ? const Column(
-                          children: [
-                            Icon(Icons.receipt_long_outlined, size: 48),
-                            SizedBox(height: 12),
-                            Text(
-                              'Belum ada tagihan',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        )
-                      : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    _formatPeriod(payment['period']),
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-
-                                _StatusBadge(
-                                  status: payment['status']?.toString() ?? '-',
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(height: 20),
-
-                            Row(
-                              children: [
-                                const Icon(Icons.payments_outlined, size: 28),
-                                const SizedBox(width: 10),
-                                Text(
-                                  _formatRupiah(payment['amount']),
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(height: 20),
-
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.black12),
-                              ),
-                              child: Column(
-                                children: [
-                                  _PaymentRow(
-                                    title: 'Total Pembayaran',
-                                    value: _formatRupiah(payment['amount']),
-                                    bold: true,
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            const SizedBox(height: 16),
-
-                            if (payment['status']?.toString().toLowerCase() ==
-                                'pending')
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    // Nanti diarahkan ke halaman
-                                    // upload bukti pembayaran.
-                                  },
-                                  child: const Text('Bayar Sekarang'),
-                                ),
-                              ),
-                          ],
-                        ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // =========================
-              // METODE PEMBAYARAN
-              // =========================
-              if (_paymentInfo != null)
-                PaymentMethodCard(
-                  bankName: _paymentInfo!['bank_name']?.toString() ?? '-',
-                  accountNumber:
-                      _paymentInfo!['account_number']?.toString() ?? '-',
-                  accountName: _paymentInfo!['account_name']?.toString() ?? '-',
-                  qrisImageUrl: _paymentInfo!['qris_image_url']?.toString(),
-                )
-              else
-                const Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.credit_card),
-                            SizedBox(width: 10),
-                            Text(
-                              'Metode Pembayaran',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'Metode pembayaran belum tersedia.',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-              const SizedBox(height: 24),
-
-              // =========================
-              // RIWAYAT PEMBAYARAN
-              // =========================
-              PaymentHistoryCard(
-                payments: _paymentHistory,
-                onViewAll: () {
+            // =========================
+            // TAGIHAN / DETAIL PEMBAYARAN
+            // =========================
+            if (payment == null)
+              _buildEmptyState()
+            else
+              PaymentHeaderCard(
+                payment: payment,
+                onPay: () {
                   // Nanti diarahkan ke halaman
-                  // seluruh riwayat pembayaran.
+                  // upload bukti pembayaran.
                 },
               ),
 
-              const SizedBox(height: 20),
-            ],
-          ),
+            const SizedBox(height: 24),
+
+            // =========================
+            // METODE PEMBAYARAN
+            // =========================
+            if (_paymentInfo != null)
+              PaymentMethodCard(
+                bankName: _paymentInfo!['bank_name']?.toString() ?? '-',
+                accountNumber:
+                    _paymentInfo!['account_number']?.toString() ?? '-',
+                accountName: _paymentInfo!['account_name']?.toString() ?? '-',
+                qrisImageUrl: _paymentInfo!['qris_image_url']?.toString(),
+              )
+            else
+              const Card(
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.credit_card),
+                          SizedBox(width: 10),
+                          Text(
+                            'Metode Pembayaran',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'Metode pembayaran belum tersedia.',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+            const SizedBox(height: 24),
+
+            // =========================
+            // RIWAYAT PEMBAYARAN
+            // =========================
+            PaymentHistoryCard(
+              payments: _paymentHistory,
+              onViewAll: () {
+                // Nanti diarahkan ke halaman
+                // seluruh riwayat pembayaran.
+              },
+            ),
+
+            const SizedBox(height: 20),
+          ],
         ),
       ),
     );
   }
-}
 
-// =========================
-// PAYMENT ROW
-// =========================
-
-class _PaymentRow extends StatelessWidget {
-  final String title;
-  final String value;
-  final bool bold;
-
-  const _PaymentRow({
-    required this.title,
-    required this.value,
-    this.bold = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            title,
-            style: TextStyle(
-              fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+  Widget _buildEmptyState() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.receipt_long_outlined,
+            size: 48,
+            color: AppColors.textHint,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Belum ada tagihan',
+            style: AppTextStyles.bodyLarge.copyWith(
+              fontWeight: FontWeight.w600,
             ),
           ),
-        ),
-        Text(
-          value,
-          style: TextStyle(
-            fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+          const SizedBox(height: 4),
+          Text(
+            'Tagihan Anda akan muncul di sini.',
+            style: AppTextStyles.bodySmall,
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
-}
 
-// =========================
-// STATUS BADGE
-// =========================
-
-class _StatusBadge extends StatelessWidget {
-  final String status;
-
-  const _StatusBadge({required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    String label;
-
-    switch (status.toLowerCase()) {
-      case 'confirmed':
-      case 'dikonfirmasi':
-        label = 'Lunas';
-        break;
-
-      case 'rejected':
-      case 'ditolak':
-        label = 'Ditolak';
-        break;
-
-      case 'pending':
-      case 'menunggu':
-        label = 'Menunggu Pembayaran';
-        break;
-
-      default:
-        label = status;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: Colors.orange.withValues(alpha: 0.12),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+  Widget _buildError() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48),
+            const SizedBox(height: 12),
+            Text(
+              'Gagal memuat pembayaran',
+              style: AppTextStyles.bodyLarge.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _error!,
+              style: AppTextStyles.bodySmall,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadPayments,
+              child: const Text('Coba Lagi'),
+            ),
+          ],
+        ),
       ),
     );
   }

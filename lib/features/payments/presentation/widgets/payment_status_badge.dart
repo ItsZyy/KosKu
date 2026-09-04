@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
+
 class PaymentStatusBadge extends StatelessWidget {
   final String status;
 
@@ -10,31 +13,49 @@ class PaymentStatusBadge extends StatelessWidget {
     final normalizedStatus = status.toLowerCase();
 
     String label;
-    IconData icon;
+    Color backgroundColor;
+    Color textColor;
+    IconData? icon;
 
     if (normalizedStatus == 'confirmed') {
       label = 'Lunas';
+      backgroundColor = AppColors.successSoft;
+      textColor = AppColors.success;
       icon = Icons.check_circle;
     } else if (normalizedStatus == 'rejected') {
       label = 'Ditolak';
+      backgroundColor = AppColors.errorSoft;
+      textColor = AppColors.error;
       icon = Icons.cancel;
     } else {
       label = 'Menunggu Pembayaran';
+      backgroundColor = AppColors.warningSoft;
+      textColor = AppColors.warning;
       icon = Icons.access_time;
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 18),
-        const SizedBox(width: 6),
-        Flexible(
-          child: Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.w600),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: textColor),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              style: AppTextStyles.labelSmall.copyWith(
+                color: textColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -1,5 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../models/payment_model.dart';
+
 class PaymentService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
@@ -92,5 +94,56 @@ class PaymentService {
         .maybeSingle();
 
     return data;
+  }
+
+  // ========================================
+  // TYPED METHODS (return Payment model)
+  // ========================================
+
+  Future<Payment?> getCurrentPayment() async {
+    final user = _supabase.auth.currentUser;
+
+    if (user == null) return null;
+
+    final data = await _supabase
+        .from('payments')
+        .select('''
+          id,
+          user_id,
+          room_id,
+          payment_type,
+          amount,
+          period,
+          due_date,
+          proof_url,
+          status,
+          confirmed_by,
+          confirmed_at,
+          created_at,
+          rooms (
+            room_number
+          )
+        ''')
+        .eq('user_id', user.id)
+        .order('period', ascending: false)
+        .limit(1)
+        .maybeSingle();
+
+    if (data == null) return null;
+    return Payment.fromMap(data);
+  }
+
+  Future<List<Payment>> getPaymentHistoryTyped() async {
+    final user = _supabase.auth.currentUser;
+
+    if (user == null) return [];
+
+    final data = await _supabase
+        .from('payments')
+        .select()
+        .eq('user_id', user.id)
+        .order('period', ascending: false);
+
+    return (data as List).map((e) => Payment.fromMap(e)).toList();
   }
 }
