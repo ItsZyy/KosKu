@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kosku/features/tenants/presentation/screen/tenants_screen.dart';
 
 import '../../data/models/room_model.dart';
 import '../../data/services/room_service.dart';
@@ -268,10 +269,13 @@ class _RoomsScreenState extends State<RoomsScreen> {
         Expanded(
           child: ElevatedButton.icon(
             onPressed: () {
-              _showMessage('Lihat user');
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const TenantsScreen()),
+              );
             },
             icon: const Icon(Icons.people_outline),
-            label: const Text('Lihat User'),
+            label: const Text('Lihat penghuni'),
           ),
         ),
       ],

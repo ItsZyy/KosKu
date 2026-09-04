@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
-class RoomSummary extends StatelessWidget {
-  final int totalRooms;
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
+
+class TenantSummary extends StatelessWidget {
   final int totalTenants;
   final int occupiedRooms;
 
-  const RoomSummary({
+  const TenantSummary({
     super.key,
-    required this.totalRooms,
     required this.totalTenants,
     required this.occupiedRooms,
   });
@@ -18,15 +19,7 @@ class RoomSummary extends StatelessWidget {
       children: [
         Expanded(
           child: _SummaryCard(
-            icon: Icons.home_outlined,
-            title: 'Total Kamar',
-            value: totalRooms.toString(),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _SummaryCard(
-            icon: Icons.person_outline,
+            icon: Icons.people_outline,
             title: 'Total Penghuni',
             value: totalTenants.toString(),
           ),
@@ -34,8 +27,8 @@ class RoomSummary extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _SummaryCard(
-            icon: Icons.analytics_outlined,
-            title: 'Kamar terisi',
+            icon: Icons.home_outlined,
+            title: 'Kamar Terisi',
             value: occupiedRooms.toString(),
           ),
         ),
@@ -58,22 +51,25 @@ class _SummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, size: 24),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 13, color: Colors.grey),
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: AppColors.primarySoft,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: AppColors.primary, size: 22),
             ),
+            const SizedBox(height: 12),
+            Text(title, style: AppTextStyles.bodySmall),
             const SizedBox(height: 4),
-            Text(
-              value,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
+            Text(value, style: AppTextStyles.headlineSmall),
           ],
         ),
       ),
