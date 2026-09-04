@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../data/models/facility_model.dart';
 import '../../data/services/room_service.dart';
 import '../widgets/room_basic_info_card.dart';
 import '../widgets/room_facilities_card.dart';
@@ -30,9 +31,13 @@ class _AddRoomScreenState extends State<AddRoomScreen> {
 
   int _capacity = 1;
 
-  final Set<String> _selectedFacilities = <String>{};
+  final Set<String> _selectedFacilityIds = <String>{};
 
   final List<XFile> _photos = <XFile>[];
+
+  List<FacilityModel> _facilities = const [];
+  bool _isFacilitiesLoading = true;
+  String? _facilitiesError;
 
   bool _isLoading = false;
   bool _isDirty = false;
@@ -43,6 +48,26 @@ class _AddRoomScreenState extends State<AddRoomScreen> {
     _roomNumberController.addListener(_markDirty);
     _priceController.addListener(_markDirty);
     _descriptionController.addListener(_markDirty);
+    _loadFacilities();
+  }
+
+  Future<void> _loadFacilities() async {
+    try {
+      final facilities = await _roomService.getFacilities();
+      if (!mounted) return;
+      setState(() {
+        _facilities = facilities;
+        _isFacilitiesLoading = false;
+        _facilitiesError = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _facilities = const [];
+        _isFacilitiesLoading = false;
+        _facilitiesError = e.toString();
+      });
+    }
   }
 
   void _markDirty() {
@@ -117,8 +142,10 @@ class _AddRoomScreenState extends State<AddRoomScreen> {
         price: price,
         capacity: _capacity,
         status: 'kosong',
-        facilities: encodeFacilities(_selectedFacilities.toList()),
-        description: _descriptionController.text.trim(),
+        description: _descriptionController.text.trim().isEmpty
+            ? null
+            : _descriptionController.text.trim(),
+        facilityIds: _selectedFacilityIds.toList(),
         images: imageFiles,
       );
 
@@ -225,20 +252,7 @@ class _AddRoomScreenState extends State<AddRoomScreen> {
                   priceValidator: _validatePrice,
                 ),
                 const SizedBox(height: 16),
-                RoomFacilitiesCard(
-                  options: kRoomFacilityOptions,
-                  selected: _selectedFacilities.toList(),
-                  enabled: !_isLoading,
-                  onChanged: (next) {
-                    if (_isLoading) return;
-                    setState(() {
-                      _selectedFacilities
-                        ..clear()
-                        ..addAll(next);
-                      _isDirty = true;
-                    });
-                  },
-                ),
+                _buildFacilitiesSection(),
                 const SizedBox(height: 16),
                 RoomPhotoUploadCard(
                   photos: _photos,
@@ -257,6 +271,63 @@ class _AddRoomScreenState extends State<AddRoomScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildFacilitiesSection() {
+    if (_isFacilitiesLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_facilitiesError != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Gagal memuat daftar fasilitas.',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.error,
+              ),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: _isLoading
+                  ? null
+                  : () {
+                      setState(() {
+                        _isFacilitiesLoading = true;
+                        _facilitiesError = null;
+                      });
+                      _loadFacilities();
+                    },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Coba lagi'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final options = buildRoomFacilityOptions(_facilities);
+
+    return RoomFacilitiesCard(
+      options: options,
+      selectedIds: _selectedFacilityIds.toList(),
+      enabled: !_isLoading,
+      onChanged: (next) {
+        if (_isLoading) return;
+        setState(() {
+          _selectedFacilityIds
+            ..clear()
+            ..addAll(next);
+          _isDirty = true;
+        });
+      },
     );
   }
 }

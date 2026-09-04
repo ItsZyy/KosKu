@@ -1,14 +1,22 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:kosku/features/rooms/data/models/facility_model.dart';
 import 'package:kosku/features/rooms/data/models/room_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class RoomService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
+  static const String _storageBucket = 'room-images';
+  static const String _tableRooms = 'rooms';
+  static const String _tableFacilities = 'facilities';
+  static const String _tableRoomFacilities = 'room_facilities';
+
   static String storagePathToPublicUrl(String path) {
-    return Supabase.instance.client.storage.from('room-images').getPublicUrl(path);
+    return Supabase.instance.client.storage
+        .from(_storageBucket)
+        .getPublicUrl(path);
   }
 
   Future<List<String>> uploadImages({
@@ -24,12 +32,11 @@ class RoomService {
     final List<String> paths = [];
 
     for (final image in images) {
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${paths.length}.jpg';
+      final fileName =
+          '${DateTime.now().millisecondsSinceEpoch}_${paths.length}.jpg';
       final filePath = 'rooms/$roomId/$fileName';
 
-      await _supabase.storage
-          .from('room-images')
-          .upload(
+      await _supabase.storage.from(_storageBucket).upload(
             filePath,
             image,
             fileOptions: const FileOptions(
@@ -89,7 +96,6 @@ class RoomService {
             room_number,
             capacity,
             status,
-            facilities,
             description,
             image_url
           )
@@ -186,24 +192,69 @@ class RoomService {
     return users;
   }
 
+  // admin - ambil daftar fasilitas aktif dari tabel facilities
+  Future<List<FacilityModel>> getFacilities({bool activeOnly = true}) async {
+    var query = _supabase.from(_tableFacilities).select();
+
+    if (activeOnly) {
+      query = query.eq('is_active', true);
+    }
+
+    final data = await query.order('name', ascending: true);
+
+    return data
+        .map<FacilityModel>((item) => FacilityModel.fromMap(item))
+        .toList();
+  }
+
+  // admin - ambil fasilitas yang dimiliki sebuah kamar
+  Future<List<FacilityModel>> getRoomFacilities(String roomId) async {
+    final data = await _supabase
+        .from(_tableRoomFacilities)
+        .select('''
+          facility_id,
+          facilities (
+            id,
+            name,
+            price,
+            description,
+            is_active
+          )
+        ''')
+        .eq('room_id', roomId);
+
+    final List<FacilityModel> result = [];
+
+    for (final item in data) {
+      final facilityData = item['facilities'];
+
+      if (facilityData is Map) {
+        result.add(
+          FacilityModel.fromMap(Map<String, dynamic>.from(facilityData)),
+        );
+      }
+    }
+
+    return result;
+  }
+
   // admin - tambah kamar
-  Future<void> createRoom({
+  Future<RoomModel> createRoom({
     required String roomNumber,
     required double price,
     required int capacity,
-    required String status,
-    required String facilities,
-    required String description,
+    String status = 'kosong',
+    String? description,
+    List<String> facilityIds = const [],
     List<File> images = const [],
   }) async {
     final data = await _supabase
-        .from('rooms')
+        .from(_tableRooms)
         .insert({
           'room_number': roomNumber,
           'price': price,
           'capacity': capacity,
           'status': status,
-          'facilities': facilities,
           'description': description,
           'image_url': null,
         })
@@ -212,21 +263,36 @@ class RoomService {
 
     final roomId = data['id'] as String;
 
-    if (images.isEmpty) {
-      return;
-    }
-
     try {
-      final paths = await uploadImages(roomId: roomId, images: images);
-      final encoded = encodeImageUrls(paths);
+      if (facilityIds.isNotEmpty) {
+        await _replaceRoomFacilities(roomId, facilityIds);
+      }
 
-      await _supabase
-          .from('rooms')
-          .update({'image_url': encoded})
-          .eq('id', roomId);
+      if (images.isNotEmpty) {
+        final paths = await uploadImages(roomId: roomId, images: images);
+        final encoded = encodeImageUrls(paths);
+
+        await _supabase
+            .from(_tableRooms)
+            .update({'image_url': encoded})
+            .eq('id', roomId);
+      }
     } catch (e) {
-      throw Exception('Gagal upload foto: $e');
+      // Best-effort cleanup agar tidak meninggalkan kamar yatim ketika
+      // proses insert fasilitas / upload foto gagal.
+      try {
+        await _supabase.from(_tableRoomFacilities).delete().eq('room_id', roomId);
+      } catch (_) {}
+      try {
+        await _deleteStorageFiles(roomId);
+      } catch (_) {}
+      try {
+        await _supabase.from(_tableRooms).delete().eq('id', roomId);
+      } catch (_) {}
+      throw Exception('Gagal membuat kamar: $e');
     }
+
+    return RoomModel.fromMap(data);
   }
 
   // admin - ubah kamar
@@ -236,43 +302,102 @@ class RoomService {
     required double price,
     required int capacity,
     required String status,
-    required String facilities,
-    required String description,
+    String? description,
+    List<String> facilityIds = const [],
     List<File> images = const [],
   }) async {
     final currentRoomData = await _supabase
-        .from('rooms')
+        .from(_tableRooms)
         .select('image_url')
         .eq('id', id)
         .maybeSingle();
 
-    String? imageUrl;
-
-    if (images.isEmpty) {
-      imageUrl = currentRoomData?['image_url'] as String?;
-    } else {
-      final existingPaths = parseImageUrls(currentRoomData?['image_url']);
-      final newPaths = await uploadImages(roomId: id, images: images);
-      final allPaths = [...existingPaths, ...newPaths];
-      imageUrl = encodeImageUrls(allPaths);
+    if (currentRoomData == null) {
+      throw Exception('Kamar tidak ditemukan');
     }
 
+    final existingPaths = parseImageUrls(currentRoomData['image_url']);
+    final allPaths = <String>[...existingPaths];
+
+    if (images.isNotEmpty) {
+      final newPaths = await uploadImages(roomId: id, images: images);
+      allPaths.addAll(newPaths);
+    }
+
+    final imageUrl = allPaths.isEmpty ? null : encodeImageUrls(allPaths);
+
     await _supabase
-        .from('rooms')
+        .from(_tableRooms)
         .update({
           'room_number': roomNumber,
           'price': price,
           'capacity': capacity,
           'status': status,
-          'facilities': facilities,
           'description': description,
           'image_url': imageUrl,
         })
         .eq('id', id);
+
+    await _replaceRoomFacilities(id, facilityIds);
   }
 
   // admin - hapus kamar
   Future<void> deleteRoom(String id) async {
-    await _supabase.from('rooms').delete().eq('id', id);
+    // Hapus relasi fasilitas kamar terlebih dahulu.
+    await _supabase.from(_tableRoomFacilities).delete().eq('room_id', id);
+
+    // Hapus foto-foto kamar di storage (jika policy mengizinkan).
+    await _deleteStorageFiles(id);
+
+    // Hapus baris kamar.
+    await _supabase.from(_tableRooms).delete().eq('id', id);
+  }
+
+  // Helpers ----------------------------------------------------------------
+
+  Future<void> _replaceRoomFacilities(
+    String roomId,
+    List<String> facilityIds,
+  ) async {
+    await _supabase.from(_tableRoomFacilities).delete().eq('room_id', roomId);
+
+    if (facilityIds.isEmpty) {
+      return;
+    }
+
+    final rows = facilityIds
+        .where((id) => id.trim().isNotEmpty)
+        .map((facilityId) => {
+              'room_id': roomId,
+              'facility_id': facilityId,
+            })
+        .toList();
+
+    if (rows.isEmpty) {
+      return;
+    }
+
+    await _supabase.from(_tableRoomFacilities).insert(rows);
+  }
+
+  Future<void> _deleteStorageFiles(String roomId) async {
+    try {
+      final List<FileObject> files = await _supabase.storage
+          .from(_storageBucket)
+          .list(path: 'rooms/$roomId');
+
+      if (files.isEmpty) {
+        return;
+      }
+
+      final paths = files
+          .map((f) => 'rooms/$roomId/${f.name}')
+          .toList();
+
+      await _supabase.storage.from(_storageBucket).remove(paths);
+    } catch (_) {
+      // Hapus foto di storage best-effort. Jangan gagalkan delete kamar
+      // hanya karena storage tidak bisa diakses.
+    }
   }
 }

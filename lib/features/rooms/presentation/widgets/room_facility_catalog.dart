@@ -1,24 +1,54 @@
 import 'package:flutter/material.dart';
 
+import '../../data/models/facility_model.dart';
 import 'room_facilities_card.dart';
 
-/// Single source of truth untuk daftar fasilitas kamar di UI.
-/// Dipakai oleh RoomFacilitiesCard sehingga mudah diperluas ketika
-/// database sudah mendukung tabel `facilities` terpisah.
-final List<RoomFacilityOption> kRoomFacilityOptions = [
-  RoomFacilityOption(key: 'Meja', label: 'Meja', icon: Icons.chair_outlined),
-  RoomFacilityOption(key: 'WiFi', label: 'WiFi', icon: Icons.wifi),
-  RoomFacilityOption(key: 'Kasur', label: 'Kasur', icon: Icons.bed_outlined),
-  RoomFacilityOption(key: 'KM Dalam', label: 'KM Dalam', icon: Icons.shower_outlined),
-  RoomFacilityOption(key: 'Lemari', label: 'Lemari', icon: Icons.checkroom_outlined),
-  RoomFacilityOption(key: 'Laundry', label: 'Laundry', icon: Icons.local_laundry_service_outlined),
-];
+/// Pemetaan icon untuk nama fasilitas yang umum.
+/// Bisa diperluas bila ada fasilitas baru yang perlu icon tertentu.
+IconData _iconForFacility(String name) {
+  final n = name.toLowerCase();
+  if (n.contains('kasur') || n.contains('bed')) {
+    return Icons.bed_outlined;
+  }
+  if (n.contains('lemari')) {
+    return Icons.checkroom_outlined;
+  }
+  if (n.contains('meja')) {
+    return Icons.chair_outlined;
+  }
+  if (n.contains('tv')) {
+    return Icons.tv_outlined;
+  }
+  if (n.contains('wifi') || n.contains('wi-fi') || n.contains('wi fi')) {
+    return Icons.wifi;
+  }
+  if (n.contains('mandi') || n.contains('km')) {
+    return Icons.shower_outlined;
+  }
+  if (n.contains('laundry') || n.contains('cuci')) {
+    return Icons.local_laundry_service_outlined;
+  }
+  if (n.contains('ac')) {
+    return Icons.ac_unit_outlined;
+  }
+  if (n.contains('kulkas') || n.contains('kitchen')) {
+    return Icons.kitchen_outlined;
+  }
+  return Icons.check_circle_outline;
+}
 
-/// TODO(facilities): `rooms.facilities` saat ini masih berupa `text`.
-/// Konversi dari `List<String>` UI ke format persistence.
-/// Saat ini di-join dengan koma sesuai schema lama. Ketika schema
-/// sudah migrasi ke tabel `facilities` + `room_facilities` (relasi),
-/// ubah fungsi ini saja agar UI tidak perlu diubah.
-String encodeFacilities(List<String> selected) {
-  return selected.join(', ');
+/// Mengonversi daftar [FacilityModel] dari database menjadi
+/// opsi yang siap dipakai oleh [RoomFacilitiesCard].
+List<RoomFacilityOption> buildRoomFacilityOptions(
+  List<FacilityModel> facilities,
+) {
+  return facilities
+      .where((f) => f.isActive)
+      .map(
+        (f) => RoomFacilityOption.fromFacility(
+          f,
+          icon: _iconForFacility(f.name),
+        ),
+      )
+      .toList();
 }

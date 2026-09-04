@@ -2,29 +2,44 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../data/models/facility_model.dart';
 import 'section_card.dart';
 
 class RoomFacilityOption {
-  final String key;
+  final String id;
   final String label;
+  final double price;
   final IconData icon;
 
   const RoomFacilityOption({
-    required this.key,
+    required this.id,
     required this.label,
-    required this.icon,
+    required this.price,
+    this.icon = Icons.check_circle_outline,
   });
+
+  factory RoomFacilityOption.fromFacility(
+    FacilityModel facility, {
+    IconData icon = Icons.check_circle_outline,
+  }) {
+    return RoomFacilityOption(
+      id: facility.id,
+      label: facility.name,
+      price: facility.price,
+      icon: icon,
+    );
+  }
 }
 
 class RoomFacilitiesCard extends StatelessWidget {
-  final List<String> selected;
+  final List<String> selectedIds;
   final ValueChanged<List<String>> onChanged;
   final List<RoomFacilityOption> options;
   final bool enabled;
 
   const RoomFacilitiesCard({
     super.key,
-    required this.selected,
+    required this.selectedIds,
     required this.onChanged,
     required this.options,
     this.enabled = true,
@@ -35,41 +50,51 @@ class RoomFacilitiesCard extends StatelessWidget {
     return SectionCard(
       title: 'Fasilitas',
       subtitle: 'Pilih satu atau lebih fasilitas yang tersedia di kamar.',
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final crossAxisCount = constraints.maxWidth >= 360 ? 3 : 2;
-          return GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 1,
+      child: options.isEmpty
+          ? Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'Belum ada fasilitas aktif.',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            )
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                final crossAxisCount = constraints.maxWidth >= 360 ? 3 : 2;
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 1,
+                  ),
+                  itemCount: options.length,
+                  itemBuilder: (context, index) {
+                    final option = options[index];
+                    final isSelected = selectedIds.contains(option.id);
+                    return _FacilityItem(
+                      option: option,
+                      selected: isSelected,
+                      enabled: enabled,
+                      onTap: () => _toggle(option.id),
+                    );
+                  },
+                );
+              },
             ),
-            itemCount: options.length,
-            itemBuilder: (context, index) {
-              final option = options[index];
-              final isSelected = selected.contains(option.key);
-              return _FacilityItem(
-                option: option,
-                selected: isSelected,
-                enabled: enabled,
-                onTap: () => _toggle(option.key),
-              );
-            },
-          );
-        },
-      ),
     );
   }
 
-  void _toggle(String key) {
-    final next = List<String>.from(selected);
-    if (next.contains(key)) {
-      next.remove(key);
+  void _toggle(String id) {
+    final next = List<String>.from(selectedIds);
+    if (next.contains(id)) {
+      next.remove(id);
     } else {
-      next.add(key);
+      next.add(id);
     }
     onChanged(next);
   }
