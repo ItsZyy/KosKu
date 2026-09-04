@@ -32,10 +32,6 @@ class _AddRoomScreenState extends State<AddRoomScreen> {
 
   final Set<String> _selectedFacilities = <String>{};
 
-  // TODO: DB currently supports only rooms.image_url (single text).
-  // Future implementation should use a dedicated room_images table
-  // for multiple room photos. UI uses List<XFile> agar migrasi tinggal
-  // dilakukan di layer service/repository.
   final List<XFile> _photos = <XFile>[];
 
   bool _isLoading = false;
@@ -116,10 +112,6 @@ class _AddRoomScreenState extends State<AddRoomScreen> {
     try {
       final imageFiles = _photos.map((x) => File(x.path)).toList();
 
-      // TODO: saat DB mendukung multi-image, ganti dengan upload semua
-      // foto dan simpan ke tabel room_images.
-      final imageUrl = await _roomService.uploadFirstImageOrNull(imageFiles);
-
       await _roomService.createRoom(
         roomNumber: _roomNumberController.text.trim(),
         price: price,
@@ -127,7 +119,7 @@ class _AddRoomScreenState extends State<AddRoomScreen> {
         status: 'kosong',
         facilities: encodeFacilities(_selectedFacilities.toList()),
         description: _descriptionController.text.trim(),
-        imageUrl: imageUrl,
+        images: imageFiles,
       );
 
       if (!mounted) return;

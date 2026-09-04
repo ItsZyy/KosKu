@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:kosku/features/rooms/data/models/room_model.dart';
@@ -6,40 +7,65 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class RoomService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  // Upload foto kamar ke Supabase Storage.
-  // Mengembalikan public URL.
-  Future<String> uploadImage(File image) async {
+  static String storagePathToPublicUrl(String path) {
+    return Supabase.instance.client.storage.from('room-images').getPublicUrl(path);
+  }
+
+  Future<List<String>> uploadImages({
+    required String roomId,
+    required List<File> images,
+  }) async {
     final user = _supabase.auth.currentUser;
 
     if (user == null) {
       throw Exception('User belum login');
     }
 
-    final fileName = '${user.id}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final List<String> paths = [];
 
-    final filePath = 'rooms/$fileName';
+    for (final image in images) {
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${paths.length}.jpg';
+      final filePath = 'rooms/$roomId/$fileName';
 
-    await _supabase.storage
-        .from('room-images')
-        .upload(
-          filePath,
-          image,
-          fileOptions: const FileOptions(
-            contentType: 'image/jpeg',
-            upsert: false,
-          ),
-        );
+      await _supabase.storage
+          .from('room-images')
+          .upload(
+            filePath,
+            image,
+            fileOptions: const FileOptions(
+              contentType: 'image/jpeg',
+              upsert: false,
+            ),
+          );
 
-    return _supabase.storage.from('room-images').getPublicUrl(filePath);
+      paths.add(filePath);
+    }
+
+    return paths;
   }
 
-  /// Upload banyak foto. Karena DB saat ini hanya menyimpan satu
-  /// `rooms.image_url`, hanya foto pertama yang dipakai. Field
-  /// TODO: migrasi ke tabel `room_images` (room_id, url, position)
-  /// untuk multi-image.
-  Future<String?> uploadFirstImageOrNull(List<File> images) async {
-    if (images.isEmpty) return null;
-    return uploadImage(images.first);
+  static List<String> parseImageUrls(dynamic value) {
+    if (value == null) return <String>[];
+
+    if (value is String) {
+      final trimmed = value.trim();
+      if (trimmed.isEmpty) return <String>[];
+
+      try {
+        final decoded = jsonDecode(trimmed);
+        if (decoded is List) {
+          return decoded.whereType<String>().toList();
+        }
+      } on FormatException catch (_) {
+        return <String>[trimmed];
+      }
+    }
+
+    return <String>[];
+  }
+
+  static String encodeImageUrls(List<String> paths) {
+    return jsonEncode(paths);
   }
 
   // user - melihat kamar yang sedang ditempati
@@ -168,17 +194,39 @@ class RoomService {
     required String status,
     required String facilities,
     required String description,
-    String? imageUrl,
+    List<File> images = const [],
   }) async {
-    await _supabase.from('rooms').insert({
-      'room_number': roomNumber,
-      'price': price,
-      'capacity': capacity,
-      'status': status,
-      'facilities': facilities,
-      'description': description,
-      'image_url': imageUrl,
-    });
+    final data = await _supabase
+        .from('rooms')
+        .insert({
+          'room_number': roomNumber,
+          'price': price,
+          'capacity': capacity,
+          'status': status,
+          'facilities': facilities,
+          'description': description,
+          'image_url': null,
+        })
+        .select()
+        .single();
+
+    final roomId = data['id'] as String;
+
+    if (images.isEmpty) {
+      return;
+    }
+
+    try {
+      final paths = await uploadImages(roomId: roomId, images: images);
+      final encoded = encodeImageUrls(paths);
+
+      await _supabase
+          .from('rooms')
+          .update({'image_url': encoded})
+          .eq('id', roomId);
+    } catch (e) {
+      throw Exception('Gagal upload foto: $e');
+    }
   }
 
   // admin - ubah kamar
@@ -190,8 +238,25 @@ class RoomService {
     required String status,
     required String facilities,
     required String description,
-    String? imageUrl,
+    List<File> images = const [],
   }) async {
+    final currentRoomData = await _supabase
+        .from('rooms')
+        .select('image_url')
+        .eq('id', id)
+        .maybeSingle();
+
+    String? imageUrl;
+
+    if (images.isEmpty) {
+      imageUrl = currentRoomData?['image_url'] as String?;
+    } else {
+      final existingPaths = parseImageUrls(currentRoomData?['image_url']);
+      final newPaths = await uploadImages(roomId: id, images: images);
+      final allPaths = [...existingPaths, ...newPaths];
+      imageUrl = encodeImageUrls(allPaths);
+    }
+
     await _supabase
         .from('rooms')
         .update({

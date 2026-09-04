@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../data/models/room_model.dart';
+import '../../data/services/room_service.dart';
 
 class RoomCard extends StatelessWidget {
   final RoomModel room;
@@ -128,7 +129,10 @@ class RoomCard extends StatelessWidget {
   }
 
   Widget _buildImage() {
-    final imageUrl = room.imageUrl;
+    final imagePaths = room.imagePaths;
+    final imageUrl = imagePaths.isNotEmpty
+        ? RoomService.storagePathToPublicUrl(imagePaths.first)
+        : null;
 
     return SizedBox(
       width: double.infinity,
@@ -136,7 +140,7 @@ class RoomCard extends StatelessWidget {
       child: Stack(
         children: [
           Positioned.fill(
-            child: imageUrl != null && imageUrl.isNotEmpty
+            child: imageUrl != null
                 ? Image.network(
                     imageUrl,
                     fit: BoxFit.cover,

@@ -1,3 +1,5 @@
+import 'package:kosku/features/rooms/data/services/room_service.dart';
+
 class RoomModel {
   final String id;
   final String roomNumber;
@@ -20,6 +22,8 @@ class RoomModel {
     this.imageUrl,
     required this.createdAt,
   });
+
+  List<String> get imagePaths => RoomService.parseImageUrls(imageUrl);
 
   factory RoomModel.fromMap(Map<String, dynamic> map) {
     return RoomModel(
