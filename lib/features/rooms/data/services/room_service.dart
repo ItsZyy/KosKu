@@ -6,7 +6,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class RoomService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  // Upload foto kamar ke Supabase Storage
+  // Upload foto kamar ke Supabase Storage.
+  // Mengembalikan public URL.
   Future<String> uploadImage(File image) async {
     final user = _supabase.auth.currentUser;
 
@@ -30,6 +31,15 @@ class RoomService {
         );
 
     return _supabase.storage.from('room-images').getPublicUrl(filePath);
+  }
+
+  /// Upload banyak foto. Karena DB saat ini hanya menyimpan satu
+  /// `rooms.image_url`, hanya foto pertama yang dipakai. Field
+  /// TODO: migrasi ke tabel `room_images` (room_id, url, position)
+  /// untuk multi-image.
+  Future<String?> uploadFirstImageOrNull(List<File> images) async {
+    if (images.isEmpty) return null;
+    return uploadImage(images.first);
   }
 
   // user - melihat kamar yang sedang ditempati
