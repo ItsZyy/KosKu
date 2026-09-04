@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class PrimaryButton extends StatelessWidget {
   final String text;
@@ -16,33 +18,30 @@ class PrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 50,
+      height: 54,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF2563EB),
-          foregroundColor: Colors.white,
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.onPrimary,
           elevation: 0,
+          disabledBackgroundColor: AppColors.textDisabled,
+          disabledForegroundColor: AppColors.textHint,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
+          textStyle: AppTextStyles.button,
         ),
         child: isLoading
-            ? const SizedBox(
-                height: 22,
-                width: 22,
+            ? SizedBox(
+                height: 24,
+                width: 24,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
-                  color: Colors.white,
+                  color: AppColors.onPrimary,
                 ),
               )
-            : Text(
-                text,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+            : Text(text),
       ),
     );
   }

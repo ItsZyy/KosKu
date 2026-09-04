@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class LoginHeader extends StatelessWidget {
   const LoginHeader({super.key});
@@ -7,21 +9,33 @@ class LoginHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Image.asset('assets/images/logo.png', height: 80, fit: BoxFit.contain),
+        // Logo dengan container
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.primarySoft,
+            shape: BoxShape.circle,
+          ),
+          child: Image.asset(
+            'assets/images/logo.png',
+            height: 60,
+            fit: BoxFit.contain,
+          ),
+        ),
         const SizedBox(height: 16),
-        const Text(
+        Text(
           'KosKu',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1E293B),
+          style: AppTextStyles.displayMedium.copyWith(
+            color: AppColors.textPrimary,
             letterSpacing: 0.5,
           ),
         ),
-        const SizedBox(height: 6),
-        const Text(
+        const SizedBox(height: 8),
+        Text(
           'Masuk ke akun Anda untuk melanjutkan',
-          style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.textSecondary,
+          ),
         ),
       ],
     );
