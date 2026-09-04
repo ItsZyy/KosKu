@@ -1,28 +1,34 @@
 import 'package:flutter/material.dart';
+
+import '../../data/models/tenant_model.dart';
 import 'tenant_card.dart';
 
 class TenantList extends StatelessWidget {
-  final List<TenantItem> tenants;
-  final ValueChanged<TenantItem>? onDetail;
+  final List<TenantModel> tenants;
+  final ValueChanged<TenantModel>? onDetail;
+
   const TenantList({super.key, required this.tenants, this.onDetail});
+
   @override
   Widget build(BuildContext context) {
     if (tenants.isEmpty) {
       return const _EmptyTenantState();
     }
+
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: tenants.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final tenant = tenants[index];
+
         return TenantCard(
           name: tenant.name,
           roomNumber: tenant.roomNumber,
-          joinedDate: tenant.joinedDate,
+          joinedDate: tenant.contractStart.toString(),
           status: tenant.status,
-          photoUrl: tenant.photoUrl,
+          photoUrl: tenant.profilePhotoUrl,
           onDetail: () => onDetail?.call(tenant),
         );
       },
@@ -30,23 +36,9 @@ class TenantList extends StatelessWidget {
   }
 }
 
-class TenantItem {
-  final String name;
-  final String roomNumber;
-  final String joinedDate;
-  final String status;
-  final String? photoUrl;
-  const TenantItem({
-    required this.name,
-    required this.roomNumber,
-    required this.joinedDate,
-    required this.status,
-    this.photoUrl,
-  });
-}
-
 class _EmptyTenantState extends StatelessWidget {
   const _EmptyTenantState();
+
   @override
   Widget build(BuildContext context) {
     return const Padding(
