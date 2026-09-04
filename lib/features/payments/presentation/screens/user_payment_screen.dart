@@ -7,6 +7,7 @@ import '../../data/services/payment_service.dart';
 import '../widgets/payment_header_card.dart';
 import '../widgets/payment_method_card.dart';
 import '../widgets/payment_history_card.dart';
+import 'payment_detail_screen.dart';
 
 class UserPaymentScreen extends StatefulWidget {
   const UserPaymentScreen({super.key});
@@ -58,6 +59,20 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> _openDetail(Payment payment) async {
+    if (payment.id == null) return;
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PaymentDetailScreen(
+          paymentId: payment.id!,
+          initial: payment,
+        ),
+      ),
+    );
   }
 
   @override
@@ -112,8 +127,7 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
               PaymentHeaderCard(
                 payment: payment,
                 onPay: () {
-                  // Nanti diarahkan ke halaman
-                  // upload bukti pembayaran.
+                  _openDetail(payment);
                 },
               ),
 

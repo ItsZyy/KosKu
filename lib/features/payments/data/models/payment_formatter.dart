@@ -63,10 +63,13 @@ class PaymentFormatter {
 
   static String statusLabel(String status) {
     switch (status.toLowerCase()) {
+      case 'dikonfirmasi':
       case 'confirmed':
         return 'Lunas';
+      case 'ditolak':
       case 'rejected':
         return 'Ditolak';
+      case 'menunggu':
       case 'pending':
         return 'Menunggu Pembayaran';
       default:

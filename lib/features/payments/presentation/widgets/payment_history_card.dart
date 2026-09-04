@@ -53,10 +53,13 @@ class PaymentHistoryCard extends StatelessWidget {
   String _getStatusLabel(dynamic status) {
     switch (status?.toString().toLowerCase()) {
       case 'confirmed':
+      case 'dikonfirmasi':
         return 'LUNAS';
       case 'rejected':
+      case 'ditolak':
         return 'DITOLAK';
       case 'pending':
+      case 'menunggu':
         return 'MENUNGGU';
       default:
         return status?.toString().toUpperCase() ?? '-';
@@ -66,10 +69,13 @@ class PaymentHistoryCard extends StatelessWidget {
   IconData _getStatusIcon(dynamic status) {
     switch (status?.toString().toLowerCase()) {
       case 'confirmed':
+      case 'dikonfirmasi':
         return Icons.check_circle;
       case 'rejected':
+      case 'ditolak':
         return Icons.cancel;
       case 'pending':
+      case 'menunggu':
         return Icons.access_time;
       default:
         return Icons.info_outline;

@@ -17,12 +17,12 @@ class PaymentStatusBadge extends StatelessWidget {
     Color textColor;
     IconData? icon;
 
-    if (normalizedStatus == 'confirmed') {
+    if (normalizedStatus == 'confirmed' || normalizedStatus == 'dikonfirmasi') {
       label = 'Lunas';
       backgroundColor = AppColors.successSoft;
       textColor = AppColors.success;
       icon = Icons.check_circle;
-    } else if (normalizedStatus == 'rejected') {
+    } else if (normalizedStatus == 'rejected' || normalizedStatus == 'ditolak') {
       label = 'Ditolak';
       backgroundColor = AppColors.errorSoft;
       textColor = AppColors.error;

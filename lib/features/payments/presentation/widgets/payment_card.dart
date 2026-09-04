@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import 'payment_status_badge.dart';
+
 class PaymentCard extends StatelessWidget {
   final Map<String, dynamic> payment;
   final VoidCallback? onTap;
@@ -29,18 +33,8 @@ class PaymentCard extends StatelessWidget {
     if (date == null) return value;
 
     const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'Mei',
-      'Jun',
-      'Jul',
-      'Agu',
-      'Sep',
-      'Okt',
-      'Nov',
-      'Des',
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
     ];
 
     return '${date.day} ${months[date.month - 1]} ${date.year}';
@@ -63,20 +57,7 @@ class PaymentCard extends StatelessWidget {
 
     final proofUrl = payment['proof_url']?.toString();
 
-    final isPaid = status == 'dikonfirmasi';
-    final isWaiting = status == 'menunggu';
-
-    final statusText = isPaid
-        ? 'LUNAS'
-        : isWaiting
-        ? 'MENUNGGU'
-        : 'BELUM BAYAR';
-
-    final statusColor = isPaid
-        ? Colors.green
-        : isWaiting
-        ? Colors.orange
-        : Colors.red;
+    final paymentId = payment['id']?.toString();
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -97,38 +78,20 @@ class PaymentCard extends StatelessWidget {
                     children: [
                       Text(
                         name.toString(),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: AppTextStyles.titleLarge,
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Kamar $roomNumber',
-                        style: const TextStyle(color: Colors.grey),
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ],
                   ),
                 ),
 
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    statusText,
-                    style: TextStyle(
-                      color: statusColor,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
+                PaymentStatusBadge(status: status),
               ],
             ),
 
@@ -140,10 +103,14 @@ class PaymentCard extends StatelessWidget {
 
             Row(
               children: [
-                const Expanded(child: Text('Jumlah Tagihan')),
+                const Expanded(
+                  child: Text('Jumlah Tagihan', style: AppTextStyles.bodyMedium),
+                ),
                 Text(
                   _formatRupiah(amount),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
             ),
@@ -152,10 +119,14 @@ class PaymentCard extends StatelessWidget {
 
             Row(
               children: [
-                const Expanded(child: Text('Tanggal')),
+                const Expanded(
+                  child: Text('Tanggal', style: AppTextStyles.bodyMedium),
+                ),
                 Text(
                   _formatDate(createdAt),
-                  style: const TextStyle(color: Colors.grey),
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ],
             ),
@@ -164,9 +135,12 @@ class PaymentCard extends StatelessWidget {
               const SizedBox(height: 12),
               const Row(
                 children: [
-                  Icon(Icons.image, size: 18),
+                  Icon(Icons.image, size: 18, color: AppColors.textSecondary),
                   SizedBox(width: 6),
-                  Text('Bukti pembayaran tersedia'),
+                  Text(
+                    'Bukti pembayaran tersedia',
+                    style: AppTextStyles.bodySmall,
+                  ),
                 ],
               ),
             ],
@@ -176,8 +150,8 @@ class PaymentCard extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: onTap,
-                child: Text(isWaiting ? 'Verifikasi' : 'Lihat Detail'),
+                onPressed: paymentId == null ? null : onTap,
+                child: const Text('Lihat Detail'),
               ),
             ),
           ],

@@ -4,6 +4,8 @@ import '../../data/services/payment_service.dart';
 import '../widgets/payment_card.dart';
 import '../widgets/payment_summary.dart';
 import '../widgets/payment_filter.dart';
+import 'generate_payment_screen.dart';
+import 'payment_detail_screen.dart';
 
 class AdminPaymentsScreen extends StatefulWidget {
   const AdminPaymentsScreen({super.key});
@@ -127,9 +129,42 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Tagihan')),
+      appBar: AppBar(
+        title: const Text('Tagihan'),
+        actions: [
+          IconButton(
+            tooltip: 'Buat Tagihan',
+            icon: const Icon(Icons.add),
+            onPressed: _openGeneratePayment,
+          ),
+        ],
+      ),
       body: _buildBody(),
     );
+  }
+
+  Future<void> _openGeneratePayment() async {
+    final result = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(builder: (context) => const GeneratePaymentScreen()),
+    );
+
+    if (result != null && mounted) {
+      _loadPayments();
+
+      final paymentId = result['payment_id']?.toString();
+      if (paymentId != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PaymentDetailScreen(
+              paymentId: paymentId,
+              isAdmin: true,
+            ),
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildBody() {
@@ -233,7 +268,17 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
       return PaymentCard(
         payment: payment,
         onTap: () {
-          // Detail pembayaran dibuat berikutnya.
+          final paymentId = payment['id']?.toString();
+          if (paymentId == null) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PaymentDetailScreen(
+                paymentId: paymentId,
+                isAdmin: true,
+              ),
+            ),
+          );
         },
       );
     }).toList();

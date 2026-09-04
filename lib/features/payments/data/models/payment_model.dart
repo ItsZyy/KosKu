@@ -1,3 +1,47 @@
+class PaymentItem {
+  final String? id;
+  final String? paymentId;
+  final String? itemType;
+  final String? description;
+  final int amount;
+  final DateTime? createdAt;
+
+  const PaymentItem({
+    this.id,
+    this.paymentId,
+    this.itemType,
+    this.description,
+    this.amount = 0,
+    this.createdAt,
+  });
+
+  factory PaymentItem.fromMap(Map<String, dynamic> map) {
+    return PaymentItem(
+      id: map['id']?.toString(),
+      paymentId: map['payment_id']?.toString(),
+      itemType: map['item_type']?.toString(),
+      description: map['description']?.toString(),
+      amount: (map['amount'] as num?)?.toInt() ?? 0,
+      createdAt: _parseDate(map['created_at']),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      if (id != null) 'id': id,
+      if (paymentId != null) 'payment_id': paymentId,
+      'item_type': itemType,
+      'description': description,
+      'amount': amount,
+    };
+  }
+
+  static DateTime? _parseDate(dynamic value) {
+    if (value == null) return null;
+    return DateTime.tryParse(value.toString());
+  }
+}
+
 class Payment {
   final String? id;
   final String? userId;
@@ -14,15 +58,8 @@ class Payment {
   final DateTime? confirmedAt;
   final DateTime? createdAt;
 
-  // Breakdown
-  // TODO: DB FIELD NEEDED — room_rent belum ada di tabel payments
-  final int? roomRent;
-
-  // TODO: DB FIELD NEEDED — utilities belum ada di tabel payments
-  final int? utilities;
-
-  // TODO: DB FIELD NEEDED — other_amount belum ada di tabel payments
-  final int? otherAmount;
+  // Rincian tagihan bersumber dari tabel payment_items.
+  final List<PaymentItem> items;
 
   const Payment({
     this.id,
@@ -35,28 +72,23 @@ class Payment {
     this.period,
     this.dueDate,
     this.proofUrl,
-    this.status = 'pending',
+    this.status = 'menunggu',
     this.confirmedBy,
     this.confirmedAt,
     this.createdAt,
-    this.roomRent,
-    this.utilities,
-    this.otherAmount,
+    this.items = const [],
   });
 
-  int get totalAmount {
-    if (roomRent != null || utilities != null || otherAmount != null) {
-      return (roomRent ?? 0) + (utilities ?? 0) + (otherAmount ?? 0);
-    }
-    return amount;
-  }
+  /// Total resmi selalu berasal dari payments.amount (dihitung oleh
+  /// function generate_payment di database). Flutter tidak menghitung
+  /// ulang dari payment_items.
+  int get totalAmount => amount;
 
-  bool get hasBreakdown =>
-      roomRent != null || utilities != null || otherAmount != null;
+  bool get hasBreakdown => items.isNotEmpty;
 
-  bool get isPending => status.toLowerCase() == 'pending';
-  bool get isConfirmed => status.toLowerCase() == 'confirmed';
-  bool get isRejected => status.toLowerCase() == 'rejected';
+  bool get isPending => status.toLowerCase() == 'menunggu';
+  bool get isConfirmed => status.toLowerCase() == 'dikonfirmasi';
+  bool get isRejected => status.toLowerCase() == 'ditolak';
 
   factory Payment.fromMap(Map<String, dynamic> map) {
     return Payment(
@@ -70,14 +102,23 @@ class Payment {
       period: map['period']?.toString(),
       dueDate: _parseDate(map['due_date']),
       proofUrl: map['proof_url']?.toString(),
-      status: map['status']?.toString() ?? 'pending',
+      status: map['status']?.toString() ?? 'menunggu',
       confirmedBy: map['confirmed_by']?.toString(),
       confirmedAt: _parseDate(map['confirmed_at']),
       createdAt: _parseDate(map['created_at']),
-      roomRent: _parseIntNullable(map['room_rent']),
-      utilities: _parseIntNullable(map['utilities']),
-      otherAmount: _parseIntNullable(map['other_amount']),
+      items: _extractItems(map),
     );
+  }
+
+  static List<PaymentItem> _extractItems(Map<String, dynamic> map) {
+    final raw = map['payment_items'];
+    if (raw is List) {
+      return raw
+          .whereType<Map>()
+          .map((e) => PaymentItem.fromMap(Map<String, dynamic>.from(e)))
+          .toList();
+    }
+    return const <PaymentItem>[];
   }
 
   Map<String, dynamic> toMap() {
@@ -91,9 +132,7 @@ class Payment {
       if (dueDate != null) 'due_date': dueDate!.toIso8601String(),
       'proof_url': proofUrl,
       'status': status,
-      if (roomRent != null) 'room_rent': roomRent,
-      if (utilities != null) 'utilities': utilities,
-      if (otherAmount != null) 'other_amount': otherAmount,
+      'payment_items': items.map((item) => item.toMap()).toList(),
     };
   }
 
@@ -116,10 +155,5 @@ class Payment {
   static DateTime? _parseDate(dynamic value) {
     if (value == null) return null;
     return DateTime.tryParse(value.toString());
-  }
-
-  static int? _parseIntNullable(dynamic value) {
-    if (value == null) return null;
-    return (value as num?)?.toInt();
   }
 }
