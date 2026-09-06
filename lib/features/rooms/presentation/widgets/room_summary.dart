@@ -1,3 +1,4 @@
+// Widget untuk RoomsScreen
 import 'package:flutter/material.dart';
 
 class RoomSummary extends StatelessWidget {

@@ -1,3 +1,4 @@
+// Widget untuk PaymentDetailScreen
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -5,10 +6,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../data/models/payment_formatter.dart';
 import '../../data/models/payment_model.dart';
 
-/// Menampilkan rincian tagihan (breakdown) dari `payment_items`.
-///
-/// Total resmi tetap memakai `Payment.amount` (dihitung di database).
-/// Item di sini hanya untuk menampilkan rincian per-fasilitas.
+/// menampilkan rincian per-fasilitas.
 class PaymentItemsSection extends StatelessWidget {
   final Payment payment;
 
@@ -88,9 +86,7 @@ class _ItemRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Expanded(
-            child: Text(label, style: AppTextStyles.bodyMedium),
-          ),
+          Expanded(child: Text(label, style: AppTextStyles.bodyMedium)),
           const SizedBox(width: 12),
           Text(
             PaymentFormatter.rupiah(item.amount),
