@@ -1,4 +1,4 @@
-// Widget untuk AddRoomScreen
+// Widget untuk AddRoomScreen & EditRoomScreen
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -131,10 +131,7 @@ class _FacilityItem extends StatelessWidget {
           decoration: BoxDecoration(
             color: bg,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: borderColor,
-              width: selected ? 1.5 : 1,
-            ),
+            border: Border.all(color: borderColor, width: selected ? 1.5 : 1),
           ),
           padding: const EdgeInsets.all(12),
           child: Stack(

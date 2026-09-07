@@ -1,4 +1,4 @@
-// Widget untuk AddRoomScreen
+// Widget untuk AddRoomScreen & EditRoomScreen
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -50,7 +50,9 @@ class RoomBasicInfoCard extends StatelessWidget {
           TextFormField(
             controller: priceController,
             keyboardType: TextInputType.number,
-            inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.digitsOnly,
+            ],
             validator: priceValidator,
             decoration: _decoration(
               hintText: 'Contoh: 1.500.000',
@@ -61,10 +63,7 @@ class RoomBasicInfoCard extends StatelessWidget {
           const SizedBox(height: 16),
           _Label(text: 'Kapasitas Penghuni'),
           const SizedBox(height: 8),
-          _CapacityStepper(
-            value: capacity,
-            onChanged: onCapacityChanged,
-          ),
+          _CapacityStepper(value: capacity, onChanged: onCapacityChanged),
           const SizedBox(height: 16),
           _Label(text: 'Deskripsi'),
           const SizedBox(height: 8),
@@ -94,11 +93,7 @@ class RoomBasicInfoCard extends StatelessWidget {
       hintText: hintText,
       prefixText: prefixText,
       prefixIcon: prefixIcon != null
-          ? Icon(
-              prefixIcon,
-              color: AppColors.textSecondary,
-              size: 22,
-            )
+          ? Icon(prefixIcon, color: AppColors.textSecondary, size: 22)
           : null,
       prefixIconConstraints: alignPrefixWithLabel
           ? null
@@ -113,10 +108,7 @@ class _Label extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: AppTextStyles.labelLarge,
-    );
+    return Text(text, style: AppTextStyles.labelLarge);
   }
 }
 

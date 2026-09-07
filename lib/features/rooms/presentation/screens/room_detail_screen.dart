@@ -11,6 +11,7 @@ import '../widgets/room_payment_summary_card.dart';
 import '../widgets/room_complaint_summary_card.dart';
 import '../widgets/room_user_management_card.dart';
 import '../widgets/room_detail_bottom_action.dart';
+import 'edit_room_screen.dart';
 
 class RoomDetailScreen extends StatefulWidget {
   final String roomId;
@@ -36,10 +37,12 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
   }
 
   Future<void> _loadRoomDetail() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+    }
 
     try {
       final result = await _roomService.getRoomDetail(widget.roomId);
@@ -48,30 +51,25 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
         return;
       }
 
-      if (result == null) {
-        setState(() {
-          _detail = null;
-          _errorMessage = 'Data kamar tidak ditemukan.';
-          _isLoading = false;
-        });
-        return;
-      }
-
       setState(() {
         _detail = result;
         _isLoading = false;
+
+        if (result == null) {
+          _errorMessage = 'Data kamar tidak ditemukan.';
+        }
       });
     } catch (e) {
       if (!mounted) {
         return;
       }
 
+      debugPrint('RoomDetailScreen error: $e');
+
       setState(() {
         _errorMessage = 'Gagal memuat detail kamar.';
         _isLoading = false;
       });
-
-      debugPrint('RoomDetailScreen error: $e');
     }
   }
 
@@ -133,19 +131,14 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                   onDelete: _onDeleteRoom,
                 ),
                 const SizedBox(height: 16),
-
                 RoomInfoCard(room: room),
                 const SizedBox(height: 16),
-
                 RoomFacilitiesDetailCard(facilities: detail.facilities),
                 const SizedBox(height: 16),
-
                 RoomPaymentSummaryCard(payments: detail.payments),
                 const SizedBox(height: 16),
-
                 RoomComplaintSummaryCard(complaints: detail.complaints),
                 const SizedBox(height: 16),
-
                 RoomUserManagementCard(
                   users: detail.users,
                   capacity: room.capacity,
@@ -153,7 +146,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                   onEditUser: _onEditUser,
                   onRemoveUser: _onRemoveUser,
                 ),
-
                 const SizedBox(height: 24),
               ]),
             ),
@@ -192,32 +184,38 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
     );
   }
 
-  void _onEditRoom() {
-    // Navigasi ke EditRoomScreen akan disambungkan nanti.
+  Future<void> _onEditRoom() async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => EditRoomScreen(roomId: widget.roomId)),
+    );
+
+    if (result == true && mounted) {
+      await _loadRoomDetail();
+    }
   }
 
   void _onAddUser() {
-    // Navigasi ke halaman tambah penghuni akan disambungkan nanti.
+    // Nanti sambungkan ke halaman tambah penghuni.
   }
 
   void _onEditUser(RoomDetailUser user) {
-    // Fitur edit penghuni akan disambungkan nanti.
+    // Nanti sambungkan ke halaman edit penghuni.
   }
 
   void _onRemoveUser(RoomDetailUser user) {
-    // Fitur hapus penghuni akan disambungkan nanti.
+    // Nanti sambungkan ke fungsi hapus penghuni.
   }
 
   Future<void> _onDeleteRoom() async {
+    final roomNumber = _detail?.room.roomNumber;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Hapus Kamar'),
-          content: Text(
-            'Apakah kamu yakin ingin menghapus '
-            'Kamar ${_detail?.room.roomNumber}?',
-          ),
+          content: Text('Apakah kamu yakin ingin menghapus Kamar $roomNumber?'),
           actions: [
             TextButton(
               onPressed: () {
@@ -240,6 +238,28 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
       return;
     }
 
-    // Fungsi hapus kamar akan disambungkan ke RoomService nanti.
+    try {
+      await _roomService.deleteRoom(widget.roomId);
+
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Kamar berhasil dihapus.')));
+
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      debugPrint('Delete room error: $e');
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal menghapus kamar: $e')));
+    }
   }
 }

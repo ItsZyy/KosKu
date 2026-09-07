@@ -1,4 +1,3 @@
-// widget untuk add & edit room screen
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -9,26 +8,23 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../data/services/room_service.dart';
 import 'section_card.dart';
 
-class RoomPhotoUploadCard extends StatelessWidget {
-  final List<XFile> photos;
+class EditRoomPhotoUploadCard extends StatelessWidget {
   final List<String> existingPhotoPaths;
+  final List<XFile> newPhotos;
   final bool enabled;
-
   final Future<void> Function(ImageSource source) onAddPhoto;
-  final ValueChanged<int> onRemovePhoto;
   final ValueChanged<int> onRemoveExistingPhoto;
+  final ValueChanged<int> onRemoveNewPhoto;
 
-  const RoomPhotoUploadCard({
+  const EditRoomPhotoUploadCard({
     super.key,
-    required this.photos,
-    this.existingPhotoPaths = const [],
+    required this.existingPhotoPaths,
+    required this.newPhotos,
     required this.onAddPhoto,
-    required this.onRemovePhoto,
-    this.onRemoveExistingPhoto = _defaultRemoveExistingPhoto,
+    required this.onRemoveExistingPhoto,
+    required this.onRemoveNewPhoto,
     this.enabled = true,
   });
-
-  static void _defaultRemoveExistingPhoto(int index) {}
 
   Future<void> _showSourceSheet(BuildContext context) async {
     final source = await showModalBottomSheet<ImageSource>(
@@ -76,52 +72,47 @@ class RoomPhotoUploadCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final totalPhotos = existingPhotoPaths.length + photos.length;
+    final totalPhotos = existingPhotoPaths.length + newPhotos.length;
 
     return SectionCard(
       title: 'Foto Kamar',
-      subtitle: 'Opsional. Tambahkan beberapa foto untuk memperlihatkan kamar.',
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 1,
-            ),
-            itemCount: totalPhotos + 1,
-            itemBuilder: (context, index) {
-              if (index == totalPhotos) {
-                return _AddPhotoTile(
-                  enabled: enabled,
-                  onTap: () => _showSourceSheet(context),
-                );
-              }
+      subtitle:
+          'Kelola foto kamar. Kamu bisa menghapus foto lama atau menambahkan foto baru.',
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 1,
+        ),
+        itemCount: totalPhotos + 1,
+        itemBuilder: (context, index) {
+          if (index == totalPhotos) {
+            return _AddPhotoTile(
+              enabled: enabled,
+              onTap: () => _showSourceSheet(context),
+            );
+          }
 
-              if (index < existingPhotoPaths.length) {
-                final path = existingPhotoPaths[index];
+          if (index < existingPhotoPaths.length) {
+            return _ExistingPhotoTile(
+              path: existingPhotoPaths[index],
+              enabled: enabled,
+              onRemove: () {
+                onRemoveExistingPhoto(index);
+              },
+            );
+          }
 
-                return _ExistingPhotoTile(
-                  path: path,
-                  enabled: enabled,
-                  onRemove: () {
-                    onRemoveExistingPhoto(index);
-                  },
-                );
-              }
+          final newPhotoIndex = index - existingPhotoPaths.length;
 
-              final newPhotoIndex = index - existingPhotoPaths.length;
-
-              return _PhotoTile(
-                file: File(photos[newPhotoIndex].path),
-                enabled: enabled,
-                onRemove: () {
-                  onRemovePhoto(newPhotoIndex);
-                },
-              );
+          return _NewPhotoTile(
+            file: File(newPhotos[newPhotoIndex].path),
+            enabled: enabled,
+            onRemove: () {
+              onRemoveNewPhoto(newPhotoIndex);
             },
           );
         },
@@ -183,84 +174,24 @@ class _ExistingPhotoTile extends StatelessWidget {
         Positioned(
           left: 6,
           top: 6,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-            decoration: BoxDecoration(
-              color: AppColors.textPrimary.withValues(alpha: 0.65),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              'Lama',
-              style: AppTextStyles.labelSmall.copyWith(
-                color: AppColors.onPrimary,
-              ),
-            ),
-          ),
+          child: _PhotoBadge(label: 'Lama', color: AppColors.textPrimary),
         ),
         Positioned(
           top: 6,
           right: 6,
-          child: Material(
-            color: AppColors.error.withValues(alpha: 0.9),
-            shape: const CircleBorder(),
-            child: InkWell(
-              customBorder: const CircleBorder(),
-              onTap: enabled ? onRemove : null,
-              child: const Padding(
-                padding: EdgeInsets.all(6),
-                child: Icon(Icons.close, color: AppColors.onError, size: 16),
-              ),
-            ),
-          ),
+          child: _RemoveButton(enabled: enabled, onTap: onRemove),
         ),
       ],
     );
   }
 }
 
-class _AddPhotoTile extends StatelessWidget {
-  final bool enabled;
-  final VoidCallback onTap;
-
-  const _AddPhotoTile({required this.enabled, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: enabled ? onTap : null,
-        child: DottedBorderBox(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.add_a_photo_outlined,
-                color: enabled ? AppColors.primary : AppColors.textDisabled,
-                size: 28,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Tambah Foto',
-                style: AppTextStyles.labelMedium.copyWith(
-                  color: enabled ? AppColors.primary : AppColors.textDisabled,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PhotoTile extends StatelessWidget {
+class _NewPhotoTile extends StatelessWidget {
   final File file;
   final bool enabled;
   final VoidCallback onRemove;
 
-  const _PhotoTile({
+  const _NewPhotoTile({
     required this.file,
     required this.enabled,
     required this.onRemove,
@@ -283,6 +214,7 @@ class _PhotoTile extends StatelessWidget {
                   child: const Icon(
                     Icons.broken_image_outlined,
                     color: AppColors.textHint,
+                    size: 28,
                   ),
                 );
               },
@@ -292,57 +224,103 @@ class _PhotoTile extends StatelessWidget {
         Positioned(
           left: 6,
           top: 6,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.85),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              'Baru',
-              style: AppTextStyles.labelSmall.copyWith(
-                color: AppColors.onPrimary,
-              ),
-            ),
-          ),
+          child: _PhotoBadge(label: 'Baru', color: AppColors.primary),
         ),
         Positioned(
           top: 6,
           right: 6,
-          child: Material(
-            color: AppColors.error.withValues(alpha: 0.9),
-            shape: const CircleBorder(),
-            child: InkWell(
-              customBorder: const CircleBorder(),
-              onTap: enabled ? onRemove : null,
-              child: const Padding(
-                padding: EdgeInsets.all(6),
-                child: Icon(Icons.close, color: AppColors.onError, size: 16),
-              ),
-            ),
-          ),
+          child: _RemoveButton(enabled: enabled, onTap: onRemove),
         ),
       ],
     );
   }
 }
 
-class DottedBorderBox extends StatelessWidget {
-  final Widget child;
+class _PhotoBadge extends StatelessWidget {
+  final String label;
+  final Color color;
 
-  const DottedBorderBox({super.key, required this.child});
+  const _PhotoBadge({required this.label, required this.color});
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: _DashedBorderPainter(),
-      child: Container(
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: AppColors.primarySoft.withValues(alpha: 0.4),
-          borderRadius: BorderRadius.circular(12),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: AppTextStyles.labelSmall.copyWith(color: AppColors.onPrimary),
+      ),
+    );
+  }
+}
+
+class _RemoveButton extends StatelessWidget {
+  final bool enabled;
+  final VoidCallback onTap;
+
+  const _RemoveButton({required this.enabled, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.error.withValues(alpha: 0.9),
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: enabled ? onTap : null,
+        child: const Padding(
+          padding: EdgeInsets.all(6),
+          child: Icon(Icons.close, color: AppColors.onError, size: 16),
         ),
-        child: child,
+      ),
+    );
+  }
+}
+
+class _AddPhotoTile extends StatelessWidget {
+  final bool enabled;
+  final VoidCallback onTap;
+
+  const _AddPhotoTile({required this.enabled, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: enabled ? onTap : null,
+        child: CustomPaint(
+          painter: _DashedBorderPainter(),
+          child: Container(
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.primarySoft.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.add_a_photo_outlined,
+                  color: enabled ? AppColors.primary : AppColors.textDisabled,
+                  size: 28,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Tambah Foto',
+                  style: AppTextStyles.labelMedium.copyWith(
+                    color: enabled ? AppColors.primary : AppColors.textDisabled,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
