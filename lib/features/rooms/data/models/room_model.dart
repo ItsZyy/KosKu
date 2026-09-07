@@ -10,7 +10,7 @@ class RoomModel {
   final String? imageUrl;
   final DateTime createdAt;
 
-  RoomModel({
+  const RoomModel({
     required this.id,
     required this.roomNumber,
     required this.price,
@@ -21,7 +21,9 @@ class RoomModel {
     required this.createdAt,
   });
 
-  List<String> get imagePaths => RoomService.parseImageUrls(imageUrl);
+  List<String> get imagePaths {
+    return RoomService.parseImageUrls(imageUrl);
+  }
 
   factory RoomModel.fromMap(Map<String, dynamic> map) {
     return RoomModel(

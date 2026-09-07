@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:kosku/features/complaints/data/models/complaint_model.dart';
+import 'package:kosku/features/payments/data/models/payment_model.dart';
 import 'package:kosku/features/rooms/data/models/facility_model.dart';
+import 'package:kosku/features/rooms/data/models/room_detail_model.dart';
 import 'package:kosku/features/rooms/data/models/room_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -9,9 +12,14 @@ class RoomService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
   static const String _storageBucket = 'room-images';
+
   static const String _tableRooms = 'rooms';
   static const String _tableFacilities = 'facilities';
   static const String _tableRoomFacilities = 'room_facilities';
+
+  // ============================================================
+  // STORAGE
+  // ============================================================
 
   static String storagePathToPublicUrl(String path) {
     return Supabase.instance.client.storage
@@ -34,9 +42,12 @@ class RoomService {
     for (final image in images) {
       final fileName =
           '${DateTime.now().millisecondsSinceEpoch}_${paths.length}.jpg';
+
       final filePath = 'rooms/$roomId/$fileName';
 
-      await _supabase.storage.from(_storageBucket).upload(
+      await _supabase.storage
+          .from(_storageBucket)
+          .upload(
             filePath,
             image,
             fileOptions: const FileOptions(
@@ -52,30 +63,40 @@ class RoomService {
   }
 
   static List<String> parseImageUrls(dynamic value) {
-    if (value == null) return <String>[];
+    if (value == null) {
+      return [];
+    }
 
     if (value is String) {
       final trimmed = value.trim();
-      if (trimmed.isEmpty) return <String>[];
+
+      if (trimmed.isEmpty) {
+        return [];
+      }
 
       try {
         final decoded = jsonDecode(trimmed);
+
         if (decoded is List) {
           return decoded.whereType<String>().toList();
         }
-      } on FormatException catch (_) {
-        return <String>[trimmed];
+      } on FormatException {
+        return [trimmed];
       }
     }
 
-    return <String>[];
+    return [];
   }
 
   static String encodeImageUrls(List<String> paths) {
     return jsonEncode(paths);
   }
 
-  // user - melihat kamar yang sedang ditempati
+  // ============================================================
+  // USER
+  // ============================================================
+
+  // User - melihat kamar yang sedang ditempati
   Future<Map<String, dynamic>?> getRoom() async {
     final user = _supabase.auth.currentUser;
 
@@ -94,10 +115,12 @@ class RoomService {
           rooms (
             id,
             room_number,
+            price,
             capacity,
             status,
             description,
-            image_url
+            image_url,
+            created_at
           )
         ''')
         .eq('user_id', user.id)
@@ -124,9 +147,13 @@ class RoomService {
     };
   }
 
-  // admin - statistik kamar
+  // ============================================================
+  // ADMIN - STATISTIK
+  // ============================================================
+
+  // Admin - statistik kamar
   Future<Map<String, int>> getRoomStats() async {
-    final data = await _supabase.from('rooms').select('id, status');
+    final data = await _supabase.from(_tableRooms).select('id, status');
 
     final total = data.length;
 
@@ -137,17 +164,221 @@ class RoomService {
     return {'total': total, 'terisi': terisi};
   }
 
-  // admin - lihat semua kamar
+  // ============================================================
+  // ADMIN - DAFTAR KAMAR
+  // ============================================================
+
+  // Admin - melihat semua kamar
   Future<List<RoomModel>> getRooms() async {
     final data = await _supabase
-        .from('rooms')
+        .from(_tableRooms)
         .select()
         .order('room_number', ascending: true);
 
     return data.map<RoomModel>((item) => RoomModel.fromMap(item)).toList();
   }
 
-  // admin - lihat user yang menempati kamar
+  // ============================================================
+  // ADMIN - DETAIL KAMAR
+  // ============================================================
+
+  // Admin - melihat detail kamar
+  Future<RoomDetailModel?> getRoomDetail(String roomId) async {
+    // ------------------------------------------------------------
+    // 1. DATA KAMAR
+    // ------------------------------------------------------------
+
+    final roomData = await _supabase
+        .from(_tableRooms)
+        .select('''
+          id,
+          room_number,
+          price,
+          capacity,
+          status,
+          description,
+          image_url,
+          created_at
+        ''')
+        .eq('id', roomId)
+        .maybeSingle();
+
+    if (roomData == null) {
+      return null;
+    }
+
+    final room = RoomModel.fromMap(Map<String, dynamic>.from(roomData));
+
+    // ------------------------------------------------------------
+    // 2. FASILITAS KAMAR
+    // ------------------------------------------------------------
+
+    final facilitiesData = await _supabase
+        .from(_tableRoomFacilities)
+        .select('''
+          facility_id,
+          facilities (
+            id,
+            name,
+            price,
+            description,
+            is_active
+          )
+        ''')
+        .eq('room_id', roomId);
+
+    final List<FacilityModel> facilities = [];
+
+    for (final item in facilitiesData) {
+      final facilityData = item['facilities'];
+
+      if (facilityData is Map) {
+        facilities.add(
+          FacilityModel.fromMap(Map<String, dynamic>.from(facilityData)),
+        );
+      }
+    }
+
+    // ------------------------------------------------------------
+    // 3. PENGHUNI AKTIF
+    // ------------------------------------------------------------
+
+    final occupancyData = await _supabase
+        .from('occupancies')
+        .select('''
+          user_id,
+          contract_start,
+          contract_end,
+          rent_price,
+          status,
+          profiles!occupancies_user_id_fkey (
+            name,
+            phone,
+            profile_photo_url
+          )
+        ''')
+        .eq('room_id', roomId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+    RoomDetailUser? user;
+
+    if (occupancyData != null) {
+      final profileData = occupancyData['profiles'];
+
+      String? name;
+      String? phone;
+      String? profilePhotoUrl;
+
+      if (profileData is Map) {
+        name = profileData['name']?.toString();
+        phone = profileData['phone']?.toString();
+        profilePhotoUrl = profileData['profile_photo_url']?.toString();
+      }
+
+      user = RoomDetailUser(
+        userId: occupancyData['user_id'].toString(),
+        name: name ?? '-',
+        phone: phone,
+        profilePhotoUrl: profilePhotoUrl,
+        contractStart: _parseDate(occupancyData['contract_start']),
+        contractEnd: _parseDate(occupancyData['contract_end']),
+        rentPrice: (occupancyData['rent_price'] as num?)?.toDouble() ?? 0,
+        occupancyStatus: occupancyData['status']?.toString(),
+      );
+    }
+
+    // ------------------------------------------------------------
+    // 4. PEMBAYARAN
+    // ------------------------------------------------------------
+
+    final List<Payment> payments = [];
+
+    if (user != null) {
+      final paymentsData = await _supabase
+          .from('payments')
+          .select('''
+            id,
+            user_id,
+            room_id,
+            payment_type,
+            amount,
+            period,
+            due_date,
+            proof_url,
+            status,
+            confirmed_by,
+            confirmed_at,
+            created_at,
+            payment_items (
+              id,
+              payment_id,
+              item_type,
+              description,
+              amount,
+              created_at
+            )
+          ''')
+          .eq('room_id', roomId)
+          .eq('user_id', user.userId)
+          .order('period', ascending: false);
+
+      payments.addAll(
+        paymentsData.map<Payment>(
+          (item) => Payment.fromMap(Map<String, dynamic>.from(item)),
+        ),
+      );
+    }
+
+    // ------------------------------------------------------------
+    // 5. KELUHAN
+    // ------------------------------------------------------------
+
+    final List<ComplaintModel> complaints = [];
+
+    if (user != null) {
+      final complaintsData = await _supabase
+          .from('complaints')
+          .select('''
+            id,
+            user_id,
+            room_id,
+            type,
+            message,
+            photo_url,
+            status,
+            resolved_at,
+            created_at
+          ''')
+          .eq('room_id', roomId)
+          .eq('user_id', user.userId)
+          .order('created_at', ascending: false);
+
+      complaints.addAll(
+        complaintsData.map<ComplaintModel>(
+          (item) => ComplaintModel.fromMap(Map<String, dynamic>.from(item)),
+        ),
+      );
+    }
+
+    // ------------------------------------------------------------
+    // 6. GABUNGKAN SEMUA DATA
+    // ------------------------------------------------------------
+
+    return RoomDetailModel(
+      room: room,
+      facilities: facilities,
+      user: user,
+      payments: payments,
+      complaints: complaints,
+    );
+  }
+
+  // ============================================================
+  // ADMIN - PENGHUNI KAMAR
+  // ============================================================
+
+  // Admin - melihat user yang menempati kamar
   Future<Map<String, Map<String, dynamic>>> getRoomUsers() async {
     final data = await _supabase
         .from('occupancies')
@@ -192,7 +423,11 @@ class RoomService {
     return users;
   }
 
-  // admin - ambil daftar fasilitas aktif dari tabel facilities
+  // ============================================================
+  // FACILITIES
+  // ============================================================
+
+  // Admin - mengambil daftar fasilitas
   Future<List<FacilityModel>> getFacilities({bool activeOnly = true}) async {
     var query = _supabase.from(_tableFacilities).select();
 
@@ -207,7 +442,7 @@ class RoomService {
         .toList();
   }
 
-  // admin - ambil fasilitas yang dimiliki sebuah kamar
+  // Admin - mengambil fasilitas yang dimiliki sebuah kamar
   Future<List<FacilityModel>> getRoomFacilities(String roomId) async {
     final data = await _supabase
         .from(_tableRoomFacilities)
@@ -238,7 +473,11 @@ class RoomService {
     return result;
   }
 
-  // admin - tambah kamar
+  // ============================================================
+  // ADMIN - TAMBAH KAMAR
+  // ============================================================
+
+  // Admin - tambah kamar
   Future<RoomModel> createRoom({
     required String roomNumber,
     required double price,
@@ -270,6 +509,7 @@ class RoomService {
 
       if (images.isNotEmpty) {
         final paths = await uploadImages(roomId: roomId, images: images);
+
         final encoded = encodeImageUrls(paths);
 
         await _supabase
@@ -278,24 +518,35 @@ class RoomService {
             .eq('id', roomId);
       }
     } catch (e) {
-      // Best-effort cleanup agar tidak meninggalkan kamar yatim ketika
-      // proses insert fasilitas / upload foto gagal.
+      // Best-effort cleanup agar tidak meninggalkan
+      // data kamar yatim jika proses gagal.
+
       try {
-        await _supabase.from(_tableRoomFacilities).delete().eq('room_id', roomId);
+        await _supabase
+            .from(_tableRoomFacilities)
+            .delete()
+            .eq('room_id', roomId);
       } catch (_) {}
+
       try {
         await _deleteStorageFiles(roomId);
       } catch (_) {}
+
       try {
         await _supabase.from(_tableRooms).delete().eq('id', roomId);
       } catch (_) {}
+
       throw Exception('Gagal membuat kamar: $e');
     }
 
     return RoomModel.fromMap(data);
   }
 
-  // admin - ubah kamar
+  // ============================================================
+  // ADMIN - UBAH KAMAR
+  // ============================================================
+
+  // Admin - ubah kamar
   Future<void> updateRoom({
     required String id,
     required String roomNumber,
@@ -317,10 +568,12 @@ class RoomService {
     }
 
     final existingPaths = parseImageUrls(currentRoomData['image_url']);
+
     final allPaths = <String>[...existingPaths];
 
     if (images.isNotEmpty) {
       final newPaths = await uploadImages(roomId: id, images: images);
+
       allPaths.addAll(newPaths);
     }
 
@@ -341,19 +594,25 @@ class RoomService {
     await _replaceRoomFacilities(id, facilityIds);
   }
 
-  // admin - hapus kamar
+  // ============================================================
+  // ADMIN - HAPUS KAMAR
+  // ============================================================
+
+  // Admin - hapus kamar
   Future<void> deleteRoom(String id) async {
     // Hapus relasi fasilitas kamar terlebih dahulu.
     await _supabase.from(_tableRoomFacilities).delete().eq('room_id', id);
 
-    // Hapus foto-foto kamar di storage (jika policy mengizinkan).
+    // Hapus foto-foto kamar dari storage.
     await _deleteStorageFiles(id);
 
-    // Hapus baris kamar.
+    // Hapus data kamar.
     await _supabase.from(_tableRooms).delete().eq('id', id);
   }
 
-  // Helpers ----------------------------------------------------------------
+  // ============================================================
+  // HELPERS
+  // ============================================================
 
   Future<void> _replaceRoomFacilities(
     String roomId,
@@ -367,10 +626,7 @@ class RoomService {
 
     final rows = facilityIds
         .where((id) => id.trim().isNotEmpty)
-        .map((facilityId) => {
-              'room_id': roomId,
-              'facility_id': facilityId,
-            })
+        .map((facilityId) => {'room_id': roomId, 'facility_id': facilityId})
         .toList();
 
     if (rows.isEmpty) {
@@ -390,14 +646,21 @@ class RoomService {
         return;
       }
 
-      final paths = files
-          .map((f) => 'rooms/$roomId/${f.name}')
-          .toList();
+      final paths = files.map((file) => 'rooms/$roomId/${file.name}').toList();
 
       await _supabase.storage.from(_storageBucket).remove(paths);
     } catch (_) {
-      // Hapus foto di storage best-effort. Jangan gagalkan delete kamar
-      // hanya karena storage tidak bisa diakses.
+      // Best-effort.
+      // Gagal menghapus storage tidak menggagalkan
+      // proses utama hapus kamar.
     }
+  }
+
+  static DateTime? _parseDate(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+
+    return DateTime.tryParse(value.toString());
   }
 }

@@ -7,6 +7,7 @@ import '../widgets/room_summary.dart';
 import '../widgets/room_filter.dart';
 import '../widgets/room_card.dart';
 import 'add_room_screen.dart';
+import 'room_detail_screen.dart';
 
 class RoomsScreen extends StatefulWidget {
   const RoomsScreen({super.key});
@@ -226,7 +227,11 @@ class _RoomsScreenState extends State<RoomsScreen> {
         contractEnd: contractEnd,
 
         onDetail: () {
-          _showMessage('Detail kamar ${room.roomNumber}');
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => RoomDetailScreen(roomId: room.id),
+            ),
+          );
         },
 
         onRent: () {
