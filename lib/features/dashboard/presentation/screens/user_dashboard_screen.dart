@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+
 import '../../../profile/data/services/profile_service.dart';
 import '../../../rooms/data/services/room_service.dart';
 import '../../../payments/data/services/payment_service.dart';
 import '../../../announcements/data/models/announcement_model.dart';
 import '../../../announcements/data/services/announcement_service.dart';
-import '../../../announcements/presentation/widgets/announcement_card.dart';
+
+import '../widgets/user_dashboard_header.dart';
+import '../widgets/user_dashboard_banner.dart';
+import '../widgets/user_dashboard_payment_card.dart';
+import '../widgets/user_dashboard_room_card.dart';
+import '../widgets/user_dashboard_announcement.dart';
 
 class UserDashboardScreen extends StatefulWidget {
   const UserDashboardScreen({super.key});
@@ -20,7 +26,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
   final _announcementService = AnnouncementService();
 
   String? userName;
-
   Map<String, dynamic>? room;
   Map<String, dynamic>? payment;
   AnnouncementModel? announcement;
@@ -28,167 +33,136 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
   @override
   void initState() {
     super.initState();
+
     _loadUser();
     _loadRoom();
     _loadPayment();
     _loadAnnouncement();
   }
 
-  Future<void> _loadRoom() async {
-    final profile = await _profileService.getProfile();
-    if (profile == null) return;
-    final data = await _roomService.getRoom();
+  Future<void> _loadUser() async {
+    try {
+      final profile = await _profileService.getProfile();
 
-    if (data != null && mounted) {
-      setState(() {
-        room = data;
-      });
+      if (profile != null && mounted) {
+        setState(() {
+          userName = profile['name'];
+        });
+      }
+    } catch (e) {
+      debugPrint('UserDashboard load user error: $e');
     }
   }
 
-  Future<void> _loadUser() async {
-    final profile = await _profileService.getProfile();
+  Future<void> _loadRoom() async {
+    try {
+      final profile = await _profileService.getProfile();
 
-    if (profile != null && mounted) {
-      setState(() {
-        userName = profile['name'];
-      });
+      if (profile == null) {
+        return;
+      }
+
+      final data = await _roomService.getRoom();
+
+      if (data != null && mounted) {
+        setState(() {
+          room = data;
+        });
+      }
+    } catch (e) {
+      debugPrint('UserDashboard load room error: $e');
     }
   }
 
   Future<void> _loadPayment() async {
-    final data = await _paymentService.getPayment();
+    try {
+      final data = await _paymentService.getPayment();
 
-    if (data != null && mounted) {
-      setState(() {
-        payment = data;
-      });
+      if (data != null && mounted) {
+        setState(() {
+          payment = data;
+        });
+      }
+    } catch (e) {
+      debugPrint('UserDashboard load payment error: $e');
     }
   }
 
   Future<void> _loadAnnouncement() async {
-    final data = await _announcementService.getAnnouncements();
+    try {
+      final data = await _announcementService.getAnnouncements();
 
-    if (data.isNotEmpty && mounted) {
-      setState(() {
-        announcement = data.first;
-      });
+      if (data.isNotEmpty && mounted) {
+        setState(() {
+          announcement = data.first;
+        });
+      }
+    } catch (e) {
+      debugPrint('UserDashboard load announcement error: $e');
     }
+  }
+
+  void _onViewAnnouncements() {
+    // TODO: Navigasi ke halaman semua pengumuman.
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('KosKu')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Halo, ${userName ?? 'Penghuni'} 👋',
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
+      backgroundColor: const Color(0xFFEFEFEF),
+      body: CustomScrollView(
+        clipBehavior: Clip.none,
+        slivers: [
+          SliverToBoxAdapter(
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.topCenter,
+              children: [
+                // HEADER BIRU
+                UserDashboardHeader(userName: userName),
 
-            const SizedBox(height: 8),
-
-            const Text(
-              'Selamat datang di KosKu',
-              style: TextStyle(color: Colors.grey),
-            ),
-
-            const SizedBox(height: 24),
-
-            const Text(
-              'Tagihan Bulan Ini',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 12),
-
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Rp ${payment?['amount'] ?? '-'}',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    Text(
-                      payment?['status'] ?? '-',
-                      style: TextStyle(color: Colors.red),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        child: const Text('Lihat Pembayaran'),
-                      ),
-                    ),
-                  ],
+                // CARD TAGIHAN
+                Positioned(
+                  left: 20,
+                  right: 20,
+                  bottom: -100,
+                  child: UserDashboardPaymentCard(payment: payment),
                 ),
-              ),
+              ],
             ),
+          ),
 
-            const SizedBox(height: 24),
+          const SliverToBoxAdapter(child: SizedBox(height: 115)),
 
-            const Text(
-              'Informasi Kamar',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
+          // CONTENT
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // BANNER
+                  const UserDashboardBanner(),
 
-            const SizedBox(height: 12),
+                  const SizedBox(height: 24),
 
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      room?['room']?['room_number']?.toString() ?? '-',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Kapasitas: ${room?['room']?['capacity']?.toString() ?? '-'} orang',
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Status: ${room?['room']?['status']?.toString() ?? '-'}',
-                    ),
-                  ],
-                ),
-              ),
-            ),
+                  // INFORMASI KAMAR
+                  UserDashboardRoomCard(room: room),
 
-            const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-            announcement != null
-                ? AnnouncementCard(announcement: announcement!)
-                : const Card(
-                    child: ListTile(
-                      title: Text('Pengumuman'),
-                      subtitle: Text('Belum ada pengumuman terbaru'),
-                    ),
+                  // PENGUMUMAN
+                  UserDashboardAnnouncement(
+                    announcement: announcement,
+                    onViewAll: _onViewAnnouncements,
                   ),
-            const SizedBox(height: 12),
-          ],
-        ),
+
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
