@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../payments/presentation/screens/user_payment_screen.dart';
+import '../../../payments/presentation/screens/payment_detail_screen.dart';
 
 class UserDashboardPaymentCard extends StatelessWidget {
   final Map<String, dynamic>? payment;
@@ -116,10 +116,14 @@ class UserDashboardPaymentCard extends StatelessWidget {
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: () {
+                final paymentId = payment?['id']?.toString();
+                if (paymentId == null || paymentId.isEmpty) return;
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const UserPaymentScreen(),
+                    builder: (context) => PaymentDetailScreen(
+                      paymentId: paymentId,
+                    ),
                   ),
                 );
               },

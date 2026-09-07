@@ -118,21 +118,26 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
               clipBehavior: Clip.none,
               alignment: Alignment.topCenter,
               children: [
-                // HEADER BIRU
-                UserDashboardHeader(userName: userName),
+                // HEADER BIRU + ruang untuk card tagihan menutupi header
+                Column(
+                  children: [
+                    UserDashboardHeader(userName: userName),
+                    const SizedBox(height: 100),
+                  ],
+                ),
 
-                // CARD TAGIHAN
+                // CARD TAGIHAN (overlap header tanpa keluar dari jangkauan hit-test)
                 Positioned(
                   left: 20,
                   right: 20,
-                  bottom: -100,
+                  bottom: 0,
                   child: UserDashboardPaymentCard(payment: payment),
                 ),
               ],
             ),
           ),
 
-          const SliverToBoxAdapter(child: SizedBox(height: 115)),
+          const SliverToBoxAdapter(child: SizedBox(height: 15)),
 
           // CONTENT
           SliverPadding(
