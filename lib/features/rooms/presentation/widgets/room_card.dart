@@ -319,9 +319,7 @@ class RoomCard extends StatelessWidget {
               child: const Text('Selesaikan Perbaikan'),
             ),
           ),
-
           const SizedBox(width: 10),
-
           Expanded(
             child: ElevatedButton(
               onPressed: onAddUser,
@@ -332,17 +330,16 @@ class RoomCard extends StatelessWidget {
       );
     }
 
+    // Kamar kosong
     return Row(
       children: [
         Expanded(
           child: OutlinedButton(
-            onPressed: onRent,
+            onPressed: onDetail,
             child: const Text('Lihat Detail Kamar'),
           ),
         ),
-
         const SizedBox(width: 10),
-
         Expanded(
           child: ElevatedButton(
             onPressed: onAddUser,
