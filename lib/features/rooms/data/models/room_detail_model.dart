@@ -28,14 +28,14 @@ class RoomDetailUser {
 class RoomDetailModel {
   final RoomModel room;
   final List<FacilityModel> facilities;
-  final RoomDetailUser? user;
+  final List<RoomDetailUser> users;
   final List<Payment> payments;
   final List<ComplaintModel> complaints;
 
   const RoomDetailModel({
     required this.room,
     required this.facilities,
-    this.user,
+    required this.users,
     required this.payments,
     required this.complaints,
   });

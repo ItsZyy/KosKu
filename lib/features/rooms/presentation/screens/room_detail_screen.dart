@@ -9,7 +9,7 @@ import '../widgets/room_info_card.dart';
 import '../widgets/room_facilities_detail_card.dart';
 import '../widgets/room_payment_summary_card.dart';
 import '../widgets/room_complaint_summary_card.dart';
-import '../widgets/room_user_card.dart';
+import '../widgets/room_user_management_card.dart';
 import '../widgets/room_detail_bottom_action.dart';
 
 class RoomDetailScreen extends StatefulWidget {
@@ -25,6 +25,7 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
   final RoomService _roomService = RoomService();
 
   RoomDetailModel? _detail;
+
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -120,7 +121,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
               },
             ),
           ),
-
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             sliver: SliverList(
@@ -129,27 +129,30 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                   imageUrls: room.imagePaths
                       .map(RoomService.storagePathToPublicUrl)
                       .toList(),
+                  onEdit: _onEditRoom,
+                  onDelete: _onDeleteRoom,
                 ),
-
                 const SizedBox(height: 16),
 
                 RoomInfoCard(room: room),
-
                 const SizedBox(height: 16),
 
                 RoomFacilitiesDetailCard(facilities: detail.facilities),
-
                 const SizedBox(height: 16),
 
                 RoomPaymentSummaryCard(payments: detail.payments),
-
                 const SizedBox(height: 16),
 
                 RoomComplaintSummaryCard(complaints: detail.complaints),
-
                 const SizedBox(height: 16),
 
-                RoomUserCard(user: detail.user),
+                RoomUserManagementCard(
+                  users: detail.users,
+                  capacity: room.capacity,
+                  onAddUser: _onAddUser,
+                  onEditUser: _onEditUser,
+                  onRemoveUser: _onRemoveUser,
+                ),
 
                 const SizedBox(height: 24),
               ]),
@@ -172,16 +175,12 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
               size: 48,
               color: Theme.of(context).colorScheme.error,
             ),
-
             const SizedBox(height: 12),
-
             Text(
               _errorMessage ?? 'Terjadi kesalahan.',
               textAlign: TextAlign.center,
             ),
-
             const SizedBox(height: 16),
-
             FilledButton.icon(
               onPressed: _loadRoomDetail,
               icon: const Icon(Icons.refresh),
@@ -195,5 +194,52 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
 
   void _onEditRoom() {
     // Navigasi ke EditRoomScreen akan disambungkan nanti.
+  }
+
+  void _onAddUser() {
+    // Navigasi ke halaman tambah penghuni akan disambungkan nanti.
+  }
+
+  void _onEditUser(RoomDetailUser user) {
+    // Fitur edit penghuni akan disambungkan nanti.
+  }
+
+  void _onRemoveUser(RoomDetailUser user) {
+    // Fitur hapus penghuni akan disambungkan nanti.
+  }
+
+  Future<void> _onDeleteRoom() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Hapus Kamar'),
+          content: Text(
+            'Apakah kamu yakin ingin menghapus '
+            'Kamar ${_detail?.room.roomNumber}?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: const Text('Batal'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: const Text('Hapus'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted) {
+      return;
+    }
+
+    // Fungsi hapus kamar akan disambungkan ke RoomService nanti.
   }
 }

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+
 import 'package:kosku/features/tenants/presentation/screen/tenants_screen.dart';
 
 import '../../data/models/room_model.dart';
 import '../../data/services/room_service.dart';
+
 import '../widgets/room_summary.dart';
 import '../widgets/room_filter.dart';
 import '../widgets/room_card.dart';
+
 import 'add_room_screen.dart';
 import 'room_detail_screen.dart';
 
@@ -21,7 +24,7 @@ class _RoomsScreenState extends State<RoomsScreen> {
 
   List<RoomModel> _rooms = [];
 
-  Map<String, Map<String, dynamic>> _roomUsers = {};
+  Map<String, List<Map<String, dynamic>>> _roomUsers = {};
 
   bool _isLoading = true;
 
@@ -34,7 +37,6 @@ class _RoomsScreenState extends State<RoomsScreen> {
   @override
   void initState() {
     super.initState();
-
     _loadRooms();
   }
 
@@ -46,7 +48,6 @@ class _RoomsScreenState extends State<RoomsScreen> {
 
     try {
       final rooms = await _roomService.getRooms();
-
       final roomUsers = await _roomService.getRoomUsers();
 
       if (!mounted) {
@@ -74,14 +75,16 @@ class _RoomsScreenState extends State<RoomsScreen> {
     final query = _searchQuery.trim().toLowerCase();
 
     return _rooms.where((room) {
-      final user = _roomUsers[room.id];
+      final users = _roomUsers[room.id] ?? [];
 
-      final userName = user?['name']?.toString().toLowerCase() ?? '';
+      final hasMatchingUser = users.any((user) {
+        final userName = user['name']?.toString().toLowerCase() ?? '';
+        return userName.contains(query);
+      });
 
       final roomNumber = room.roomNumber.toLowerCase();
 
-      final matchesSearch =
-          roomNumber.contains(query) || userName.contains(query);
+      final matchesSearch = roomNumber.contains(query) || hasMatchingUser;
 
       final matchesFilter =
           _selectedFilter == 'Semua' || room.status == _selectedFilter;
@@ -101,7 +104,7 @@ class _RoomsScreenState extends State<RoomsScreen> {
   }
 
   int get _totalUsers {
-    return _roomUsers.length;
+    return _roomUsers.values.fold(0, (total, users) => total + users.length);
   }
 
   @override
@@ -190,14 +193,11 @@ class _RoomsScreenState extends State<RoomsScreen> {
     if (rooms.isEmpty) {
       return [
         const SizedBox(height: 40),
-
         const Center(
           child: Column(
             children: [
               Icon(Icons.meeting_room_outlined, size: 56),
-
               SizedBox(height: 12),
-
               Text(
                 'Tidak ada kamar',
                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -209,21 +209,20 @@ class _RoomsScreenState extends State<RoomsScreen> {
     }
 
     return rooms.map((room) {
-      final user = _roomUsers[room.id];
+      final users = _roomUsers[room.id] ?? [];
 
-      final userName = user?['name']?.toString();
+      final firstUser = users.isNotEmpty ? users.first : null;
 
-      final contractStart = user?['contract_start']?.toString();
+      final userName = firstUser?['name']?.toString();
 
-      final contractEnd = user?['contract_end']?.toString();
+      final contractStart = firstUser?['contract_start']?.toString();
+
+      final contractEnd = firstUser?['contract_end']?.toString();
 
       return RoomCard(
         room: room,
-
         userName: userName,
-
         contractStart: contractStart,
-
         contractEnd: contractEnd,
 
         onDetail: () {
