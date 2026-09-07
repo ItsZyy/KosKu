@@ -12,6 +12,7 @@ import '../widgets/room_complaint_summary_card.dart';
 import '../widgets/room_user_management_card.dart';
 import '../widgets/room_detail_bottom_action.dart';
 import 'edit_room_screen.dart';
+import 'add_occupant_screen.dart';
 
 class RoomDetailScreen extends StatefulWidget {
   final String roomId;
@@ -195,8 +196,17 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
     }
   }
 
-  void _onAddUser() {
-    // Nanti sambungkan ke halaman tambah penghuni.
+  Future<void> _onAddUser() async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddOccupantScreen(roomId: widget.roomId),
+      ),
+    );
+
+    if (result == true && mounted) {
+      await _loadRoomDetail();
+    }
   }
 
   void _onEditUser(RoomDetailUser user) {

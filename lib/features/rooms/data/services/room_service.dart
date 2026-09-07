@@ -388,6 +388,8 @@ class RoomService {
     required DateTime contractStart,
     required DateTime contractEnd,
     required double rentPrice,
+    required int paymentIntervalMonths,
+    required int paymentDay,
   }) async {
     // 1. CEK USER SUDAH PUNYA KAMAR AKTIF ATAU BELUM
 
@@ -442,6 +444,8 @@ class RoomService {
       'contract_end': contractEnd.toIso8601String().split('T').first,
       'rent_price': rentPrice,
       'status': 'active',
+      'payment_interval_months': paymentIntervalMonths,
+      'payment_day': paymentDay,
     });
 
     // 6. UPDATE STATUS KAMAR
@@ -748,5 +752,61 @@ class RoomService {
     }
 
     return DateTime.tryParse(value.toString());
+  }
+
+  Future<List<Map<String, dynamic>>> getUsersForOccupantSelection() async {
+    final response = await _supabase
+        .from('profiles')
+        .select('''
+        id,
+        name,
+        phone,
+        profile_photo_url,
+        occupancies!left(
+          room_id,
+          status,
+          rooms(
+            room_number
+          )
+        )
+      ''')
+        .eq('role', 'user')
+        .order('name');
+
+    return (response as List).map((item) {
+      final data = Map<String, dynamic>.from(item);
+
+      String? roomNumber;
+
+      final occupancies = data['occupancies'];
+
+      if (occupancies is List) {
+        for (final occupancy in occupancies) {
+          if (occupancy is! Map<String, dynamic>) {
+            continue;
+          }
+
+          if (occupancy['status'] != 'active') {
+            continue;
+          }
+
+          final room = occupancy['rooms'];
+
+          if (room is Map<String, dynamic>) {
+            roomNumber = room['room_number'] as String?;
+          }
+
+          break;
+        }
+      }
+
+      return {
+        'id': data['id'],
+        'name': data['name'],
+        'phone': data['phone'],
+        'profile_photo_url': data['profile_photo_url'],
+        'room_number': roomNumber,
+      };
+    }).toList();
   }
 }
