@@ -85,9 +85,7 @@ class PaymentService {
         .eq('payment_id', paymentId)
         .order('created_at', ascending: true);
 
-    return data
-        .map<PaymentItem>((e) => PaymentItem.fromMap(e))
-        .toList();
+    return data.map<PaymentItem>((e) => PaymentItem.fromMap(e)).toList();
   }
 
   // Pembayaran terbaru milik penghuni
@@ -171,19 +169,16 @@ class PaymentService {
     return List<Map<String, dynamic>>.from(data);
   }
 
-  Future<Map<String, dynamic>?> getPaymentInfo() async {
+  Future<List<Map<String, dynamic>>> getPaymentInfo() async {
     try {
       final data = await _supabase
           .from('payment_info')
           .select()
-          .limit(1)
-          .maybeSingle();
+          .order('updated_at', ascending: false);
 
-      return data;
+      return List<Map<String, dynamic>>.from(data);
     } catch (_) {
-      // Tabel payment_info bersifat opsional. Jika belum tersedia,
-      // metode pembayaran tetap bisa ditampilkan kosong.
-      return null;
+      return [];
     }
   }
 

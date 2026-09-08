@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../data/models/payment_model.dart';
 import '../../data/services/payment_service.dart';
+import '../../data/services/payment_method_service.dart';
 import '../widgets/payment_header_card.dart';
 import '../widgets/payment_method_card.dart';
 import '../widgets/payment_history_card.dart';
@@ -18,12 +19,17 @@ class UserPaymentScreen extends StatefulWidget {
 
 class _UserPaymentScreenState extends State<UserPaymentScreen> {
   final _paymentService = PaymentService();
+  final _paymentMethodService = PaymentMethodService();
 
   Payment? _payment;
-  Map<String, dynamic>? _paymentInfo;
+
+  // Banyak metode pembayaran
+  List<Map<String, dynamic>> _paymentInfo = [];
+
   List<Map<String, dynamic>> _paymentHistory = [];
 
   bool _isLoading = true;
+
   String? _error;
 
   @override
@@ -40,8 +46,12 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
 
     try {
       final payment = await _paymentService.getCurrentPayment();
+
       final history = await _paymentService.getPaymentHistory();
-      final paymentInfo = await _paymentService.getPaymentInfo();
+
+      // Ambil metode pembayaran dari PaymentMethodService
+      final paymentInfo = await _paymentMethodService
+          .getPaymentMethodsForUser();
 
       if (!mounted) return;
 
@@ -67,10 +77,8 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => PaymentDetailScreen(
-          paymentId: payment.id!,
-          initial: payment,
-        ),
+        builder: (context) =>
+            PaymentDetailScreen(paymentId: payment.id!, initial: payment),
       ),
     );
   }
@@ -102,10 +110,10 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Detail Pembayaran',
-              style: AppTextStyles.headlineLarge,
-            ),
+            // =========================
+            // JUDUL
+            // =========================
+            Text('Detail Pembayaran', style: AppTextStyles.headlineLarge),
 
             const SizedBox(height: 8),
 
@@ -119,7 +127,7 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
             const SizedBox(height: 24),
 
             // =========================
-            // TAGIHAN / DETAIL PEMBAYARAN
+            // TAGIHAN
             // =========================
             if (payment == null)
               _buildEmptyState()
@@ -136,43 +144,7 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
             // =========================
             // METODE PEMBAYARAN
             // =========================
-            if (_paymentInfo != null)
-              PaymentMethodCard(
-                bankName: _paymentInfo!['bank_name']?.toString() ?? '-',
-                accountNumber:
-                    _paymentInfo!['account_number']?.toString() ?? '-',
-                accountName: _paymentInfo!['account_name']?.toString() ?? '-',
-                qrisImageUrl: _paymentInfo!['qris_image_url']?.toString(),
-              )
-            else
-              const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.credit_card),
-                          SizedBox(width: 10),
-                          Text(
-                            'Metode Pembayaran',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'Metode pembayaran belum tersedia.',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            _buildPaymentMethods(),
 
             const SizedBox(height: 24),
 
@@ -194,6 +166,74 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
     );
   }
 
+  Widget _buildPaymentMethods() {
+    // =========================
+    // TIDAK ADA METODE
+    // =========================
+    if (_paymentInfo.isEmpty) {
+      return const Card(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.credit_card),
+                  SizedBox(width: 10),
+                  Text(
+                    'Metode Pembayaran',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Metode pembayaran belum tersedia.',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // =========================
+    // DAFTAR METODE PEMBAYARAN
+    // =========================
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Metode Pembayaran', style: AppTextStyles.titleLarge),
+
+        const SizedBox(height: 12),
+
+        ..._paymentInfo.map((info) {
+          final type = info['type']?.toString() ?? 'bank';
+
+          final bankName = info['bank_name']?.toString();
+
+          final accountNumber = info['account_number']?.toString();
+
+          final accountName = info['account_name']?.toString();
+
+          final qrisImageUrl = info['qris_image_url']?.toString();
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: PaymentMethodCard(
+              type: type,
+              bankName: bankName,
+              accountNumber: accountNumber,
+              accountName: accountName,
+              qrisImageUrl: qrisImageUrl,
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
   Widget _buildEmptyState() {
     return Container(
       width: double.infinity,
@@ -210,14 +250,18 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
             size: 48,
             color: AppColors.textHint,
           ),
+
           const SizedBox(height: 12),
+
           Text(
             'Belum ada tagihan',
             style: AppTextStyles.bodyLarge.copyWith(
               fontWeight: FontWeight.w600,
             ),
           ),
+
           const SizedBox(height: 4),
+
           Text(
             'Tagihan Anda akan muncul di sini.',
             style: AppTextStyles.bodySmall,
@@ -235,20 +279,26 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.error_outline, size: 48),
+
             const SizedBox(height: 12),
+
             Text(
               'Gagal memuat pembayaran',
               style: AppTextStyles.bodyLarge.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
+
             const SizedBox(height: 8),
+
             Text(
               _error!,
               style: AppTextStyles.bodySmall,
               textAlign: TextAlign.center,
             ),
+
             const SizedBox(height: 16),
+
             ElevatedButton(
               onPressed: _loadPayments,
               child: const Text('Coba Lagi'),
