@@ -5,8 +5,11 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../data/models/payment_method_model.dart';
 
 class AdminPaymentMethodForm extends StatefulWidget {
+  final PaymentMethodModel? initialPaymentMethod;
+
   final Future<void> Function({
     required String type,
     String? bankName,
@@ -16,7 +19,11 @@ class AdminPaymentMethodForm extends StatefulWidget {
   })
   onSubmit;
 
-  const AdminPaymentMethodForm({super.key, required this.onSubmit});
+  const AdminPaymentMethodForm({
+    super.key,
+    this.initialPaymentMethod,
+    required this.onSubmit,
+  });
 
   @override
   State<AdminPaymentMethodForm> createState() => _AdminPaymentMethodFormState();
@@ -36,6 +43,25 @@ class _AdminPaymentMethodFormState extends State<AdminPaymentMethodForm> {
   File? _qrisImage;
 
   bool _isSubmitting = false;
+
+  bool get _isEdit => widget.initialPaymentMethod != null;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final paymentMethod = widget.initialPaymentMethod;
+
+    if (paymentMethod != null) {
+      _selectedType = paymentMethod.type;
+
+      _bankNameController.text = paymentMethod.bankName ?? '';
+
+      _accountNumberController.text = paymentMethod.accountNumber ?? '';
+
+      _accountNameController.text = paymentMethod.accountName ?? '';
+    }
+  }
 
   @override
   void dispose() {
@@ -63,13 +89,20 @@ class _AdminPaymentMethodFormState extends State<AdminPaymentMethodForm> {
       return;
     }
 
-    if (_selectedType == 'qris' && _qrisImage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Silakan pilih gambar QRIS terlebih dahulu'),
-        ),
-      );
-      return;
+    if (_selectedType == 'qris') {
+      final hasOldQris =
+          widget.initialPaymentMethod?.qrisImageUrl != null &&
+          widget.initialPaymentMethod!.qrisImageUrl!.isNotEmpty;
+
+      if (_qrisImage == null && !hasOldQris) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Silakan pilih gambar QRIS terlebih dahulu'),
+          ),
+        );
+
+        return;
+      }
     }
 
     setState(() {
@@ -94,7 +127,13 @@ class _AdminPaymentMethodFormState extends State<AdminPaymentMethodForm> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Metode pembayaran berhasil ditambahkan')),
+        SnackBar(
+          content: Text(
+            _isEdit
+                ? 'Metode pembayaran berhasil diperbarui'
+                : 'Metode pembayaran berhasil ditambahkan',
+          ),
+        ),
       );
 
       Navigator.pop(context);
@@ -102,7 +141,13 @@ class _AdminPaymentMethodFormState extends State<AdminPaymentMethodForm> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal menambahkan metode pembayaran: $e')),
+        SnackBar(
+          content: Text(
+            _isEdit
+                ? 'Gagal memperbarui metode pembayaran: $e'
+                : 'Gagal menambahkan metode pembayaran: $e',
+          ),
+        ),
       );
     } finally {
       if (mounted) {
@@ -135,7 +180,9 @@ class _AdminPaymentMethodFormState extends State<AdminPaymentMethodForm> {
                   icon: Icons.account_balance_outlined,
                 ),
               ),
+
               const SizedBox(width: 12),
+
               Expanded(
                 child: _buildTypeOption(
                   value: 'qris',
@@ -215,8 +262,10 @@ class _AdminPaymentMethodFormState extends State<AdminPaymentMethodForm> {
             const SizedBox(height: 12),
 
             Text(
-              'Pilih gambar QRIS yang akan digunakan penghuni '
-              'untuk melakukan pembayaran.',
+              _isEdit
+                  ? 'Pilih gambar baru jika ingin mengganti QRIS.'
+                  : 'Pilih gambar QRIS yang akan digunakan '
+                        'penghuni untuk melakukan pembayaran.',
               style: AppTextStyles.bodyMedium.copyWith(
                 color: AppColors.textSecondary,
               ),
@@ -242,7 +291,11 @@ class _AdminPaymentMethodFormState extends State<AdminPaymentMethodForm> {
                     )
                   : const Icon(Icons.save_outlined),
               label: Text(
-                _isSubmitting ? 'Menyimpan...' : 'Simpan Metode Pembayaran',
+                _isSubmitting
+                    ? 'Menyimpan...'
+                    : _isEdit
+                    ? 'Simpan Perubahan'
+                    : 'Simpan Metode Pembayaran',
                 style: AppTextStyles.button,
               ),
             ),
@@ -309,72 +362,114 @@ class _AdminPaymentMethodFormState extends State<AdminPaymentMethodForm> {
   }
 
   Widget _buildQrisPicker() {
-    if (_qrisImage == null) {
-      return InkWell(
-        onTap: _isSubmitting ? null : _pickQrisImage,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          width: double.infinity,
-          height: 220,
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.border),
+    if (_qrisImage != null) {
+      return Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.file(_qrisImage!, height: 280, fit: BoxFit.contain),
+            ),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.cloud_upload_outlined,
-                size: 48,
-                color: AppColors.textHint,
-              ),
 
-              const SizedBox(height: 12),
+          const SizedBox(height: 12),
 
-              Text('Pilih gambar QRIS', style: AppTextStyles.titleSmall),
-
-              const SizedBox(height: 4),
-
-              Text(
-                'Tap untuk memilih dari galeri',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _isSubmitting ? null : _pickQrisImage,
+              icon: const Icon(Icons.image_outlined),
+              label: const Text('Ganti Gambar QRIS'),
+            ),
           ),
+        ],
+      );
+    }
+
+    final oldQrisPath = widget.initialPaymentMethod?.qrisImageUrl;
+
+    if (oldQrisPath != null && oldQrisPath.isNotEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Column(
+          children: [
+            const Icon(Icons.qr_code_2_outlined, size: 48),
+
+            const SizedBox(height: 12),
+
+            Text('QRIS saat ini', style: AppTextStyles.titleSmall),
+
+            const SizedBox(height: 4),
+
+            Text(
+              'QRIS lama tetap digunakan '
+              'jika tidak memilih gambar baru.',
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+
+            const SizedBox(height: 12),
+
+            OutlinedButton.icon(
+              onPressed: _isSubmitting ? null : _pickQrisImage,
+              icon: const Icon(Icons.image_outlined),
+              label: const Text('Ganti Gambar QRIS'),
+            ),
+          ],
         ),
       );
     }
 
-    return Column(
-      children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.file(_qrisImage!, height: 280, fit: BoxFit.contain),
-          ),
+    return InkWell(
+      onTap: _isSubmitting ? null : _pickQrisImage,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: double.infinity,
+        height: 220,
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.border),
         ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.cloud_upload_outlined,
+              size: 48,
+              color: AppColors.textHint,
+            ),
 
-        const SizedBox(height: 12),
+            const SizedBox(height: 12),
 
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: _isSubmitting ? null : _pickQrisImage,
-            icon: const Icon(Icons.image_outlined),
-            label: const Text('Ganti Gambar QRIS'),
-          ),
+            Text('Pilih gambar QRIS', style: AppTextStyles.titleSmall),
+
+            const SizedBox(height: 4),
+
+            Text(
+              'Tap untuk memilih dari galeri',
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

@@ -6,11 +6,14 @@ import '../../data/models/payment_method_model.dart';
 
 class AdminPaymentMethodCard extends StatelessWidget {
   final PaymentMethodModel paymentMethod;
+
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const AdminPaymentMethodCard({
     super.key,
     required this.paymentMethod,
+    required this.onEdit,
     required this.onDelete,
   });
 
@@ -57,7 +60,9 @@ class AdminPaymentMethodCard extends StatelessWidget {
                         _isBank ? 'Rekening Bank' : 'QRIS',
                         style: AppTextStyles.titleMedium,
                       ),
+
                       const SizedBox(height: 2),
+
                       Text(
                         _isBank
                             ? paymentMethod.bankName ?? '-'
@@ -68,6 +73,12 @@ class AdminPaymentMethodCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                ),
+
+                IconButton(
+                  onPressed: onEdit,
+                  tooltip: 'Edit',
+                  icon: const Icon(Icons.edit_outlined),
                 ),
 
                 IconButton(

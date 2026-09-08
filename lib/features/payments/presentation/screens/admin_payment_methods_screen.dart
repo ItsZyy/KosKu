@@ -6,6 +6,7 @@ import '../../data/models/payment_method_model.dart';
 import '../../data/services/payment_method_service.dart';
 import '../widgets/admin_payment_method_card.dart';
 import 'admin_add_payment_method_screen.dart';
+import 'admin_edit_payment_method_screen.dart';
 
 class AdminPaymentMethodsScreen extends StatefulWidget {
   const AdminPaymentMethodsScreen({super.key});
@@ -59,6 +60,20 @@ class _AdminPaymentMethodsScreenState extends State<AdminPaymentMethodsScreen> {
     await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => AdminAddPaymentMethodScreen()),
+    );
+
+    if (!mounted) return;
+
+    _loadPaymentMethods();
+  }
+
+  Future<void> _editPaymentMethod(PaymentMethodModel paymentMethod) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            AdminEditPaymentMethodScreen(paymentMethod: paymentMethod),
+      ),
     );
 
     if (!mounted) return;
@@ -150,9 +165,7 @@ class _AdminPaymentMethodsScreenState extends State<AdminPaymentMethodsScreen> {
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
         children: [
           Text('Metode Pembayaran', style: AppTextStyles.headlineLarge),
-
           const SizedBox(height: 8),
-
           Text(
             'Kelola rekening bank dan QRIS yang '
             'digunakan penghuni untuk melakukan pembayaran.',
@@ -160,14 +173,15 @@ class _AdminPaymentMethodsScreenState extends State<AdminPaymentMethodsScreen> {
               color: AppColors.textSecondary,
             ),
           ),
-
           const SizedBox(height: 24),
-
           ..._paymentMethods.map((paymentMethod) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: AdminPaymentMethodCard(
                 paymentMethod: paymentMethod,
+                onEdit: () {
+                  _editPaymentMethod(paymentMethod);
+                },
                 onDelete: () {
                   _deletePaymentMethod(paymentMethod);
                 },
@@ -198,17 +212,13 @@ class _AdminPaymentMethodsScreenState extends State<AdminPaymentMethodsScreen> {
                 size: 40,
               ),
             ),
-
             const SizedBox(height: 20),
-
             Text(
               'Belum Ada Metode Pembayaran',
               style: AppTextStyles.titleLarge,
               textAlign: TextAlign.center,
             ),
-
             const SizedBox(height: 8),
-
             Text(
               'Tambahkan rekening bank atau QRIS '
               'agar penghuni dapat melakukan pembayaran.',
@@ -217,9 +227,7 @@ class _AdminPaymentMethodsScreenState extends State<AdminPaymentMethodsScreen> {
               ),
               textAlign: TextAlign.center,
             ),
-
             const SizedBox(height: 20),
-
             FilledButton.icon(
               onPressed: _addPaymentMethod,
               icon: const Icon(Icons.add),
@@ -239,25 +247,19 @@ class _AdminPaymentMethodsScreenState extends State<AdminPaymentMethodsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.error_outline, size: 48),
-
             const SizedBox(height: 12),
-
             Text(
               'Gagal Memuat Metode Pembayaran',
               style: AppTextStyles.titleMedium,
               textAlign: TextAlign.center,
             ),
-
             const SizedBox(height: 8),
-
             Text(
               _error!,
               style: AppTextStyles.bodySmall,
               textAlign: TextAlign.center,
             ),
-
             const SizedBox(height: 16),
-
             ElevatedButton(
               onPressed: _loadPaymentMethods,
               child: const Text('Coba Lagi'),

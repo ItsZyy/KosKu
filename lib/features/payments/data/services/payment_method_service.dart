@@ -62,8 +62,66 @@ class PaymentMethodService {
   }
 
   // =========================
+  // UPDATE BANK
+  // =========================
+
+  Future<PaymentMethodModel> updateBank({
+    required String id,
+    required String bankName,
+    required String accountNumber,
+    required String accountName,
+  }) async {
+    final data = await _supabase
+        .from('payment_info')
+        .update({
+          'type': 'bank',
+          'bank_name': bankName,
+          'account_number': accountNumber,
+          'account_name': accountName,
+          'qris_image_url': null,
+          'updated_at': DateTime.now().toIso8601String(),
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+    return PaymentMethodModel.fromMap(data);
+  }
+
+  // =========================
+  // UPDATE QRIS
+  // =========================
+
+  Future<PaymentMethodModel> updateQris({
+    required String id,
+    String? qrisImageUrl,
+  }) async {
+    final updateData = <String, dynamic>{
+      'type': 'qris',
+      'bank_name': null,
+      'account_number': null,
+      'account_name': null,
+      'updated_at': DateTime.now().toIso8601String(),
+    };
+
+    if (qrisImageUrl != null && qrisImageUrl.isNotEmpty) {
+      updateData['qris_image_url'] = qrisImageUrl;
+    }
+
+    final data = await _supabase
+        .from('payment_info')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+    return PaymentMethodModel.fromMap(data);
+  }
+
+  // =========================
   // SIGNED URL QRIS
   // =========================
+
   Future<String?> getQrisSignedUrl(String? path) async {
     if (path == null || path.isEmpty) {
       return null;
@@ -80,9 +138,17 @@ class PaymentMethodService {
     }
   }
 
+  // =========================
+  // DELETE
+  // =========================
+
   Future<void> deletePaymentMethod(String id) async {
     await _supabase.from('payment_info').delete().eq('id', id);
   }
+
+  // =========================
+  // USER PAYMENT METHODS
+  // =========================
 
   Future<List<Map<String, dynamic>>> getPaymentMethodsForUser() async {
     final data = await _supabase
