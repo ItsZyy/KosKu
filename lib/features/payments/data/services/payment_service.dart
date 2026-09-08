@@ -7,11 +7,6 @@ import '../models/payment_model.dart';
 class PaymentService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  // ========================================
-  // RPC generate_payment (dipanggil Admin)
-  // ========================================
-  // Function di database yang membuat payments + payment_items
-  // secara otomatis. Flutter tidak menghitung total tagihan.
   Future<String> generatePayment({
     required String userId,
     required String roomId,
@@ -41,9 +36,6 @@ class PaymentService {
     return paymentId.toString();
   }
 
-  // ========================================
-  // Detail pembayaran + payment_items
-  // ========================================
   Future<Payment?> getPaymentDetail(String paymentId) async {
     final data = await _supabase
         .from('payments')
@@ -60,6 +52,11 @@ class PaymentService {
           confirmed_by,
           confirmed_at,
           created_at,
+          profiles!payments_user_id_fkey (
+            name,
+            phone,
+            profile_photo_url
+          ),
           rooms (
             room_number
           ),
@@ -75,11 +72,13 @@ class PaymentService {
         .eq('id', paymentId)
         .maybeSingle();
 
-    if (data == null) return null;
+    if (data == null) {
+      return null;
+    }
+
     return Payment.fromMap(data);
   }
 
-  // Rincian tagihan (payment_items) dari sebuah payment.
   Future<List<PaymentItem>> getPaymentItems(String paymentId) async {
     final data = await _supabase
         .from('payment_items')
@@ -89,14 +88,6 @@ class PaymentService {
 
     return data.map<PaymentItem>((e) => PaymentItem.fromMap(e)).toList();
   }
-
-  // ========================================
-  // Submit bukti pembayaran (dari penghuni)
-  // ========================================
-  // Upload bukti ke bucket payment-images lalu catat path ke proof_url.
-  // Status DIKELOLA database-driven: anti-spam dicek ulang oleh screen
-  // sebelum memanggil method ini, dan selalu memakai payment.id yang sama
-  // (penghuni tidak pernah membuat payment baru saat mengirim ulang).
 
   Future<String> uploadPaymentProof({
     required String paymentId,
@@ -123,13 +114,241 @@ class PaymentService {
     required String paymentId,
     required String proofUrl,
   }) async {
-    await _supabase.from('payments').update({
-      'proof_url': proofUrl,
-      'status': 'menunggu',
-    }).eq('id', paymentId);
+    final user = _supabase.auth.currentUser;
+
+    if (user == null) {
+      throw Exception('Anda harus login terlebih dahulu');
+    }
+
+    final trimmedProofUrl = proofUrl.trim();
+
+    if (trimmedProofUrl.isEmpty) {
+      throw Exception('Path bukti pembayaran tidak valid.');
+    }
+
+    final payment = await _supabase
+        .from('payments')
+        .select('id, user_id, proof_url, status')
+        .eq('id', paymentId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+    if (payment == null) {
+      throw Exception('Tagihan tidak ditemukan.');
+    }
+
+    final existingProof = payment['proof_url']?.toString().trim();
+    final currentStatus = payment['status']?.toString().toLowerCase();
+
+    final hasExistingProof = existingProof != null && existingProof.isNotEmpty;
+
+    if (hasExistingProof && currentStatus != 'ditolak') {
+      if (currentStatus == 'dikonfirmasi') {
+        throw Exception('Pembayaran sudah dikonfirmasi oleh admin.');
+      }
+
+      throw Exception(
+        'Bukti pembayaran sudah dikirim dan sedang menunggu konfirmasi.',
+      );
+    }
+
+    final updatedPayment = await _supabase
+        .from('payments')
+        .update({
+          'proof_url': trimmedProofUrl,
+          'status': 'menunggu',
+          // Saat resubmit setelah ditolak, reset data konfirmasi lama
+          // agar payment kembali menjadi "menunggu konfirmasi" murni.
+          'confirmed_by': null,
+          'confirmed_at': null,
+        })
+        .eq('id', paymentId)
+        .eq('user_id', user.id)
+        .select('id, user_id, proof_url, status')
+        .maybeSingle();
+
+    if (updatedPayment == null) {
+      throw Exception(
+        'Bukti pembayaran gagal disimpan. '
+        'Pastikan Anda memiliki izin untuk memperbarui pembayaran ini.',
+      );
+    }
+
+    final savedProof = updatedPayment['proof_url']?.toString().trim();
+    final savedStatus = updatedPayment['status']?.toString().toLowerCase();
+
+    if (savedProof == null || savedProof.isEmpty) {
+      throw Exception('Bukti pembayaran gagal disimpan ke database.');
+    }
+
+    if (savedStatus != 'menunggu') {
+      throw Exception('Status pembayaran gagal diperbarui.');
+    }
   }
 
-  // Pembayaran terbaru milik penghuni
+  /// Guard admin: hanya user dengan role 'admin' yang boleh
+  /// mengonfirmasi/menolak pembayaran.
+  Future<bool> _isAdmin(String userId) async {
+    try {
+      final profile = await _supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', userId)
+          .maybeSingle();
+
+      return profile?['role']?.toString() == 'admin';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> confirmPayment({
+    required String paymentId,
+    required String adminUserId,
+  }) async {
+    final user = _supabase.auth.currentUser;
+
+    if (user == null) {
+      throw Exception('Anda harus login terlebih dahulu.');
+    }
+
+    if (adminUserId != user.id) {
+      throw Exception(
+        'ID admin tidak cocok dengan pengguna yang sedang login.',
+      );
+    }
+
+    if (!await _isAdmin(user.id)) {
+      throw Exception('Anda tidak memiliki izin admin untuk mengonfirmasi pembayaran.');
+    }
+
+    final payment = await _supabase
+        .from('payments')
+        .select('id, status, proof_url')
+        .eq('id', paymentId)
+        .maybeSingle();
+
+    if (payment == null) {
+      throw Exception('Pembayaran tidak ditemukan.');
+    }
+
+    final currentStatus = payment['status']?.toString().toLowerCase();
+    final proof = payment['proof_url']?.toString();
+
+    if (currentStatus != 'menunggu') {
+      throw Exception(
+        'Pembayaran tidak dapat dikonfirmasi karena status saat ini bukan "menunggu".',
+      );
+    }
+
+    if (proof == null || proof.isEmpty) {
+      throw Exception(
+        'Pembayaran belum memiliki bukti pembayaran, tidak dapat dikonfirmasi.',
+      );
+    }
+
+    // UPDATE bersifat atomic: WHERE status = 'menunggu' mencegah
+    // double-action/double-admin. Jika sudah berubah, update tidak
+    // menghasilkan row dan method melempar exception.
+    final updated = await _supabase
+        .from('payments')
+        .update({
+          'status': 'dikonfirmasi',
+          'confirmed_by': user.id,
+          'confirmed_at': DateTime.now().toUtc().toIso8601String(),
+        })
+        .eq('id', paymentId)
+        .eq('status', 'menunggu')
+        .select('id, status, confirmed_by, confirmed_at')
+        .maybeSingle();
+
+    if (updated == null) {
+      throw Exception(
+        'Konfirmasi gagal: status pembayaran berubah sebelum proses selesai, '
+        'atau Anda tidak memiliki izin untuk memperbarui pembayaran ini (cek RLS).',
+      );
+    }
+
+    final updatedStatus = updated['status']?.toString().toLowerCase();
+
+    if (updatedStatus != 'dikonfirmasi') {
+      throw Exception('Status pembayaran tidak berubah menjadi "dikonfirmasi".');
+    }
+
+    if ((updated['confirmed_by']?.toString() ?? '').isEmpty) {
+      throw Exception('ID admin tidak tersimpan pada pembayaran.');
+    }
+
+    if ((updated['confirmed_at']?.toString() ?? '').isEmpty) {
+      throw Exception('Waktu konfirmasi tidak tersimpan pada pembayaran.');
+    }
+  }
+
+  Future<void> rejectPayment({required String paymentId}) async {
+    final user = _supabase.auth.currentUser;
+
+    if (user == null) {
+      throw Exception('Anda harus login terlebih dahulu.');
+    }
+
+    if (!await _isAdmin(user.id)) {
+      throw Exception('Anda tidak memiliki izin admin untuk menolak pembayaran.');
+    }
+
+    final payment = await _supabase
+        .from('payments')
+        .select('id, status')
+        .eq('id', paymentId)
+        .maybeSingle();
+
+    if (payment == null) {
+      throw Exception('Pembayaran tidak ditemukan.');
+    }
+
+    final currentStatus = payment['status']?.toString().toLowerCase();
+
+    if (currentStatus != 'menunggu') {
+      throw Exception(
+        'Pembayaran tidak dapat ditolak karena status saat ini bukan "menunggu".',
+      );
+    }
+
+    final updated = await _supabase
+        .from('payments')
+        .update({'status': 'ditolak'})
+        .eq('id', paymentId)
+        .eq('status', 'menunggu')
+        .select('id, status')
+        .maybeSingle();
+
+    if (updated == null) {
+      throw Exception(
+        'Penolakan gagal: status pembayaran berubah sebelum proses selesai, '
+        'atau Anda tidak memiliki izin untuk memperbarui pembayaran ini (cek RLS).',
+      );
+    }
+
+    final updatedStatus = updated['status']?.toString().toLowerCase();
+
+    if (updatedStatus != 'ditolak') {
+      throw Exception('Status pembayaran tidak berubah menjadi "ditolak".');
+    }
+  }
+
+  Future<String?> getProofSignedUrl(String? proofPath) async {
+    if (proofPath == null || proofPath.isEmpty) {
+      return null;
+    }
+
+    try {
+      return await _supabase.storage
+          .from('payment-images')
+          .createSignedUrl(proofPath, 3600);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<Map<String, dynamic>?> getPayment() async {
     final user = _supabase.auth.currentUser;
 
@@ -148,7 +367,6 @@ class PaymentService {
     return data;
   }
 
-  // Total pendapatan yang sudah dikonfirmasi
   Future<int> getTotalIncome() async {
     final data = await _supabase
         .from('payments')
@@ -164,36 +382,43 @@ class PaymentService {
     return total;
   }
 
-  // Semua pembayaran untuk Admin
   Future<List<Map<String, dynamic>>> getPayments() async {
+    // Daftar untuk Admin: hanya pembayaran yang SUDAH memiliki bukti
+    // (proof_url) yang ditampilkan. Tagihan yang belum dibayar/upload
+    // tidak perlu diverifikasi Admin.
     final data = await _supabase
         .from('payments')
         .select('''
-        id,
-        user_id,
-        room_id,
-        payment_type,
-        amount,
-        period,
-        due_date,
-        proof_url,
-        status,
-        confirmed_by,
-        confirmed_at,
-        created_at,
-        profiles!payments_user_id_fkey (
-          name
-        ),
-        rooms (
-          room_number
-        )
-      ''')
+          id,
+          user_id,
+          room_id,
+          payment_type,
+          amount,
+          period,
+          due_date,
+          proof_url,
+          status,
+          confirmed_by,
+          confirmed_at,
+          created_at,
+          profiles!payments_user_id_fkey (
+            name
+          ),
+          rooms (
+            room_number
+          )
+        ''')
+        .not('proof_url', 'is', null)
         .order('created_at', ascending: false);
 
-    return List<Map<String, dynamic>>.from(data);
+    // Filter tambahan di sisi Dart: tolak baris dengan proof_url kosong
+    // (mis. string kosong), bukan hanya null.
+    return List<Map<String, dynamic>>.from(data).where((p) {
+      final proofUrl = p['proof_url']?.toString();
+      return proofUrl != null && proofUrl.isNotEmpty;
+    }).toList();
   }
 
-  // Riwayat pembayaran milik penghuni yang sedang login
   Future<List<Map<String, dynamic>>> getPaymentHistory() async {
     final user = _supabase.auth.currentUser;
 
@@ -223,14 +448,12 @@ class PaymentService {
     }
   }
 
-  // ========================================
-  // TYPED METHODS (return Payment model)
-  // ========================================
-
   Future<Payment?> getCurrentPayment() async {
     final user = _supabase.auth.currentUser;
 
-    if (user == null) return null;
+    if (user == null) {
+      return null;
+    }
 
     final data = await _supabase
         .from('payments')
@@ -264,14 +487,19 @@ class PaymentService {
         .limit(1)
         .maybeSingle();
 
-    if (data == null) return null;
+    if (data == null) {
+      return null;
+    }
+
     return Payment.fromMap(data);
   }
 
   Future<List<Payment>> getPaymentHistoryTyped() async {
     final user = _supabase.auth.currentUser;
 
-    if (user == null) return [];
+    if (user == null) {
+      return [];
+    }
 
     final data = await _supabase
         .from('payments')
@@ -301,6 +529,7 @@ class PaymentService {
           )
         ''')
         .eq('user_id', user.id)
+        .not('proof_url', 'is', null)
         .order('period', ascending: false);
 
     return (data as List).map((e) => Payment.fromMap(e)).toList();

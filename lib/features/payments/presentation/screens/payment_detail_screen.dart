@@ -178,31 +178,7 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
   }
 
   List<PaymentItem> _getFilteredItems(Payment payment) {
-    if (_selectedCategory == PaymentCategory.all) {
-      return payment.items;
-    }
-
-    return payment.items.where((item) {
-      final itemType = (item.itemType ?? '').toLowerCase();
-
-      switch (_selectedCategory) {
-        case PaymentCategory.room:
-          return itemType == 'kamar' ||
-              itemType == 'room' ||
-              itemType == 'rent' ||
-              itemType == 'sewa';
-        case PaymentCategory.utilities:
-          return itemType == 'utilities' ||
-              itemType == 'utility' ||
-              itemType == 'listrik' ||
-              itemType == 'air' ||
-              itemType == 'elektrik';
-        case PaymentCategory.wifi:
-          return itemType == 'wifi' || itemType == 'internet';
-        case PaymentCategory.all:
-          return true;
-      }
-    }).toList();
+    return _selectedCategory.filterItems(payment.items);
   }
 
   Future<void> _confirmPayment() async {

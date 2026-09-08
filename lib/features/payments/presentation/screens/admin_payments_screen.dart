@@ -5,7 +5,7 @@ import '../widgets/payment_card.dart';
 import '../widgets/payment_summary.dart';
 import '../widgets/payment_filter.dart';
 import 'generate_payment_screen.dart';
-import 'payment_detail_screen.dart';
+import 'admin_payment_detail_screen.dart';
 
 class AdminPaymentsScreen extends StatefulWidget {
   const AdminPaymentsScreen({super.key});
@@ -157,9 +157,8 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PaymentDetailScreen(
+            builder: (context) => AdminPaymentDetailScreen(
               paymentId: paymentId,
-              isAdmin: true,
             ),
           ),
         );
@@ -273,9 +272,8 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => PaymentDetailScreen(
+              builder: (context) => AdminPaymentDetailScreen(
                 paymentId: paymentId,
-                isAdmin: true,
               ),
             ),
           );

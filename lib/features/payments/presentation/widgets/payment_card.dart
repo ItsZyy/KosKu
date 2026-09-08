@@ -60,6 +60,14 @@ class PaymentCard extends StatelessWidget {
 
     final paymentId = payment['id']?.toString();
 
+    // Tombol mengundang admin untuk aksi hanya saat pembayaran
+    // benar-benar bisa dikonfirmasi/ditolak: status menunggu DAN
+    // penghuni sudah mengirim bukti (badge "Menunggu Konfirmasi").
+    final canBeConfirmed =
+        status.toLowerCase() == 'menunggu' &&
+        proofUrl != null &&
+        proofUrl.isNotEmpty;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -92,7 +100,10 @@ class PaymentCard extends StatelessWidget {
                   ),
                 ),
 
-                PaymentStatusBadge(status: status),
+                PaymentStatusBadge(
+                  status: status,
+                  hasProof: proofUrl != null && proofUrl.isNotEmpty,
+                ),
               ],
             ),
 
@@ -152,7 +163,9 @@ class PaymentCard extends StatelessWidget {
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: paymentId == null ? null : onTap,
-                child: const Text('Lihat Detail'),
+                child: Text(
+                  canBeConfirmed ? 'Konfirmasi Pembayaran' : 'Lihat Detail',
+                ),
               ),
             ),
           ],

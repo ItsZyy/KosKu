@@ -6,8 +6,13 @@ import '../../../../core/theme/app_text_styles.dart';
 
 class PaymentStatusBadge extends StatelessWidget {
   final String status;
+  final bool hasProof;
 
-  const PaymentStatusBadge({super.key, required this.status});
+  const PaymentStatusBadge({
+    super.key,
+    required this.status,
+    this.hasProof = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,8 +33,18 @@ class PaymentStatusBadge extends StatelessWidget {
       backgroundColor = AppColors.errorSoft;
       textColor = AppColors.error;
       icon = Icons.cancel;
+    } else if (normalizedStatus == 'menunggu' ||
+        normalizedStatus == 'pending') {
+      if (hasProof) {
+        label = 'Menunggu Konfirmasi';
+      } else {
+        label = 'Belum Dibayar';
+      }
+      backgroundColor = AppColors.warningSoft;
+      textColor = AppColors.warning;
+      icon = Icons.access_time;
     } else {
-      label = 'Menunggu Pembayaran';
+      label = status;
       backgroundColor = AppColors.warningSoft;
       textColor = AppColors.warning;
       icon = Icons.access_time;

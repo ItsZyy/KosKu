@@ -48,6 +48,8 @@ class Payment {
   final String? roomId;
   final String? roomNumber;
   final String? userName;
+  final String? userPhone;
+  final String? userPhotoUrl;
   final String? paymentType;
   final int amount;
   final String? period;
@@ -67,6 +69,8 @@ class Payment {
     this.roomId,
     this.roomNumber,
     this.userName,
+    this.userPhone,
+    this.userPhotoUrl,
     this.paymentType,
     this.amount = 0,
     this.period,
@@ -104,6 +108,8 @@ class Payment {
       roomId: map['room_id']?.toString(),
       roomNumber: _extractRoomNumber(map),
       userName: _extractUserName(map),
+      userPhone: _extractProfileField(map, 'phone'),
+      userPhotoUrl: _extractProfileField(map, 'profile_photo_url'),
       paymentType: map['payment_type']?.toString(),
       amount: (map['amount'] as num?)?.toInt() ?? 0,
       period: map['period']?.toString(),
@@ -152,9 +158,17 @@ class Payment {
   }
 
   static String? _extractUserName(Map<String, dynamic> map) {
+    return _extractProfileField(map, 'name');
+  }
+
+  static String? _extractProfileField(
+    Map<String, dynamic> map,
+    String field,
+  ) {
     final profiles = map['profiles'];
     if (profiles is Map<String, dynamic>) {
-      return profiles['name']?.toString();
+      final raw = profiles[field];
+      return raw?.toString();
     }
     return null;
   }

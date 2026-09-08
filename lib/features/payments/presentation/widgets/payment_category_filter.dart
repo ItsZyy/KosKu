@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../data/models/payment_model.dart';
 
 enum PaymentCategory {
   all('Semua', Icons.grid_view_rounded),
@@ -13,6 +14,36 @@ enum PaymentCategory {
   final IconData icon;
 
   const PaymentCategory(this.label, this.icon);
+
+  /// Memfilter rincian tagihan berdasarkan kategori terpilih.
+  /// Ini hanya memengaruhi TAMPILAN breakdown, bukan payments.amount.
+  List<PaymentItem> filterItems(List<PaymentItem> items) {
+    if (this == PaymentCategory.all) {
+      return items;
+    }
+
+    return items.where((item) {
+      final itemType = (item.itemType ?? '').toLowerCase();
+
+      switch (this) {
+        case PaymentCategory.room:
+          return itemType == 'kamar' ||
+              itemType == 'room' ||
+              itemType == 'rent' ||
+              itemType == 'sewa';
+        case PaymentCategory.utilities:
+          return itemType == 'utilities' ||
+              itemType == 'utility' ||
+              itemType == 'listrik' ||
+              itemType == 'air' ||
+              itemType == 'elektrik';
+        case PaymentCategory.wifi:
+          return itemType == 'wifi' || itemType == 'internet';
+        case PaymentCategory.all:
+          return true;
+      }
+    }).toList();
+  }
 }
 
 class PaymentCategoryFilter extends StatelessWidget {

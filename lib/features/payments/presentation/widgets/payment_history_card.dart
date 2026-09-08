@@ -61,7 +61,7 @@ class PaymentHistoryCard extends StatelessWidget {
         return 'DITOLAK';
       case 'pending':
       case 'menunggu':
-        return 'MENUNGGU';
+        return 'MENUNGGU KONFIRMASI';
       default:
         return status?.toString().toUpperCase() ?? '-';
     }

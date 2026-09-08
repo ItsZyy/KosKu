@@ -1,4 +1,3 @@
-// Widget untuk UserPaymentScreen
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -52,25 +51,15 @@ class PaymentHeaderCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildHeader(periodLabel),
-
                     const SizedBox(height: 20),
-
                     _buildNominal(totalDisplay),
-
                     const SizedBox(height: 20),
-
                     _buildBreakdown(),
-
                     const SizedBox(height: 16),
-
                     const Divider(color: AppColors.divider),
-
                     const SizedBox(height: 12),
-
                     _buildTotal(totalDisplay),
-
                     const SizedBox(height: 20),
-
                     _buildPayButton(),
                   ],
                 ),
@@ -103,7 +92,10 @@ class PaymentHeaderCard extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 12),
-        PaymentStatusBadge(status: payment.status),
+        PaymentStatusBadge(
+          status: payment.status,
+          hasProof: payment.hasSubmittedPayment,
+        ),
       ],
     );
   }
@@ -140,7 +132,6 @@ class PaymentHeaderCard extends StatelessWidget {
                   'Tagihan',
               value: PaymentFormatter.rupiah(payment.items[i].amount),
             ),
-
             if (i < payment.items.length - 1) const SizedBox(height: 12),
           ],
         ],
@@ -168,17 +159,62 @@ class PaymentHeaderCard extends StatelessWidget {
   }
 
   Widget _buildPayButton() {
-    if (!payment.isPending) {
-      return const SizedBox.shrink();
+    // ============================================
+    // 1. SUDAH DIKONFIRMASI ADMIN
+    // ============================================
+    if (payment.isConfirmed) {
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(onPressed: null, child: const Text('Lunas')),
+      );
     }
 
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: onPay,
-        child: const Text('Bayar Sekarang'),
-      ),
-    );
+    // ============================================
+    // 2. SUDAH KIRIM BUKTI
+    //    DAN MENUNGGU KONFIRMASI ADMIN
+    // ============================================
+    if (payment.hasSubmittedPayment && payment.isPending) {
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: null,
+          child: const Text('Menunggu Konfirmasi'),
+        ),
+      );
+    }
+
+    // ============================================
+    // 3. PEMBAYARAN DITOLAK
+    //    USER BOLEH KIRIM ULANG
+    // ============================================
+    if (payment.isRejected) {
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: onPay,
+          child: const Text('Kirim Ulang Pembayaran'),
+        ),
+      );
+    }
+
+    // ============================================
+    // 4. BELUM BAYAR
+    //    USER MASIH BOLEH MASUK DETAIL PEMBAYARAN
+    // ============================================
+    if (payment.isPending && !payment.hasSubmittedPayment) {
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: onPay,
+          child: const Text('Bayar Sekarang'),
+        ),
+      );
+    }
+
+    // ============================================
+    // 5. FALLBACK
+    // ============================================
+    return const SizedBox.shrink();
   }
 }
 

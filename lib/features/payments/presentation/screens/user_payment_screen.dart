@@ -47,7 +47,15 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
     try {
       final payment = await _paymentService.getCurrentPayment();
 
-      final history = await _paymentService.getPaymentHistory();
+      final allHistory = await _paymentService.getPaymentHistory();
+
+      // Hanya tampilkan di riwayat pembayaran yang sudah pernah dikirim
+      // (proof_url terisi). Tagihan yang belum dibayar tidak termasuk
+      // riwayat karena sudah ditampilkan di bagian header.
+      final history = allHistory.where((p) {
+        final proofUrl = p['proof_url']?.toString();
+        return proofUrl != null && proofUrl.isNotEmpty;
+      }).toList();
 
       // Ambil metode pembayaran dari PaymentMethodService
       final paymentInfo = await _paymentMethodService

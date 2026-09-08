@@ -6,15 +6,10 @@ import '../../data/models/payment_formatter.dart';
 import '../../data/models/payment_model.dart';
 import 'payment_status_badge.dart';
 
-class PaymentDetailHeader extends StatelessWidget {
+class AdminPaymentHeader extends StatelessWidget {
   final Payment payment;
-  final bool isAdmin;
 
-  const PaymentDetailHeader({
-    super.key,
-    required this.payment,
-    this.isAdmin = false,
-  });
+  const AdminPaymentHeader({super.key, required this.payment});
 
   @override
   Widget build(BuildContext context) {
@@ -37,15 +32,6 @@ class PaymentDetailHeader extends StatelessWidget {
                     color: AppColors.textSecondary,
                   ),
                 ),
-              if (isAdmin && payment.userName != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  payment.userName!,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
             ],
           ),
         ),
