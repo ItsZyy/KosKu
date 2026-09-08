@@ -1,14 +1,24 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../data/models/payment_formatter.dart';
+import '../../data/models/payment_method_model.dart';
 import '../../data/models/payment_model.dart';
+import '../../data/services/payment_method_service.dart';
 import '../../data/services/payment_service.dart';
-import '../widgets/payment_items_section.dart';
-import '../widgets/payment_status_badge.dart';
+import '../widgets/payment_amount_section.dart';
+import '../widgets/payment_bill_section.dart';
+import '../widgets/payment_category_filter.dart';
+import '../widgets/payment_confirmation_button.dart';
+import '../widgets/payment_detail_header.dart';
+import '../widgets/payment_method_section.dart';
+import '../widgets/payment_proof_section.dart';
+import '../widgets/payment_submit_status_card.dart';
+import '../widgets/payment_type_selector.dart';
 
-/// Halaman detail tagihan: menampilkan payments + payment_items.
 class PaymentDetailScreen extends StatefulWidget {
   final String paymentId;
   final Payment? initial;
@@ -27,28 +37,81 @@ class PaymentDetailScreen extends StatefulWidget {
 
 class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
   final _paymentService = PaymentService();
+  final _paymentMethodService = PaymentMethodService();
+  final _amountController = TextEditingController();
 
   Payment? _payment;
+  List<PaymentMethodModel> _paymentMethods = [];
+  PaymentMethodModel? _selectedPaymentMethod;
+  String? _qrisSignedUrl;
+
+  PaymentType _paymentType = PaymentType.full;
+  PaymentCategory _selectedCategory = PaymentCategory.all;
+  File? _proofImage;
+
   bool _isLoading = true;
+  bool _isSubmitting = false;
   String? _error;
 
   @override
   void initState() {
     super.initState();
+
     _payment = widget.initial;
     _loadDetail();
   }
 
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadDetail() async {
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
+
     try {
       final payment = await _paymentService.getPaymentDetail(widget.paymentId);
+
+      final methods = await _paymentMethodService.getPaymentMethods();
+
+      String? qrisUrl;
+      if (methods.isNotEmpty) {
+        final qrisMethod = methods.firstWhere(
+          (m) => m.isQris,
+          orElse: () => methods.first,
+        );
+        if (qrisMethod.isQris && qrisMethod.qrisImageUrl != null) {
+          qrisUrl = await _paymentMethodService.getQrisSignedUrl(
+            qrisMethod.qrisImageUrl,
+          );
+        }
+      }
+
       if (!mounted) return;
+
       setState(() {
         _payment = payment;
+        _paymentMethods = methods;
+        _qrisSignedUrl = qrisUrl;
         _isLoading = false;
+
+        if (payment != null) {
+          _amountController.text = payment.amount.toString();
+        }
+
+        if (methods.isNotEmpty) {
+          _selectedPaymentMethod = methods.first;
+        }
       });
     } catch (e) {
       if (!mounted) return;
+
       setState(() {
         _error = e.toString();
         _isLoading = false;
@@ -56,9 +119,232 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
     }
   }
 
+  void _onPaymentTypeChanged(PaymentType type) {
+    final payment = _payment;
+
+    if (payment == null) return;
+
+    setState(() {
+      _paymentType = type;
+
+      if (type == PaymentType.full) {
+        _amountController.text = payment.amount.toString();
+      } else {
+        _amountController.clear();
+      }
+    });
+  }
+
+  int? _getPaymentAmount() {
+    final payment = _payment;
+
+    if (payment == null) return null;
+
+    if (_paymentType == PaymentType.full) {
+      return payment.amount;
+    }
+
+    final raw = _amountController.text.trim();
+
+    if (raw.isEmpty) {
+      return null;
+    }
+
+    final amount = int.tryParse(raw);
+
+    if (amount == null || amount <= 0) {
+      return null;
+    }
+
+    if (amount > payment.amount) {
+      return null;
+    }
+
+    return amount;
+  }
+
+  int? _getPreviewAmount(Payment payment) {
+    if (_paymentType == PaymentType.full) {
+      return payment.amount;
+    }
+
+    final raw = _amountController.text.trim();
+
+    if (raw.isEmpty) {
+      return null;
+    }
+
+    return int.tryParse(raw);
+  }
+
+  List<PaymentItem> _getFilteredItems(Payment payment) {
+    if (_selectedCategory == PaymentCategory.all) {
+      return payment.items;
+    }
+
+    return payment.items.where((item) {
+      final itemType = (item.itemType ?? '').toLowerCase();
+
+      switch (_selectedCategory) {
+        case PaymentCategory.room:
+          return itemType == 'kamar' ||
+              itemType == 'room' ||
+              itemType == 'rent' ||
+              itemType == 'sewa';
+        case PaymentCategory.utilities:
+          return itemType == 'utilities' ||
+              itemType == 'utility' ||
+              itemType == 'listrik' ||
+              itemType == 'air' ||
+              itemType == 'elektrik';
+        case PaymentCategory.wifi:
+          return itemType == 'wifi' || itemType == 'internet';
+        case PaymentCategory.all:
+          return true;
+      }
+    }).toList();
+  }
+
+  Future<void> _confirmPayment() async {
+    final payment = _payment;
+
+    if (payment == null) return;
+
+    final paymentId = payment.id;
+
+    if (paymentId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Data tagihan tidak valid.')),
+      );
+      return;
+    }
+
+    if (_selectedPaymentMethod == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pilih metode pembayaran terlebih dahulu.'),
+        ),
+      );
+      return;
+    }
+
+    final amount = _getPaymentAmount();
+
+    if (amount == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nominal pembayaran tidak valid.')),
+      );
+      return;
+    }
+
+    if (amount > payment.amount) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Nominal tidak boleh melebihi total tagihan.'),
+        ),
+      );
+      return;
+    }
+
+    if (_proofImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Upload bukti pembayaran terlebih dahulu.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      // ==========================================================
+      // ANTI-SPAM / DOUBLE SUBMIT
+      // State UI bisa saja ketinggalan (misalnya tombol masih tampil
+      // padahal submit sebelumnya sudah berhasil). DB adalah sumber
+      // kebenaran, jadi selalu fetch ulang sebelum menulis.
+      // ==========================================================
+      final latest = await _paymentService.getPaymentDetail(paymentId);
+
+      if (!mounted) return;
+
+      if (latest == null) {
+        throw Exception('Tagihan tidak ditemukan di database.');
+      }
+
+      if (latest.hasSubmittedPayment && latest.isWaitingConfirmation) {
+        setState(() {
+          _payment = latest;
+          _proofImage = null;
+          _isSubmitting = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Pembayaran sudah dikirim dan sedang menunggu konfirmasi.',
+            ),
+          ),
+        );
+        return;
+      }
+
+      // ==========================================================
+      // UPLOAD BUKTI + UPDATE PAYMENT
+      // Tetap memakai payment.id yang sama. Tidak ada payment baru.
+      // ==========================================================
+      final proofPath = await _paymentService.uploadPaymentProof(
+        paymentId: paymentId,
+        file: _proofImage!,
+      );
+
+      await _paymentService.submitPaymentProof(
+        paymentId: paymentId,
+        proofUrl: proofPath,
+      );
+
+      // ==========================================================
+      // SINKRONKAN UI DENGAN DB
+      // Jangan mengubah state secara manual; fetch ulang sehingga
+      // UI mengikuti kondisi terbaru (proof_url != null, menunggu).
+      // ==========================================================
+      final updated = await _paymentService.getPaymentDetail(paymentId);
+
+      if (!mounted) return;
+
+      setState(() {
+        _payment = updated;
+        _proofImage = null;
+        _isSubmitting = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Pembayaran ${PaymentFormatter.rupiah(amount)} '
+            'berhasil dikirim dan menunggu konfirmasi.',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isSubmitting = false;
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal memproses pembayaran: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('Detail Tagihan')),
       body: _buildBody(),
     );
@@ -69,172 +355,141 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
+    if (_error != null) {
+      return _buildError(_error!);
+    }
+
     final payment = _payment;
 
     if (payment == null) {
       return _buildError('Tagihan tidak ditemukan.');
     }
 
-    if (_error != null) {
-      return _buildError(_error!);
-    }
+    final currentAmount = _getPreviewAmount(payment);
+
+    // ==========================================================
+    // STATE BERDASARKAN DATABASE (proof_url + status)
+    // status 'menunggu' saja TIDAK cukup untuk menentukan sudah submit.
+    // ==========================================================
+    final isWaiting = payment.isWaitingConfirmation;
+    final isRejected = payment.isRejected;
+    final isConfirmed = payment.isConfirmed;
+    final canSubmit = !isWaiting && !isConfirmed;
 
     return RefreshIndicator(
       onRefresh: _loadDetail,
       child: ListView(
-        padding: const EdgeInsets.all(20),
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
         children: [
-          _buildHeader(payment),
-          const SizedBox(height: 24),
-          _buildSummary(payment),
-          const SizedBox(height: 24),
-          _buildDetailRows(payment),
-          if (payment.proofUrl?.isNotEmpty == true) ...[
-            const SizedBox(height: 24),
-            _buildProofSection(payment.proofUrl!),
-          ],
-        ],
-      ),
-    );
-  }
+          PaymentDetailHeader(payment: payment, isAdmin: widget.isAdmin),
 
-  Widget _buildHeader(Payment payment) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Tagihan ${PaymentFormatter.period(payment.period)}',
-                style: AppTextStyles.headlineLarge,
-              ),
-              if (payment.roomNumber != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  'Kamar ${payment.roomNumber}',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-              if (widget.isAdmin && payment.userName != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  payment.userName!,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-        PaymentStatusBadge(status: payment.status),
-      ],
-    );
-  }
-
-  Widget _buildSummary(Payment payment) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Total Tagihan',
-                  style: AppTextStyles.titleMedium.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  PaymentFormatter.rupiah(payment.amount),
-                  style: AppTextStyles.displaySmall.copyWith(
-                    color: AppColors.primary,
-                  ),
-                ),
-              ],
+          if (isWaiting) ...[
+            const SizedBox(height: 20),
+            const PaymentSubmitStatusCard(
+              status: PaymentSubmitStatus.waiting,
             ),
-          ),
-          const Divider(color: AppColors.divider, height: 1),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: PaymentItemsSection(payment: payment),
-          ),
-        ],
-      ),
-    );
-  }
+          ] else if (isRejected) ...[
+            const SizedBox(height: 20),
+            const PaymentSubmitStatusCard(
+              status: PaymentSubmitStatus.rejected,
+            ),
+          ] else if (isConfirmed) ...[
+            const SizedBox(height: 20),
+            const PaymentSubmitStatusCard(
+              status: PaymentSubmitStatus.confirmed,
+            ),
+          ],
 
-  Widget _buildDetailRows(Payment payment) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        children: [
-          _InfoRow(
-            label: 'Jatuh Tempo',
-            value: PaymentFormatter.date(payment.dueDate),
-          ),
-          const Divider(color: AppColors.divider, height: 1),
-          _InfoRow(label: 'Status', value: PaymentFormatter.statusLabel(payment.status)),
-          const Divider(color: AppColors.divider, height: 1),
-          _InfoRow(
-            label: 'Dibuat',
-            value: PaymentFormatter.date(payment.createdAt),
-          ),
-        ],
-      ),
-    );
-  }
+          const SizedBox(height: 20),
 
-  Widget _buildProofSection(String proofUrl) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Bukti Pembayaran',
-            style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w700),
+          PaymentBillSection(
+            payment: payment,
+            items: _getFilteredItems(payment),
           ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              proofUrl,
-              width: double.infinity,
-              height: 240,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 120,
-                  alignment: Alignment.center,
-                  child: const Icon(Icons.broken_image, size: 40),
-                );
+
+          const SizedBox(height: 20),
+
+          PaymentCategoryFilter(
+            selectedCategory: _selectedCategory,
+            onCategoryChanged: (category) {
+              setState(() {
+                _selectedCategory = category;
+              });
+            },
+          ),
+
+          const SizedBox(height: 24),
+
+          PaymentMethodSection(
+            methods: _paymentMethods,
+            selectedMethod: _selectedPaymentMethod,
+            qrisSignedUrl: _qrisSignedUrl,
+            onChanged: (method) {
+              setState(() {
+                _selectedPaymentMethod = method;
+              });
+            },
+          ),
+
+          // Alur submit hanya ditampilkan saat penghuni masih boleh
+          // mengirim (belum submit) atau mengirim ulang (ditolak).
+          if (canSubmit) ...[
+            const SizedBox(height: 24),
+
+            PaymentTypeSelector(
+              selectedType: _paymentType,
+              onChanged: _onPaymentTypeChanged,
+            ),
+
+            const SizedBox(height: 20),
+
+            PaymentAmountSection(
+              paymentType: _paymentType,
+              totalAmount: payment.amount,
+              controller: _amountController,
+            ),
+
+            if (_paymentType == PaymentType.installment &&
+                _amountController.text.isNotEmpty &&
+                currentAmount != null &&
+                currentAmount < payment.amount) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Sisa tagihan: '
+                '${PaymentFormatter.rupiah(payment.amount - currentAmount)}',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 24),
+
+            PaymentProofSection(
+              proofImage: _proofImage,
+              onImagePicked: (file) {
+                setState(() {
+                  _proofImage = file;
+                });
+              },
+              onImageRemoved: () {
+                setState(() {
+                  _proofImage = null;
+                });
               },
             ),
-          ),
+
+            const SizedBox(height: 24),
+
+            PaymentConfirmationButton(
+              isLoading: _isSubmitting,
+              label: isRejected
+                  ? 'Kirim Ulang Pembayaran'
+                  : 'Konfirmasi Pembayaran',
+              onPressed: _confirmPayment,
+            ),
+          ],
         ],
       ),
     );
@@ -248,55 +503,31 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+
             const SizedBox(height: 12),
+
             Text(
-              'Gagal memuat detail tagihan',
+              'Gagal Memuat Detail Tagihan',
               style: AppTextStyles.titleMedium,
+              textAlign: TextAlign.center,
             ),
+
             const SizedBox(height: 8),
+
             Text(
               message,
               textAlign: TextAlign.center,
               style: AppTextStyles.bodySmall,
             ),
+
             const SizedBox(height: 16),
+
             ElevatedButton(
               onPressed: _loadDetail,
               child: const Text('Coba Lagi'),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _InfoRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(label, style: AppTextStyles.bodyMedium),
-          ),
-          const SizedBox(width: 12),
-          Flexible(
-            child: Text(
-              value,
-              textAlign: TextAlign.right,
-              style: AppTextStyles.bodyMedium.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

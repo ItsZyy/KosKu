@@ -86,6 +86,13 @@ class Payment {
 
   bool get hasBreakdown => items.isNotEmpty;
 
+  /// Penghuni sudah mengunggah bukti pembayaran (proof_url terisi).
+  /// status 'menunggu' TIDAK cukup untuk menentukan sudah submit.
+  bool get hasSubmittedPayment => proofUrl != null && proofUrl!.isNotEmpty;
+
+  /// Bukti sudah dikirim dan sedang menunggu verifikasi admin.
+  bool get isWaitingConfirmation => hasSubmittedPayment && isPending;
+
   bool get isPending => status.toLowerCase() == 'menunggu';
   bool get isConfirmed => status.toLowerCase() == 'dikonfirmasi';
   bool get isRejected => status.toLowerCase() == 'ditolak';

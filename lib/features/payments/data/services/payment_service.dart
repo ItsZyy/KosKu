@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/payment_model.dart';
@@ -86,6 +88,45 @@ class PaymentService {
         .order('created_at', ascending: true);
 
     return data.map<PaymentItem>((e) => PaymentItem.fromMap(e)).toList();
+  }
+
+  // ========================================
+  // Submit bukti pembayaran (dari penghuni)
+  // ========================================
+  // Upload bukti ke bucket payment-images lalu catat path ke proof_url.
+  // Status DIKELOLA database-driven: anti-spam dicek ulang oleh screen
+  // sebelum memanggil method ini, dan selalu memakai payment.id yang sama
+  // (penghuni tidak pernah membuat payment baru saat mengirim ulang).
+
+  Future<String> uploadPaymentProof({
+    required String paymentId,
+    required File file,
+  }) async {
+    final user = _supabase.auth.currentUser;
+
+    if (user == null) {
+      throw Exception('Anda harus login terlebih dahulu');
+    }
+
+    final extension = file.path.split('.').last.toLowerCase();
+    final fileName = '${DateTime.now().millisecondsSinceEpoch}.$extension';
+    final filePath = 'proofs/$paymentId/$fileName';
+
+    await _supabase.storage
+        .from('payment-images')
+        .upload(filePath, file, fileOptions: const FileOptions(upsert: false));
+
+    return filePath;
+  }
+
+  Future<void> submitPaymentProof({
+    required String paymentId,
+    required String proofUrl,
+  }) async {
+    await _supabase.from('payments').update({
+      'proof_url': proofUrl,
+      'status': 'menunggu',
+    }).eq('id', paymentId);
   }
 
   // Pembayaran terbaru milik penghuni
