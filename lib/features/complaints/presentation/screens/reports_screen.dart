@@ -1,3 +1,4 @@
+// admin
 import 'package:flutter/material.dart';
 
 import '../../data/models/complaint_model.dart';
@@ -5,6 +6,7 @@ import '../../data/services/complaint_service.dart';
 import '../widgets/complaint_summary.dart';
 import '../widgets/complaint_filter.dart';
 import '../widgets/complaint_card.dart';
+import 'complaint_detail_screen.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -195,7 +197,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
       return ComplaintCard(
         complaint: complaint,
         onDetail: () {
-          _showMessage('Detail laporan: ${complaint.type}');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ComplaintDetailScreen(complaint: complaint),
+            ),
+          );
         },
       );
     }).toList();
@@ -224,12 +231,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
   }
 }

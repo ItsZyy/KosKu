@@ -8,7 +8,6 @@ class ComplaintService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
   // ADMIN
-
   // Jumlah laporan aktif
   Future<int> getActiveComplaints() async {
     final data = await _supabase.from('complaints').select('id').inFilter(
@@ -93,7 +92,6 @@ class ComplaintService {
   }
 
   // USER
-
   // User - mengambil semua keluhan miliknya sendiri
   Future<List<Map<String, dynamic>>> getMyComplaints() async {
     final user = _supabase.auth.currentUser;
@@ -124,7 +122,7 @@ class ComplaintService {
     return List<Map<String, dynamic>>.from(data);
   }
 
-  // User - upload foto keluhan
+  // UPLOAD FOTO
   Future<String> uploadImage(File image) async {
     final user = _supabase.auth.currentUser;
 
@@ -133,7 +131,6 @@ class ComplaintService {
     }
 
     final extension = image.path.split('.').last.toLowerCase();
-
     final fileName = '${DateTime.now().millisecondsSinceEpoch}.$extension';
 
     final filePath = '${user.id}/$fileName';
@@ -142,10 +139,10 @@ class ComplaintService {
         .from('complaint-images')
         .upload(filePath, image, fileOptions: const FileOptions(upsert: false));
 
-    return filePath;
+    return _supabase.storage.from('complaint-images').getPublicUrl(filePath);
   }
 
-  // User - membuat laporan baru
+  // BUAT KELUHAN/LAPORAN
   Future<void> createComplaint({
     required String title,
     required String description,
