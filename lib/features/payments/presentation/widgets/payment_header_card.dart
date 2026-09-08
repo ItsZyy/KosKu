@@ -5,24 +5,18 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../data/models/payment_formatter.dart';
 import '../../data/models/payment_model.dart';
-import 'payment_items_section.dart';
 import 'payment_status_badge.dart';
 
 class PaymentHeaderCard extends StatelessWidget {
   final Payment payment;
   final VoidCallback? onPay;
 
-  const PaymentHeaderCard({
-    super.key,
-    required this.payment,
-    this.onPay,
-  });
+  const PaymentHeaderCard({super.key, required this.payment, this.onPay});
 
   @override
   Widget build(BuildContext context) {
     final periodLabel = PaymentFormatter.period(payment.period);
     final totalDisplay = PaymentFormatter.rupiah(payment.totalAmount);
-    final roomNumber = payment.roomNumber ?? '-';
 
     return Container(
       decoration: BoxDecoration(
@@ -43,9 +37,9 @@ class PaymentHeaderCard extends StatelessWidget {
           children: [
             Container(
               width: 5,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppColors.primary,
-                borderRadius: const BorderRadius.only(
+                borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(12),
                   bottomLeft: Radius.circular(12),
                 ),
@@ -57,16 +51,26 @@ class PaymentHeaderCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildHeader(periodLabel, roomNumber),
+                    _buildHeader(periodLabel),
+
                     const SizedBox(height: 20),
+
                     _buildNominal(totalDisplay),
+
                     const SizedBox(height: 20),
+
                     _buildBreakdown(),
+
                     const SizedBox(height: 16),
+
                     const Divider(color: AppColors.divider),
+
                     const SizedBox(height: 12),
+
                     _buildTotal(totalDisplay),
+
                     const SizedBox(height: 20),
+
                     _buildPayButton(),
                   ],
                 ),
@@ -78,7 +82,7 @@ class PaymentHeaderCard extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(String periodLabel, String roomNumber) {
+  Widget _buildHeader(String periodLabel) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -94,15 +98,7 @@ class PaymentHeaderCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                periodLabel,
-                style: AppTextStyles.headlineMedium,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Kamar $roomNumber',
-                style: AppTextStyles.bodySmall,
-              ),
+              Text(periodLabel, style: AppTextStyles.headlineMedium),
             ],
           ),
         ),
@@ -115,16 +111,9 @@ class PaymentHeaderCard extends StatelessWidget {
   Widget _buildNominal(String totalDisplay) {
     return Row(
       children: [
-        const Icon(
-          Icons.payments_outlined,
-          color: AppColors.primary,
-          size: 24,
-        ),
+        const Icon(Icons.payments_outlined, color: AppColors.primary, size: 24),
         const SizedBox(width: 10),
-        Text(
-          totalDisplay,
-          style: AppTextStyles.displaySmall,
-        ),
+        Text(totalDisplay, style: AppTextStyles.displaySmall),
       ],
     );
   }
@@ -134,7 +123,29 @@ class PaymentHeaderCard extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return PaymentItemsSection(payment: payment);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.inputBackground,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          for (int i = 0; i < payment.items.length; i++) ...[
+            _BreakdownRow(
+              label:
+                  payment.items[i].description ??
+                  payment.items[i].itemType ??
+                  'Tagihan',
+              value: PaymentFormatter.rupiah(payment.items[i].amount),
+            ),
+
+            if (i < payment.items.length - 1) const SizedBox(height: 12),
+          ],
+        ],
+      ),
+    );
   }
 
   Widget _buildTotal(String totalDisplay) {
@@ -150,16 +161,16 @@ class PaymentHeaderCard extends StatelessWidget {
         ),
         Text(
           totalDisplay,
-          style: AppTextStyles.titleLarge.copyWith(
-            color: AppColors.primary,
-          ),
+          style: AppTextStyles.titleLarge.copyWith(color: AppColors.primary),
         ),
       ],
     );
   }
 
   Widget _buildPayButton() {
-    if (!payment.isPending) return const SizedBox.shrink();
+    if (!payment.isPending) {
+      return const SizedBox.shrink();
+    }
 
     return SizedBox(
       width: double.infinity,
@@ -167,6 +178,26 @@ class PaymentHeaderCard extends StatelessWidget {
         onPressed: onPay,
         child: const Text('Bayar Sekarang'),
       ),
+    );
+  }
+}
+
+class _BreakdownRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _BreakdownRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(child: Text(label, style: AppTextStyles.bodyMedium)),
+        Text(
+          value,
+          style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+        ),
+      ],
     );
   }
 }
