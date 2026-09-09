@@ -1,4 +1,3 @@
-// Widget untuk UserProfileScreen
 import 'package:flutter/material.dart';
 
 class RoomDetailCard extends StatelessWidget {
@@ -19,6 +18,36 @@ class RoomDetailCard extends StatelessWidget {
     required this.facilities,
   });
 
+  IconData _getFacilityIcon(String facility) {
+    final name = facility.toLowerCase();
+
+    if (name.contains('wifi')) {
+      return Icons.wifi_outlined;
+    }
+
+    if (name.contains('kasur')) {
+      return Icons.bed_outlined;
+    }
+
+    if (name.contains('lemari')) {
+      return Icons.door_sliding_outlined;
+    }
+
+    if (name.contains('meja')) {
+      return Icons.table_restaurant_outlined;
+    }
+
+    if (name.contains('kamar mandi')) {
+      return Icons.bathroom_outlined;
+    }
+
+    if (name.contains('tv')) {
+      return Icons.tv_outlined;
+    }
+
+    return Icons.home_work_outlined;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -27,66 +56,48 @@ class RoomDetailCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.home_outlined),
-                SizedBox(width: 10),
-                Text(
+                Icon(
+                  Icons.home_outlined,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 10),
+                const Text(
                   'Detail Kamar',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
-
-            const SizedBox(height: 16),
-
+            const SizedBox(height: 20),
             _RoomInfoRow(title: 'Nomor Kamar', value: roomNumber),
-
             const Divider(height: 24),
-
             _RoomInfoRow(
               title: 'Kontrak',
               value: '$contractStart - $contractEnd',
             ),
-
             const Divider(height: 24),
-
             _RoomInfoRow(title: 'Harga Sewa', value: rentPrice),
-
             const Divider(height: 24),
-
-            _RoomInfoRow(title: 'Tanggal Jatuh Tempo', value: dueDate),
-
+            _RoomInfoRow(title: 'Jatuh Tempo', value: dueDate),
             const Divider(height: 24),
-
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Expanded(
-                  flex: 2,
-                  child: Text(
-                    'Fasilitas',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: facilities.isEmpty
-                      ? const Text('-', textAlign: TextAlign.right)
-                      : Wrap(
-                          alignment: WrapAlignment.end,
-                          spacing: 6,
-                          runSpacing: 6,
-                          children: facilities.map((facility) {
-                            return Chip(
-                              label: Text(facility),
-                              visualDensity: VisualDensity.compact,
-                            );
-                          }).toList(),
-                        ),
-                ),
-              ],
+            const Text(
+              'Fasilitas',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             ),
+            const SizedBox(height: 14),
+            facilities.isEmpty
+                ? const Text('-', style: TextStyle(color: Colors.grey))
+                : Wrap(
+                    spacing: 18,
+                    runSpacing: 16,
+                    children: facilities.map((facility) {
+                      return _FacilityItem(
+                        icon: _getFacilityIcon(facility),
+                        name: facility,
+                      );
+                    }).toList(),
+                  ),
           ],
         ),
       ),
@@ -103,20 +114,64 @@ class _RoomInfoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Icon(
+          Icons.circle,
+          size: 7,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        const SizedBox(width: 10),
         Expanded(
-          child: Text(title, style: const TextStyle(color: Colors.grey)),
+          child: Text(
+            title,
+            style: const TextStyle(color: Colors.grey, fontSize: 13),
+          ),
         ),
         const SizedBox(width: 12),
         Flexible(
           child: Text(
             value.isNotEmpty ? value : '-',
-            textAlign: TextAlign.right,
-            style: const TextStyle(fontWeight: FontWeight.w500),
+            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _FacilityItem extends StatelessWidget {
+  final IconData icon;
+  final String name;
+
+  const _FacilityItem({required this.icon, required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
+    return SizedBox(
+      width: 72,
+      child: Column(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, size: 23, color: primary),
+          ),
+          const SizedBox(height: 7),
+          Text(
+            name,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+          ),
+        ],
+      ),
     );
   }
 }

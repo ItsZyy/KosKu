@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../data/models/occupancy_model.dart';
 import '../../data/models/profile_model.dart';
+import '../../data/services/occupancy_service.dart';
 import '../../data/services/profile_service.dart';
 import '../widgets/account_settings_card.dart';
 import '../widgets/logout_card.dart';
@@ -20,9 +22,11 @@ class UserProfileScreen extends StatefulWidget {
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
   final ProfileService _profileService = ProfileService();
+  final OccupancyService _occupancyService = OccupancyService();
   final ImagePicker _imagePicker = ImagePicker();
 
   ProfileModel? _profile;
+  OccupancyModel? _occupancy;
 
   bool _isLoading = true;
   bool _isUploadingPhoto = false;
@@ -38,11 +42,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Future<void> _loadProfile() async {
     try {
       final profile = await _profileService.getProfile();
+      final occupancy = await _occupancyService.getActiveOccupancy();
 
       if (!mounted) return;
 
       setState(() {
         _profile = profile;
+        _occupancy = occupancy;
         _isLoading = false;
       });
 
@@ -58,6 +64,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           _profilePhotoUrl = signedUrl;
         });
       } else {
+        if (!mounted) return;
+
         setState(() {
           _profilePhotoUrl = null;
         });
@@ -270,6 +278,37 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
   }
 
+  String _formatDate(DateTime date) {
+    const months = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
+    ];
+
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+
+  String _formatPrice(double price) {
+    final value = price.toStringAsFixed(0);
+    final parts = <String>[];
+
+    for (var i = value.length; i > 0; i -= 3) {
+      final start = i - 3 < 0 ? 0 : i - 3;
+      parts.insert(0, value.substring(start, i));
+    }
+
+    return 'Rp ${parts.join('.')}';
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -296,18 +335,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
 
     final profile = _profile!;
-
-    final emergencyContact = [
-      if (profile.emergencyContactName != null &&
-          profile.emergencyContactName!.isNotEmpty)
-        profile.emergencyContactName!,
-      if (profile.emergencyContactPhone != null &&
-          profile.emergencyContactPhone!.isNotEmpty)
-        profile.emergencyContactPhone!,
-      if (profile.emergencyContactRelation != null &&
-          profile.emergencyContactRelation!.isNotEmpty)
-        profile.emergencyContactRelation!,
-    ].join('\n');
+    final occupancy = _occupancy;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Profil')),
@@ -322,7 +350,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ProfileHeaderCard(
                 name: profile.name,
                 roleLabel: 'Penghuni',
-                roomNumber: '03',
+                roomNumber: occupancy?.roomNumber,
                 profilePhotoUrl: _profilePhotoUrl,
                 isUploadingPhoto: _isUploadingPhoto,
                 onEdit: _editProfile,
@@ -334,18 +362,27 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 name: profile.name,
                 email: _profileService.getEmail() ?? '-',
                 phone: profile.phone ?? '-',
-                address: emergencyContact.isEmpty ? '-' : emergencyContact,
-                addressLabel: 'Kontak Darurat',
+                emergencyName: profile.emergencyContactName,
+                emergencyPhone: profile.emergencyContactPhone,
+                emergencyRelation: profile.emergencyContactRelation,
               ),
               const SizedBox(height: 20),
-              RoomDetailCard(
-                roomNumber: '03',
-                contractStart: 'Juni 2026',
-                contractEnd: 'Juni 2027',
-                rentPrice: 'Rp 1.650.000',
-                dueDate: 'Tanggal 5 setiap bulan',
-                facilities: const ['Kasur', 'Kamar Mandi', 'WiFi'],
-              ),
+              if (occupancy != null)
+                RoomDetailCard(
+                  roomNumber: occupancy.roomNumber,
+                  contractStart: _formatDate(occupancy.contractStart),
+                  contractEnd: _formatDate(occupancy.contractEnd),
+                  rentPrice: _formatPrice(occupancy.rentPrice),
+                  dueDate: 'Tanggal ${occupancy.paymentDay} setiap bulan',
+                  facilities: occupancy.facilities,
+                )
+              else
+                const Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Text('Belum ada data kamar aktif.'),
+                  ),
+                ),
               const SizedBox(height: 20),
               AccountSettingsCard(
                 onChangePassword: _changePassword,
