@@ -7,8 +7,6 @@ import '../models/complaint_model.dart';
 class ComplaintService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  // ADMIN
-  // Jumlah laporan aktif
   Future<int> getActiveComplaints() async {
     final data = await _supabase.from('complaints').select('id').inFilter(
       'status',
@@ -18,7 +16,6 @@ class ComplaintService {
     return data.length;
   }
 
-  // Admin - mengambil statistik laporan
   Future<Map<String, int>> getComplaintStats() async {
     final data = await _supabase.from('complaints').select('id, status');
 
@@ -47,7 +44,6 @@ class ComplaintService {
     };
   }
 
-  // Admin - mengambil semua laporan
   Future<List<ComplaintModel>> getComplaints() async {
     final data = await _supabase
         .from('complaints')
@@ -75,7 +71,6 @@ class ComplaintService {
         .toList();
   }
 
-  // Admin - mengubah status laporan
   Future<void> updateComplaintStatus({
     required String id,
     required String status,
@@ -91,8 +86,6 @@ class ComplaintService {
     await _supabase.from('complaints').update(updateData).eq('id', id);
   }
 
-  // USER
-  // User - mengambil semua keluhan miliknya sendiri
   Future<List<Map<String, dynamic>>> getMyComplaints() async {
     final user = _supabase.auth.currentUser;
 
@@ -112,6 +105,9 @@ class ComplaintService {
           status,
           resolved_at,
           created_at,
+          profiles (
+            name
+          ),
           rooms (
             room_number
           )
@@ -122,7 +118,6 @@ class ComplaintService {
     return List<Map<String, dynamic>>.from(data);
   }
 
-  // UPLOAD FOTO
   Future<String> uploadImage(File image) async {
     final user = _supabase.auth.currentUser;
 
@@ -131,6 +126,7 @@ class ComplaintService {
     }
 
     final extension = image.path.split('.').last.toLowerCase();
+
     final fileName = '${DateTime.now().millisecondsSinceEpoch}.$extension';
 
     final filePath = '${user.id}/$fileName';
@@ -142,7 +138,6 @@ class ComplaintService {
     return _supabase.storage.from('complaint-images').getPublicUrl(filePath);
   }
 
-  // BUAT KELUHAN/LAPORAN
   Future<void> createComplaint({
     required String title,
     required String description,
@@ -154,7 +149,6 @@ class ComplaintService {
       throw Exception('User belum login');
     }
 
-    // Ambil kamar aktif milik user
     final occupancy = await _supabase
         .from('occupancies')
         .select('room_id')
@@ -168,7 +162,6 @@ class ComplaintService {
 
     final roomId = occupancy['room_id'];
 
-    // Simpan laporan
     await _supabase.from('complaints').insert({
       'user_id': user.id,
       'room_id': roomId,

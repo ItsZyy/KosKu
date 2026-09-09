@@ -1,11 +1,15 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../data/models/complaint_model.dart';
 import '../../data/services/complaint_service.dart';
-import '../widgets/complaint_form_card.dart';
-import '../widgets/complaint_history_card.dart';
+
+import '../widgets/complaint_summary.dart';
+import '../widgets/complaint_filter.dart';
+import '../widgets/complaint_card.dart';
+
+import 'user_complaint_detail_screen.dart';
 
 class ComplaintsScreen extends StatefulWidget {
   const ComplaintsScreen({super.key});
@@ -17,17 +21,22 @@ class ComplaintsScreen extends StatefulWidget {
 class _ComplaintsScreenState extends State<ComplaintsScreen> {
   final ComplaintService _complaintService = ComplaintService();
 
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
+  List<ComplaintModel> _complaints = [];
 
-  final ImagePicker _picker = ImagePicker();
-
-  List<Map<String, dynamic>> _complaints = [];
-
-  File? _selectedImage;
+  int _total = 0;
+  int _menunggu = 0;
+  int _diproses = 0;
+  int _selesai = 0;
 
   bool _isLoading = true;
-  bool _isSubmitting = false;
+  String? _error;
+
+  String _selectedFilter = 'Semua';
+  String _searchQuery = '';
+
+  String? get _currentUserId {
+    return Supabase.instance.client.auth.currentUser?.id;
+  }
 
   @override
   void initState() {
@@ -35,170 +44,234 @@ class _ComplaintsScreenState extends State<ComplaintsScreen> {
     _loadComplaints();
   }
 
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _descriptionController.dispose();
-    super.dispose();
-  }
-
-  // LOAD RIWAYAT KELUHAN
   Future<void> _loadComplaints() async {
-    try {
-      final data = await _complaintService.getMyComplaints();
-
-      if (!mounted) return;
-
-      setState(() {
-        _complaints = data;
-        _isLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-
-      setState(() {
-        _isLoading = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal mengambil riwayat keluhan: $e')),
-      );
-    }
-  }
-
-  // PILIH FOTO
-  Future<void> _pickImage() async {
-    try {
-      final XFile? image = await _picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 80,
-      );
-
-      if (image == null) return;
-
-      if (!mounted) return;
-
-      setState(() {
-        _selectedImage = File(image.path);
-      });
-    } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Gagal memilih foto: $e')));
-    }
-  }
-
-  // KIRIM KELUHAN
-  Future<void> _submitComplaint() async {
-    final title = _titleController.text.trim();
-    final description = _descriptionController.text.trim();
-
-    if (title.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Judul laporan wajib diisi')),
-      );
-      return;
-    }
-
-    if (description.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Deskripsi wajib diisi')));
-      return;
-    }
-
     setState(() {
-      _isSubmitting = true;
+      _isLoading = true;
+      _error = null;
     });
 
     try {
-      String? imageUrl;
+      final complaints = await _complaintService.getComplaints();
+      final stats = await _complaintService.getComplaintStats();
 
-      // Upload foto jika user memilih foto
-      if (_selectedImage != null) {
-        imageUrl = await _complaintService.uploadImage(_selectedImage!);
+      if (!mounted) {
+        return;
       }
-
-      // Simpan laporan ke database
-      await _complaintService.createComplaint(
-        title: title,
-        description: description,
-        photoUrl: imageUrl,
-      );
-
-      _titleController.clear();
-      _descriptionController.clear();
-
-      if (!mounted) return;
 
       setState(() {
-        _selectedImage = null;
+        _complaints = complaints;
+        _total = stats['total'] ?? 0;
+        _menunggu = stats['menunggu'] ?? 0;
+        _diproses = stats['diproses'] ?? 0;
+        _selesai = stats['selesai'] ?? 0;
+        _isLoading = false;
       });
-
-      await _loadComplaints();
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Laporan berhasil dikirim')));
     } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Gagal mengirim laporan: $e')));
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
+      if (!mounted) {
+        return;
       }
+
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
     }
+  }
+
+  String _normalizeStatus(String status) {
+    switch (status.trim().toLowerCase()) {
+      case 'waiting':
+      case 'menunggu':
+        return 'Menunggu';
+
+      case 'process':
+      case 'diproses':
+        return 'Diproses';
+
+      case 'completed':
+      case 'selesai':
+        return 'Selesai';
+
+      default:
+        return status;
+    }
+  }
+
+  List<ComplaintModel> get _filteredComplaints {
+    final query = _searchQuery.trim().toLowerCase();
+
+    return _complaints.where((complaint) {
+      final normalizedStatus = _normalizeStatus(complaint.status);
+
+      final matchesFilter =
+          _selectedFilter == 'Semua' || normalizedStatus == _selectedFilter;
+
+      final matchesSearch =
+          complaint.type.toLowerCase().contains(query) ||
+          complaint.message.toLowerCase().contains(query) ||
+          (complaint.userName?.toLowerCase().contains(query) ?? false) ||
+          (complaint.roomNumber?.toLowerCase().contains(query) ?? false);
+
+      return matchesFilter && matchesSearch;
+    }).toList();
+  }
+
+  bool _isMyComplaint(ComplaintModel complaint) {
+    return complaint.userId == _currentUserId;
   }
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(body: _buildBody());
+  }
+
+  Widget _buildBody() {
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Center(child: CircularProgressIndicator());
     }
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Laporan')),
-      body: RefreshIndicator(
-        onRefresh: _loadComplaints,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // FORM LAPORAN
-              ComplaintFormCard(
-                titleController: _titleController,
-                descriptionController: _descriptionController,
-                selectedImage: _selectedImage,
-                onPickImage: _pickImage,
-                onSubmit: _submitComplaint,
-                isSubmitting: _isSubmitting,
-              ),
+    if (_error != null) {
+      return _buildError();
+    }
 
-              const SizedBox(height: 24),
+    return RefreshIndicator(
+      onRefresh: _loadComplaints,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+        children: [
+          _buildHeader(),
+          const SizedBox(height: 20),
+          ComplaintSummary(
+            total: _total,
+            menunggu: _menunggu,
+            diproses: _diproses,
+            selesai: _selesai,
+          ),
+          const SizedBox(height: 16),
+          _buildSearch(),
+          const SizedBox(height: 12),
+          ComplaintFilter(
+            selectedFilter: _selectedFilter,
+            onFilterChanged: (filter) {
+              setState(() {
+                _selectedFilter = filter;
+              });
+            },
+            total: _total,
+            menunggu: _menunggu,
+            diproses: _diproses,
+            selesai: _selesai,
+          ),
+          const SizedBox(height: 16),
+          ..._buildComplaintList(),
+        ],
+      ),
+    );
+  }
 
-              // RIWAYAT KELUHAN
-              ComplaintHistoryCard(
-                complaints: _complaints,
-                onViewAll: () {
-                  // Nanti diarahkan ke halaman
-                  // seluruh riwayat keluhan.
+  Widget _buildHeader() {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Laporan & keluhan',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+        ),
+        SizedBox(height: 4),
+        Text(
+          'Lihat riwayat keluhan.',
+          style: TextStyle(fontSize: 13, color: Colors.grey),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearch() {
+    return TextField(
+      onChanged: (value) {
+        setState(() {
+          _searchQuery = value;
+        });
+      },
+      decoration: InputDecoration(
+        hintText: 'Cari keluhan...',
+        prefixIcon: const Icon(Icons.search),
+        suffixIcon: _searchQuery.isNotEmpty
+            ? IconButton(
+                onPressed: () {
+                  setState(() {
+                    _searchQuery = '';
+                  });
                 },
-              ),
+                icon: const Icon(Icons.clear),
+              )
+            : null,
+        border: const OutlineInputBorder(),
+      ),
+    );
+  }
 
-              const SizedBox(height: 20),
+  List<Widget> _buildComplaintList() {
+    final complaints = _filteredComplaints;
+
+    if (complaints.isEmpty) {
+      return [
+        const SizedBox(height: 40),
+        const Center(
+          child: Column(
+            children: [
+              Icon(Icons.report_problem_outlined, size: 56),
+              SizedBox(height: 12),
+              Text(
+                'Tidak ada keluhan',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ],
           ),
+        ),
+      ];
+    }
+
+    return complaints.map((complaint) {
+      final isMine = _isMyComplaint(complaint);
+
+      return ComplaintCard(
+        complaint: complaint,
+        isMine: isMine,
+        onDetail: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => UserComplaintDetailScreen(complaint: complaint),
+            ),
+          );
+        },
+      );
+    }).toList();
+  }
+
+  Widget _buildError() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48),
+            const SizedBox(height: 12),
+            const Text(
+              'Gagal memuat riwayat keluhan',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(_error!, textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadComplaints,
+              child: const Text('Coba Lagi'),
+            ),
+          ],
         ),
       ),
     );

@@ -10,6 +10,7 @@ import '../widgets/complaint_status_action_card.dart';
 
 class ComplaintDetailScreen extends StatefulWidget {
   final ComplaintModel complaint;
+
   final String? userName;
   final String? roomNumber;
 
@@ -106,13 +107,19 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
   }
 
   String _statusLabel(String status) {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case 'waiting':
+      case 'menunggu':
         return 'Menunggu';
+
       case 'process':
+      case 'diproses':
         return 'Diproses';
+
       case 'completed':
+      case 'selesai':
         return 'Selesai';
+
       default:
         return status;
     }
@@ -120,6 +127,14 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userName = widget.complaint.userName?.trim().isNotEmpty == true
+        ? widget.complaint.userName
+        : widget.userName;
+
+    final roomNumber = widget.complaint.roomNumber?.trim().isNotEmpty == true
+        ? widget.complaint.roomNumber
+        : widget.roomNumber;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -138,8 +153,8 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
                     const SizedBox(height: 16),
                     ComplaintDetailContentCard(
                       complaint: widget.complaint,
-                      userName: widget.userName,
-                      roomNumber: widget.roomNumber,
+                      userName: userName,
+                      roomNumber: roomNumber,
                     ),
                     const SizedBox(height: 16),
                     ComplaintStatusActionCard(

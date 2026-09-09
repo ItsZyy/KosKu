@@ -1,4 +1,3 @@
-// widget untuk reports_screen.dart
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -10,6 +9,7 @@ class ComplaintCard extends StatelessWidget {
   final String? userName;
   final String? roomNumber;
   final VoidCallback? onDetail;
+  final bool isMine;
 
   const ComplaintCard({
     super.key,
@@ -17,15 +17,19 @@ class ComplaintCard extends StatelessWidget {
     this.userName,
     this.roomNumber,
     this.onDetail,
+    this.isMine = false,
   });
 
   Color get statusColor {
     switch (complaint.status.toLowerCase()) {
       case 'menunggu':
+      case 'waiting':
         return AppColors.warning;
       case 'diproses':
+      case 'process':
         return AppColors.info;
       case 'selesai':
+      case 'completed':
         return AppColors.success;
       default:
         return AppColors.textSecondary;
@@ -35,26 +39,32 @@ class ComplaintCard extends StatelessWidget {
   Color get statusBackgroundColor {
     switch (complaint.status.toLowerCase()) {
       case 'menunggu':
+      case 'waiting':
         return AppColors.warningSoft;
       case 'diproses':
+      case 'process':
         return AppColors.infoSoft;
       case 'selesai':
+      case 'completed':
         return AppColors.successSoft;
       default:
         return AppColors.inputBackground;
     }
   }
 
-  IconData get statusIcon {
+  String get statusText {
     switch (complaint.status.toLowerCase()) {
       case 'menunggu':
-        return Icons.hourglass_empty_rounded;
+      case 'waiting':
+        return 'Menunggu';
       case 'diproses':
-        return Icons.sync_rounded;
+      case 'process':
+        return 'Diproses';
       case 'selesai':
-        return Icons.check_circle_outline_rounded;
+      case 'completed':
+        return 'Selesai';
       default:
-        return Icons.help_outline_rounded;
+        return complaint.status;
     }
   }
 
@@ -74,11 +84,7 @@ class ComplaintCard extends StatelessWidget {
       'Des',
     ];
 
-    final day = date.day.toString();
-    final month = months[date.month - 1];
-    final year = date.year.toString();
-
-    return '$day $month $year';
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
   String _formatTime(DateTime date) {
@@ -98,7 +104,11 @@ class ComplaintCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        border: Border.all(color: AppColors.border),
+        border: Border.all(
+          color: isMine
+              ? AppColors.primary.withValues(alpha: 0.35)
+              : AppColors.border,
+        ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -113,20 +123,14 @@ class ComplaintCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (isMine) ...[_buildMineLabel(), const SizedBox(height: 14)],
             _buildHeader(),
-
             const SizedBox(height: 16),
-
             _buildMessage(),
-
             if (hasPhoto) ...[const SizedBox(height: 12), _buildPhoto()],
-
             const SizedBox(height: 16),
-
             Container(height: 1, color: AppColors.border),
-
             const SizedBox(height: 16),
-
             _buildFooter(),
           ],
         ),
@@ -134,9 +138,35 @@ class ComplaintCard extends StatelessWidget {
     );
   }
 
-  // ============================================================
-  // HEADER
-  // ============================================================
+  Widget _buildMineLabel() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.person_outline_rounded,
+            size: 16,
+            color: AppColors.primary,
+          ),
+        ),
+        const SizedBox(width: 8),
+        const Text(
+          'Keluhan Anda',
+          style: TextStyle(
+            color: AppColors.primary,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
 
   Widget _buildHeader() {
     return Row(
@@ -153,17 +183,11 @@ class ComplaintCard extends StatelessWidget {
             ),
           ),
         ),
-
         const SizedBox(width: 8),
-
         _buildStatus(),
       ],
     );
   }
-
-  // ============================================================
-  // STATUS
-  // ============================================================
 
   Widget _buildStatus() {
     return Container(
@@ -172,29 +196,15 @@ class ComplaintCard extends StatelessWidget {
         color: statusBackgroundColor,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(statusIcon, size: 13, color: statusColor),
-
-          const SizedBox(width: 4),
-
-          Text(
-            complaint.status.toUpperCase(),
-            style: AppTextStyles.caption.copyWith(
-              color: statusColor,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.3,
-            ),
-          ),
-        ],
+      child: Text(
+        statusText,
+        style: AppTextStyles.caption.copyWith(
+          color: statusColor,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
-
-  // ============================================================
-  // MESSAGE
-  // ============================================================
 
   Widget _buildMessage() {
     return Text(
@@ -205,10 +215,6 @@ class ComplaintCard extends StatelessWidget {
     );
   }
 
-  // ============================================================
-  // PHOTO
-  // ============================================================
-
   Widget _buildPhoto() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
@@ -217,7 +223,6 @@ class ComplaintCard extends StatelessWidget {
         width: double.infinity,
         height: 160,
         fit: BoxFit.cover,
-
         loadingBuilder:
             (
               BuildContext context,
@@ -242,7 +247,6 @@ class ComplaintCard extends StatelessWidget {
                 ),
               );
             },
-
         errorBuilder:
             (BuildContext context, Object error, StackTrace? stackTrace) {
               return Container(
@@ -260,9 +264,7 @@ class ComplaintCard extends StatelessWidget {
                       size: 32,
                       color: AppColors.textHint,
                     ),
-
                     const SizedBox(height: 8),
-
                     Text(
                       'Foto tidak dapat dimuat',
                       style: AppTextStyles.caption.copyWith(
@@ -277,41 +279,39 @@ class ComplaintCard extends StatelessWidget {
     );
   }
 
-  // ============================================================
-  // FOOTER
-  // ============================================================
-
   Widget _buildFooter() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(child: _buildUserInformation()),
-
         const SizedBox(width: 12),
-
         _buildDetailButton(),
       ],
     );
   }
 
-  // ============================================================
-  // USER INFORMATION
-  // ============================================================
-
   Widget _buildUserInformation() {
+    final complaintName = complaint.userName?.trim();
+
+    final displayName = isMine
+        ? 'Anda'
+        : complaintName != null && complaintName.isNotEmpty
+        ? complaintName
+        : userName != null && userName!.trim().isNotEmpty
+        ? userName!.trim()
+        : 'Penghuni';
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        _buildUserAvatar(),
-
+        _buildUserAvatar(displayName),
         const SizedBox(width: 8),
-
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                userName ?? 'User',
+                displayName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.bodyMedium.copyWith(
@@ -319,9 +319,7 @@ class ComplaintCard extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-
               const SizedBox(height: 2),
-
               Row(
                 children: [
                   Flexible(
@@ -334,18 +332,14 @@ class ComplaintCard extends StatelessWidget {
                       ),
                     ),
                   ),
-
                   const SizedBox(width: 4),
-
                   Text(
                     '•',
                     style: AppTextStyles.caption.copyWith(
                       color: AppColors.textHint,
                     ),
                   ),
-
                   const SizedBox(width: 4),
-
                   Text(
                     _formatTime(complaint.createdAt),
                     style: AppTextStyles.caption.copyWith(
@@ -361,17 +355,11 @@ class ComplaintCard extends StatelessWidget {
     );
   }
 
-  // ============================================================
-  // AVATAR
-  // ============================================================
+  Widget _buildUserAvatar(String displayName) {
+    String initial = 'P';
 
-  Widget _buildUserAvatar() {
-    final name = userName?.trim();
-
-    String initial = 'U';
-
-    if (name != null && name.isNotEmpty) {
-      initial = name[0].toUpperCase();
+    if (displayName.isNotEmpty) {
+      initial = displayName[0].toUpperCase();
     }
 
     return Container(
@@ -391,10 +379,6 @@ class ComplaintCard extends StatelessWidget {
       ),
     );
   }
-
-  // ============================================================
-  // DETAIL BUTTON
-  // ============================================================
 
   Widget _buildDetailButton() {
     return SizedBox(

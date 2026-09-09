@@ -8,6 +8,8 @@ class ComplaintModel {
   final String status;
   final DateTime? resolvedAt;
   final DateTime createdAt;
+  final String? userName;
+  final String? roomNumber;
 
   ComplaintModel({
     required this.id,
@@ -19,9 +21,14 @@ class ComplaintModel {
     required this.status,
     this.resolvedAt,
     required this.createdAt,
+    this.userName,
+    this.roomNumber,
   });
 
   factory ComplaintModel.fromMap(Map<String, dynamic> map) {
+    final profile = map['profiles'] as Map<String, dynamic>?;
+    final room = map['rooms'] as Map<String, dynamic>?;
+
     return ComplaintModel(
       id: map['id'].toString(),
       roomId: map['room_id'].toString(),
@@ -29,11 +36,13 @@ class ComplaintModel {
       type: map['type']?.toString() ?? '',
       message: map['message']?.toString() ?? '',
       photoUrl: map['photo_url']?.toString(),
-      status: map['status']?.toString() ?? 'Menunggu',
+      status: map['status']?.toString() ?? 'waiting',
       resolvedAt: map['resolved_at'] != null
           ? DateTime.tryParse(map['resolved_at'].toString())
           : null,
       createdAt: DateTime.parse(map['created_at'].toString()),
+      userName: profile?['name']?.toString(),
+      roomNumber: room?['room_number']?.toString(),
     );
   }
 }

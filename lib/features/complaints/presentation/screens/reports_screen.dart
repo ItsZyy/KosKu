@@ -1,11 +1,12 @@
-// admin
 import 'package:flutter/material.dart';
 
 import '../../data/models/complaint_model.dart';
 import '../../data/services/complaint_service.dart';
+
 import '../widgets/complaint_summary.dart';
 import '../widgets/complaint_filter.dart';
 import '../widgets/complaint_card.dart';
+
 import 'complaint_detail_screen.dart';
 
 class ReportsScreen extends StatefulWidget {
@@ -34,10 +35,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadComplaints();
+    _loadData();
   }
 
-  Future<void> _loadComplaints() async {
+  Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
       _error = null;
@@ -71,16 +72,38 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
   }
 
+  String _normalizeStatus(String status) {
+    switch (status.trim().toLowerCase()) {
+      case 'waiting':
+      case 'menunggu':
+        return 'Menunggu';
+
+      case 'process':
+      case 'diproses':
+        return 'Diproses';
+
+      case 'completed':
+      case 'selesai':
+        return 'Selesai';
+
+      default:
+        return status;
+    }
+  }
+
   List<ComplaintModel> get _filteredComplaints {
     final query = _searchQuery.trim().toLowerCase();
 
     return _complaints.where((complaint) {
+      final normalizedStatus = _normalizeStatus(complaint.status);
+
       final matchesFilter =
-          _selectedFilter == 'Semua' || complaint.status == _selectedFilter;
+          _selectedFilter == 'Semua' || normalizedStatus == _selectedFilter;
 
       final matchesSearch =
           complaint.type.toLowerCase().contains(query) ||
-          complaint.message.toLowerCase().contains(query);
+          complaint.message.toLowerCase().contains(query) ||
+          (complaint.userName?.toLowerCase().contains(query) ?? false);
 
       return matchesFilter && matchesSearch;
     }).toList();
@@ -88,10 +111,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Kelola Keluhan')),
-      body: _buildBody(),
-    );
+    return Scaffold(body: _buildBody());
   }
 
   Widget _buildBody() {
@@ -104,28 +124,22 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
 
     return RefreshIndicator(
-      onRefresh: _loadComplaints,
+      onRefresh: _loadData,
       child: ListView(
-        padding: const EdgeInsets.all(16),
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
         children: [
-          const Text(
-            'Kelola laporan kerusakan dan masalah teknis dari penghuni.',
-          ),
-          const SizedBox(height: 16),
-
+          _buildHeader(),
+          const SizedBox(height: 20),
           ComplaintSummary(
             total: _total,
             menunggu: _menunggu,
             diproses: _diproses,
             selesai: _selesai,
           ),
-
           const SizedBox(height: 16),
-
           _buildSearch(),
-
           const SizedBox(height: 12),
-
           ComplaintFilter(
             selectedFilter: _selectedFilter,
             onFilterChanged: (filter) {
@@ -138,12 +152,27 @@ class _ReportsScreenState extends State<ReportsScreen> {
             diproses: _diproses,
             selesai: _selesai,
           ),
-
           const SizedBox(height: 16),
-
           ..._buildComplaintList(),
         ],
       ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Kelola Keluhan',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+        ),
+        SizedBox(height: 4),
+        Text(
+          'Kelola laporan dari penghuni kos',
+          style: TextStyle(fontSize: 13, color: Colors.grey),
+        ),
+      ],
     );
   }
 
@@ -225,7 +254,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             Text(_error!, textAlign: TextAlign.center),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: _loadComplaints,
+              onPressed: _loadData,
               child: const Text('Coba Lagi'),
             ),
           ],

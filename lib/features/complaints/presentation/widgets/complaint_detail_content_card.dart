@@ -37,22 +37,16 @@ class ComplaintDetailContentCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTenantInfo(),
-
           const SizedBox(height: 20),
-
           const Divider(color: AppColors.divider),
-
           const SizedBox(height: 20),
-
           Text(
             'Deskripsi Kerusakan',
             style: AppTextStyles.titleMedium.copyWith(
               color: AppColors.textPrimary,
             ),
           ),
-
           const SizedBox(height: 8),
-
           Text(
             complaint.message,
             style: AppTextStyles.bodyLarge.copyWith(
@@ -60,19 +54,15 @@ class ComplaintDetailContentCard extends StatelessWidget {
               height: 1.6,
             ),
           ),
-
           if (complaint.photoUrl != null && complaint.photoUrl!.isNotEmpty) ...[
             const SizedBox(height: 24),
-
             Text(
               'Foto Bukti',
               style: AppTextStyles.titleMedium.copyWith(
                 color: AppColors.textPrimary,
               ),
             ),
-
             const SizedBox(height: 12),
-
             _buildPhoto(),
           ],
         ],
@@ -81,8 +71,21 @@ class ComplaintDetailContentCard extends StatelessWidget {
   }
 
   Widget _buildTenantInfo() {
-    final name = userName ?? 'Penghuni';
-    final room = roomNumber ?? 'Kamar -';
+    final complaintName = complaint.userName?.trim();
+
+    final name = complaintName != null && complaintName.isNotEmpty
+        ? complaintName
+        : userName != null && userName!.trim().isNotEmpty
+        ? userName!.trim()
+        : 'Penghuni';
+
+    final complaintRoom = complaint.roomNumber?.trim();
+
+    final room = complaintRoom != null && complaintRoom.isNotEmpty
+        ? 'Kamar No. $complaintRoom'
+        : roomNumber != null && roomNumber!.trim().isNotEmpty
+        ? 'Kamar No. ${roomNumber!.trim()}'
+        : 'Kamar No. -';
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -105,9 +108,7 @@ class ComplaintDetailContentCard extends StatelessWidget {
             ),
           ),
         ),
-
         const SizedBox(width: 12),
-
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,9 +121,7 @@ class ComplaintDetailContentCard extends StatelessWidget {
                   color: AppColors.textPrimary,
                 ),
               ),
-
               const SizedBox(height: 4),
-
               Text(
                 room,
                 style: AppTextStyles.bodyMedium.copyWith(
