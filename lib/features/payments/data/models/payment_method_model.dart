@@ -18,7 +18,10 @@ class PaymentMethodModel {
   });
 
   bool get isBank => type == 'bank';
+
   bool get isQris => type == 'qris';
+
+  bool get isCash => type == 'cash';
 
   factory PaymentMethodModel.fromMap(Map<String, dynamic> map) {
     return PaymentMethodModel(

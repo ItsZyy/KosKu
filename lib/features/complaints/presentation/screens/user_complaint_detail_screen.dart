@@ -17,7 +17,6 @@ class UserComplaintDetailScreen extends StatelessWidget {
         return 'Menunggu';
 
       case 'diproses':
-      case 'diproses':
       case 'in_progress':
       case 'in progress':
       case 'process':

@@ -39,7 +39,6 @@ class PaymentMethodSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-
           if (methods.isEmpty)
             Text(
               'Belum ada metode pembayaran.',
@@ -48,19 +47,21 @@ class PaymentMethodSection extends StatelessWidget {
               ),
             )
           else
-            ...methods.map(
-              (method) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _PaymentMethodTile(
-                  method: method,
-                  selected: selectedMethod?.id == method.id,
-                  onTap: () {
-                    onChanged(method);
-                  },
-                ),
-              ),
-            ),
+            ...methods.asMap().entries.map((entry) {
+              final index = entry.key;
+              final method = entry.value;
 
+              return Column(
+                children: [
+                  _PaymentMethodTile(
+                    method: method,
+                    selected: selectedMethod?.id == method.id,
+                    onTap: () => onChanged(method),
+                  ),
+                  if (index < methods.length - 1) const SizedBox(height: 10),
+                ],
+              );
+            }),
           if (selectedMethod != null) ...[
             const SizedBox(height: 8),
             _buildMethodDetail(selectedMethod!),
@@ -71,8 +72,18 @@ class PaymentMethodSection extends StatelessWidget {
   }
 
   Widget _buildMethodDetail(PaymentMethodModel method) {
-    if (method.isBank) return _BankDetail(method: method);
-    if (method.isQris) return _QrisDetail(signedUrl: qrisSignedUrl);
+    if (method.isBank) {
+      return _BankDetail(method: method);
+    }
+
+    if (method.isQris) {
+      return _QrisDetail(signedUrl: qrisSignedUrl);
+    }
+
+    if (method.isCash) {
+      return const _CashDetail();
+    }
+
     return const SizedBox.shrink();
   }
 }
@@ -83,7 +94,9 @@ class _BankDetail extends StatelessWidget {
   const _BankDetail({required this.method});
 
   Future<void> _copyAccountNumber(BuildContext context) async {
-    if (method.accountNumber == null || method.accountNumber!.isEmpty) return;
+    if (method.accountNumber == null || method.accountNumber!.isEmpty) {
+      return;
+    }
 
     await Clipboard.setData(ClipboardData(text: method.accountNumber!));
 
@@ -111,27 +124,66 @@ class _BankDetail extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.account_balance, size: 18, color: AppColors.primary),
+              const Icon(
+                Icons.account_balance,
+                size: 18,
+                color: AppColors.primary,
+              ),
               const SizedBox(width: 8),
               Text(
-                method.bankName ?? 'Bank',
-                style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary),
+                'Transfer Bank',
+                style: AppTextStyles.labelLarge.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          if (method.accountNumber != null && method.accountNumber!.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          if (method.bankName != null && method.bankName!.isNotEmpty) ...[
+            Text(
+              'Nama Bank',
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              method.bankName!,
+              style: AppTextStyles.bodyLarge.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+          if (method.accountNumber != null &&
+              method.accountNumber!.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              'No. Rekening',
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 2),
             Row(
               children: [
                 Expanded(
                   child: Text(
                     method.accountNumber!,
-                    style: AppTextStyles.headlineSmall,
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-                GestureDetector(
-                  onTap: () => _copyAccountNumber(context),
-                  child: const Icon(
+                IconButton(
+                  onPressed: () => _copyAccountNumber(context),
+                  tooltip: 'Salin nomor rekening',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 36,
+                    minHeight: 36,
+                  ),
+                  icon: const Icon(
                     Icons.copy_outlined,
                     size: 18,
                     color: AppColors.primary,
@@ -176,13 +228,14 @@ class _QrisDetail extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               'QRIS',
-              style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary),
+              style: AppTextStyles.labelLarge.copyWith(
+                color: AppColors.primary,
+              ),
             ),
           ],
         ),
       );
     }
-
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -199,7 +252,9 @@ class _QrisDetail extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 'Scan QRIS',
-                style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary),
+                style: AppTextStyles.labelLarge.copyWith(
+                  color: AppColors.primary,
+                ),
               ),
             ],
           ),
@@ -213,6 +268,7 @@ class _QrisDetail extends StatelessWidget {
               fit: BoxFit.contain,
               loadingBuilder: (context, child, progress) {
                 if (progress == null) return child;
+
                 return const SizedBox(
                   height: 220,
                   child: Center(child: CircularProgressIndicator()),
@@ -225,7 +281,11 @@ class _QrisDetail extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.broken_image_outlined, size: 32),
+                        Icon(
+                          Icons.broken_image_outlined,
+                          size: 32,
+                          color: AppColors.primary,
+                        ),
                         SizedBox(height: 4),
                         Text('QRIS tidak dapat ditampilkan'),
                       ],
@@ -233,6 +293,55 @@ class _QrisDetail extends StatelessWidget {
                   ),
                 );
               },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CashDetail extends StatelessWidget {
+  const _CashDetail();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.primarySoft,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.payments_outlined,
+            size: 20,
+            color: AppColors.primary,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Pembayaran Tunai',
+                  style: AppTextStyles.labelLarge.copyWith(
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Bayarkan langsung kepada pemilik kos. '
+                  'Setelah pembayaran dilakukan, tekan tombol '
+                  'konfirmasi untuk mengirimkan pembayaran.',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -276,12 +385,16 @@ class _PaymentMethodTile extends StatelessWidget {
               width: 48,
               height: 32,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(4),
                 border: Border.all(color: AppColors.border),
               ),
               child: Icon(
-                method.isQris ? Icons.qr_code_2 : Icons.account_balance,
+                method.isQris
+                    ? Icons.qr_code_2
+                    : method.isCash
+                    ? Icons.payments_outlined
+                    : Icons.account_balance,
                 size: 20,
                 color: AppColors.primary,
               ),
@@ -289,8 +402,14 @@ class _PaymentMethodTile extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                method.isQris ? 'QRIS' : method.bankName ?? 'Bank',
-                style: AppTextStyles.bodyLarge,
+                method.isQris
+                    ? 'QRIS'
+                    : method.isCash
+                    ? 'Tunai'
+                    : 'Transfer Bank',
+                style: AppTextStyles.bodyLarge.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
             Icon(

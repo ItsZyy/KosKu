@@ -47,6 +47,7 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
 
   PaymentType _paymentType = PaymentType.full;
   PaymentCategory _selectedCategory = PaymentCategory.all;
+
   File? _proofImage;
 
   bool _isLoading = true;
@@ -56,7 +57,6 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
   @override
   void initState() {
     super.initState();
-
     _payment = widget.initial;
     _loadDetail();
   }
@@ -81,32 +81,42 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
       final methods = await _paymentMethodService.getPaymentMethods();
 
       String? qrisUrl;
-      if (methods.isNotEmpty) {
-        final qrisMethod = methods.firstWhere(
-          (m) => m.isQris,
-          orElse: () => methods.first,
-        );
-        if (qrisMethod.isQris && qrisMethod.qrisImageUrl != null) {
+
+      for (final method in methods) {
+        if (method.isQris &&
+            method.qrisImageUrl != null &&
+            method.qrisImageUrl!.isNotEmpty) {
           qrisUrl = await _paymentMethodService.getQrisSignedUrl(
-            qrisMethod.qrisImageUrl,
+            method.qrisImageUrl,
           );
+          break;
         }
       }
 
       if (!mounted) return;
 
+      PaymentMethodModel? selectedMethod;
+
+      if (payment?.paymentMethod != null) {
+        for (final method in methods) {
+          if (method.type == payment!.paymentMethod) {
+            selectedMethod = method;
+            break;
+          }
+        }
+      }
+
+      selectedMethod ??= methods.isNotEmpty ? methods.first : null;
+
       setState(() {
         _payment = payment;
         _paymentMethods = methods;
         _qrisSignedUrl = qrisUrl;
+        _selectedPaymentMethod = selectedMethod;
         _isLoading = false;
 
         if (payment != null) {
           _amountController.text = payment.amount.toString();
-        }
-
-        if (methods.isNotEmpty) {
-          _selectedPaymentMethod = methods.first;
         }
       });
     } catch (e) {
@@ -131,6 +141,16 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
         _amountController.text = payment.amount.toString();
       } else {
         _amountController.clear();
+      }
+    });
+  }
+
+  void _onPaymentMethodChanged(PaymentMethodModel method) {
+    setState(() {
+      _selectedPaymentMethod = method;
+
+      if (method.isCash) {
+        _proofImage = null;
       }
     });
   }
@@ -195,7 +215,9 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
       return;
     }
 
-    if (_selectedPaymentMethod == null) {
+    final selectedMethod = _selectedPaymentMethod;
+
+    if (selectedMethod == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Pilih metode pembayaran terlebih dahulu.'),
@@ -222,26 +244,13 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
       return;
     }
 
-    if (_proofImage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Upload bukti pembayaran terlebih dahulu.'),
-        ),
-      );
-      return;
-    }
+    if (_isSubmitting) return;
 
     setState(() {
       _isSubmitting = true;
     });
 
     try {
-      // ==========================================================
-      // ANTI-SPAM / DOUBLE SUBMIT
-      // State UI bisa saja ketinggalan (misalnya tombol masih tampil
-      // padahal submit sebelumnya sudah berhasil). DB adalah sumber
-      // kebenaran, jadi selalu fetch ulang sebelum menulis.
-      // ==========================================================
       final latest = await _paymentService.getPaymentDetail(paymentId);
 
       if (!mounted) return;
@@ -250,7 +259,7 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
         throw Exception('Tagihan tidak ditemukan di database.');
       }
 
-      if (latest.hasSubmittedPayment && latest.isWaitingConfirmation) {
+      if (latest.isWaitingConfirmation) {
         setState(() {
           _payment = latest;
           _proofImage = null;
@@ -260,32 +269,60 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              'Pembayaran sudah dikirim dan sedang menunggu konfirmasi.',
+              'Pembayaran sudah dikirim dan sedang '
+              'menunggu konfirmasi.',
             ),
           ),
         );
+
         return;
       }
 
-      // ==========================================================
-      // UPLOAD BUKTI + UPDATE PAYMENT
-      // Tetap memakai payment.id yang sama. Tidak ada payment baru.
-      // ==========================================================
-      final proofPath = await _paymentService.uploadPaymentProof(
-        paymentId: paymentId,
-        file: _proofImage!,
-      );
+      if (latest.isConfirmed) {
+        setState(() {
+          _payment = latest;
+          _proofImage = null;
+          _isSubmitting = false;
+        });
 
-      await _paymentService.submitPaymentProof(
-        paymentId: paymentId,
-        proofUrl: proofPath,
-      );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Pembayaran sudah dikonfirmasi oleh admin.'),
+          ),
+        );
 
-      // ==========================================================
-      // SINKRONKAN UI DENGAN DB
-      // Jangan mengubah state secara manual; fetch ulang sehingga
-      // UI mengikuti kondisi terbaru (proof_url != null, menunggu).
-      // ==========================================================
+        return;
+      }
+
+      if (selectedMethod.isCash) {
+        await _paymentService.submitCashPayment(paymentId: paymentId);
+      } else {
+        if (_proofImage == null) {
+          setState(() {
+            _isSubmitting = false;
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Upload bukti pembayaran terlebih dahulu.'),
+            ),
+          );
+
+          return;
+        }
+
+        final proofPath = await _paymentService.uploadPaymentProof(
+          paymentId: paymentId,
+          file: _proofImage!,
+        );
+
+        await _paymentService.submitPaymentProof(
+          paymentId: paymentId,
+          proofUrl: proofPath,
+          paymentMethod: selectedMethod.type,
+        );
+      }
+
       final updated = await _paymentService.getPaymentDetail(paymentId);
 
       if (!mounted) return;
@@ -296,14 +333,25 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
         _isSubmitting = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Pembayaran ${PaymentFormatter.rupiah(amount)} '
-            'berhasil dikirim dan menunggu konfirmasi.',
+      if (selectedMethod.isCash) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Pembayaran tunai ${PaymentFormatter.rupiah(amount)} '
+              'berhasil dikirim dan menunggu konfirmasi.',
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Pembayaran ${PaymentFormatter.rupiah(amount)} '
+              'berhasil dikirim dan menunggu konfirmasi.',
+            ),
+          ),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
 
@@ -343,14 +391,14 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
 
     final currentAmount = _getPreviewAmount(payment);
 
-    // ==========================================================
-    // STATE BERDASARKAN DATABASE (proof_url + status)
-    // status 'menunggu' saja TIDAK cukup untuk menentukan sudah submit.
-    // ==========================================================
     final isWaiting = payment.isWaitingConfirmation;
+
     final isRejected = payment.isRejected;
     final isConfirmed = payment.isConfirmed;
+
     final canSubmit = !isWaiting && !isConfirmed;
+
+    final isCash = _selectedPaymentMethod?.isCash ?? false;
 
     return RefreshIndicator(
       onRefresh: _loadDetail,
@@ -359,33 +407,24 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
         children: [
           PaymentDetailHeader(payment: payment, isAdmin: widget.isAdmin),
-
           if (isWaiting) ...[
             const SizedBox(height: 20),
-            const PaymentSubmitStatusCard(
-              status: PaymentSubmitStatus.waiting,
-            ),
+            const PaymentSubmitStatusCard(status: PaymentSubmitStatus.waiting),
           ] else if (isRejected) ...[
             const SizedBox(height: 20),
-            const PaymentSubmitStatusCard(
-              status: PaymentSubmitStatus.rejected,
-            ),
+            const PaymentSubmitStatusCard(status: PaymentSubmitStatus.rejected),
           ] else if (isConfirmed) ...[
             const SizedBox(height: 20),
             const PaymentSubmitStatusCard(
               status: PaymentSubmitStatus.confirmed,
             ),
           ],
-
           const SizedBox(height: 20),
-
           PaymentBillSection(
             payment: payment,
             items: _getFilteredItems(payment),
           ),
-
           const SizedBox(height: 20),
-
           PaymentCategoryFilter(
             selectedCategory: _selectedCategory,
             onCategoryChanged: (category) {
@@ -394,38 +433,25 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
               });
             },
           ),
-
           const SizedBox(height: 24),
-
           PaymentMethodSection(
             methods: _paymentMethods,
             selectedMethod: _selectedPaymentMethod,
             qrisSignedUrl: _qrisSignedUrl,
-            onChanged: (method) {
-              setState(() {
-                _selectedPaymentMethod = method;
-              });
-            },
+            onChanged: _onPaymentMethodChanged,
           ),
-
-          // Alur submit hanya ditampilkan saat penghuni masih boleh
-          // mengirim (belum submit) atau mengirim ulang (ditolak).
           if (canSubmit) ...[
             const SizedBox(height: 24),
-
             PaymentTypeSelector(
               selectedType: _paymentType,
               onChanged: _onPaymentTypeChanged,
             ),
-
             const SizedBox(height: 20),
-
             PaymentAmountSection(
               paymentType: _paymentType,
               totalAmount: payment.amount,
               controller: _amountController,
             ),
-
             if (_paymentType == PaymentType.installment &&
                 _amountController.text.isNotEmpty &&
                 currentAmount != null &&
@@ -439,29 +465,29 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
                 ),
               ),
             ],
-
+            if (!isCash) ...[
+              const SizedBox(height: 24),
+              PaymentProofSection(
+                proofImage: _proofImage,
+                onImagePicked: (file) {
+                  setState(() {
+                    _proofImage = file;
+                  });
+                },
+                onImageRemoved: () {
+                  setState(() {
+                    _proofImage = null;
+                  });
+                },
+              ),
+            ],
             const SizedBox(height: 24),
-
-            PaymentProofSection(
-              proofImage: _proofImage,
-              onImagePicked: (file) {
-                setState(() {
-                  _proofImage = file;
-                });
-              },
-              onImageRemoved: () {
-                setState(() {
-                  _proofImage = null;
-                });
-              },
-            ),
-
-            const SizedBox(height: 24),
-
             PaymentConfirmationButton(
               isLoading: _isSubmitting,
               label: isRejected
                   ? 'Kirim Ulang Pembayaran'
+                  : isCash
+                  ? 'Konfirmasi Pembayaran Tunai'
                   : 'Konfirmasi Pembayaran',
               onPressed: _confirmPayment,
             ),
@@ -479,25 +505,19 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.error_outline, size: 48, color: AppColors.error),
-
             const SizedBox(height: 12),
-
             Text(
               'Gagal Memuat Detail Tagihan',
               style: AppTextStyles.titleMedium,
               textAlign: TextAlign.center,
             ),
-
             const SizedBox(height: 8),
-
             Text(
               message,
               textAlign: TextAlign.center,
               style: AppTextStyles.bodySmall,
             ),
-
             const SizedBox(height: 16),
-
             ElevatedButton(
               onPressed: _loadDetail,
               child: const Text('Coba Lagi'),

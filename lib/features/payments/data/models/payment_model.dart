@@ -51,6 +51,7 @@ class Payment {
   final String? userPhone;
   final String? userPhotoUrl;
   final String? paymentType;
+  final String? paymentMethod;
   final int amount;
   final String? period;
   final DateTime? dueDate;
@@ -59,8 +60,6 @@ class Payment {
   final String? confirmedBy;
   final DateTime? confirmedAt;
   final DateTime? createdAt;
-
-  // Rincian tagihan bersumber dari tabel payment_items.
   final List<PaymentItem> items;
 
   const Payment({
@@ -72,6 +71,7 @@ class Payment {
     this.userPhone,
     this.userPhotoUrl,
     this.paymentType,
+    this.paymentMethod,
     this.amount = 0,
     this.period,
     this.dueDate,
@@ -83,22 +83,21 @@ class Payment {
     this.items = const [],
   });
 
-  /// Total resmi selalu berasal dari payments.amount (dihitung oleh
-  /// function generate_payment di database). Flutter tidak menghitung
-  /// ulang dari payment_items.
   int get totalAmount => amount;
 
   bool get hasBreakdown => items.isNotEmpty;
 
-  /// Penghuni sudah mengunggah bukti pembayaran (proof_url terisi).
-  /// status 'menunggu' TIDAK cukup untuk menentukan sudah submit.
   bool get hasSubmittedPayment => proofUrl != null && proofUrl!.isNotEmpty;
 
-  /// Bukti sudah dikirim dan sedang menunggu verifikasi admin.
-  bool get isWaitingConfirmation => hasSubmittedPayment && isPending;
+  bool get isCash => paymentMethod?.toLowerCase() == 'cash';
+
+  bool get isWaitingConfirmation =>
+      isPending && (hasSubmittedPayment || isCash);
 
   bool get isPending => status.toLowerCase() == 'menunggu';
+
   bool get isConfirmed => status.toLowerCase() == 'dikonfirmasi';
+
   bool get isRejected => status.toLowerCase() == 'ditolak';
 
   factory Payment.fromMap(Map<String, dynamic> map) {
@@ -111,6 +110,7 @@ class Payment {
       userPhone: _extractProfileField(map, 'phone'),
       userPhotoUrl: _extractProfileField(map, 'profile_photo_url'),
       paymentType: map['payment_type']?.toString(),
+      paymentMethod: map['payment_method']?.toString(),
       amount: (map['amount'] as num?)?.toInt() ?? 0,
       period: map['period']?.toString(),
       dueDate: _parseDate(map['due_date']),
@@ -125,12 +125,14 @@ class Payment {
 
   static List<PaymentItem> _extractItems(Map<String, dynamic> map) {
     final raw = map['payment_items'];
+
     if (raw is List) {
       return raw
           .whereType<Map>()
           .map((e) => PaymentItem.fromMap(Map<String, dynamic>.from(e)))
           .toList();
     }
+
     return const <PaymentItem>[];
   }
 
@@ -140,6 +142,7 @@ class Payment {
       if (userId != null) 'user_id': userId,
       if (roomId != null) 'room_id': roomId,
       'payment_type': paymentType,
+      'payment_method': paymentMethod,
       'amount': amount,
       'period': period,
       if (dueDate != null) 'due_date': dueDate!.toIso8601String(),
@@ -151,9 +154,11 @@ class Payment {
 
   static String? _extractRoomNumber(Map<String, dynamic> map) {
     final rooms = map['rooms'];
+
     if (rooms is Map<String, dynamic>) {
       return rooms['room_number']?.toString();
     }
+
     return null;
   }
 
@@ -161,15 +166,13 @@ class Payment {
     return _extractProfileField(map, 'name');
   }
 
-  static String? _extractProfileField(
-    Map<String, dynamic> map,
-    String field,
-  ) {
+  static String? _extractProfileField(Map<String, dynamic> map, String field) {
     final profiles = map['profiles'];
+
     if (profiles is Map<String, dynamic>) {
-      final raw = profiles[field];
-      return raw?.toString();
+      return profiles[field]?.toString();
     }
+
     return null;
   }
 

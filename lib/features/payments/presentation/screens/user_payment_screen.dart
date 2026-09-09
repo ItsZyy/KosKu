@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../data/models/payment_model.dart';
-import '../../data/services/payment_service.dart';
 import '../../data/services/payment_method_service.dart';
+import '../../data/services/payment_service.dart';
 import '../widgets/payment_header_card.dart';
-import '../widgets/payment_method_card.dart';
 import '../widgets/payment_history_card.dart';
+import '../widgets/payment_method_card.dart';
 import 'payment_detail_screen.dart';
 
 class UserPaymentScreen extends StatefulWidget {
@@ -22,14 +22,11 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
   final _paymentMethodService = PaymentMethodService();
 
   Payment? _payment;
-
-  // Banyak metode pembayaran
   List<Map<String, dynamic>> _paymentInfo = [];
-
   List<Map<String, dynamic>> _paymentHistory = [];
 
   bool _isLoading = true;
-
+  bool _showAllHistory = false;
   String? _error;
 
   @override
@@ -46,18 +43,16 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
 
     try {
       final payment = await _paymentService.getCurrentPayment();
-
       final allHistory = await _paymentService.getPaymentHistory();
 
-      // Hanya tampilkan di riwayat pembayaran yang sudah pernah dikirim
-      // (proof_url terisi). Tagihan yang belum dibayar tidak termasuk
-      // riwayat karena sudah ditampilkan di bagian header.
       final history = allHistory.where((p) {
         final proofUrl = p['proof_url']?.toString();
-        return proofUrl != null && proofUrl.isNotEmpty;
+        final paymentMethod = p['payment_method']?.toString().toLowerCase();
+
+        return (proofUrl != null && proofUrl.isNotEmpty) ||
+            paymentMethod == 'cash';
       }).toList();
 
-      // Ambil metode pembayaran dari PaymentMethodService
       final paymentInfo = await _paymentMethodService
           .getPaymentMethodsForUser();
 
@@ -68,6 +63,10 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
         _paymentHistory = history;
         _paymentInfo = paymentInfo;
         _isLoading = false;
+
+        if (_paymentHistory.length <= 3) {
+          _showAllHistory = false;
+        }
       });
     } catch (e) {
       if (!mounted) return;
@@ -89,6 +88,16 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
             PaymentDetailScreen(paymentId: payment.id!, initial: payment),
       ),
     );
+
+    if (!mounted) return;
+
+    await _loadPayments();
+  }
+
+  void _toggleHistory() {
+    setState(() {
+      _showAllHistory = !_showAllHistory;
+    });
   }
 
   @override
@@ -110,6 +119,12 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
 
     final payment = _payment;
 
+    final displayedHistory = _showAllHistory
+        ? _paymentHistory
+        : _paymentHistory.take(3).toList();
+
+    final hasMoreHistory = _paymentHistory.length > 3;
+
     return RefreshIndicator(
       onRefresh: _loadPayments,
       child: SingleChildScrollView(
@@ -118,25 +133,15 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // =========================
-            // JUDUL
-            // =========================
             Text('Detail Pembayaran', style: AppTextStyles.headlineLarge),
-
             const SizedBox(height: 8),
-
             Text(
-              'Kelola tagihan dan riwayat transaksi Anda.',
+              'Bayar dan lihat riwayat tagihan Anda.',
               style: AppTextStyles.bodyMedium.copyWith(
                 color: AppColors.textSecondary,
               ),
             ),
-
             const SizedBox(height: 24),
-
-            // =========================
-            // TAGIHAN
-            // =========================
             if (payment == null)
               _buildEmptyState()
             else
@@ -146,99 +151,33 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
                   _openDetail(payment);
                 },
               ),
-
             const SizedBox(height: 24),
-
-            // =========================
-            // METODE PEMBAYARAN
-            // =========================
-            _buildPaymentMethods(),
-
+            PaymentMethodCard(paymentInfo: _paymentInfo),
             const SizedBox(height: 24),
-
-            // =========================
-            // RIWAYAT PEMBAYARAN
-            // =========================
-            PaymentHistoryCard(
-              payments: _paymentHistory,
-              onViewAll: () {
-                // Nanti diarahkan ke halaman
-                // seluruh riwayat pembayaran.
-              },
-            ),
-
+            PaymentHistoryCard(payments: displayedHistory),
+            if (hasMoreHistory)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: TextButton.icon(
+                    onPressed: _toggleHistory,
+                    icon: Icon(
+                      _showAllHistory
+                          ? Icons.keyboard_arrow_up_rounded
+                          : Icons.keyboard_arrow_down_rounded,
+                      color: AppColors.primary,
+                    ),
+                    label: Text(
+                      _showAllHistory ? 'Sembunyikan' : 'Lihat Semua',
+                    ),
+                  ),
+                ),
+              ),
             const SizedBox(height: 20),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildPaymentMethods() {
-    // =========================
-    // TIDAK ADA METODE
-    // =========================
-    if (_paymentInfo.isEmpty) {
-      return const Card(
-        child: Padding(
-          padding: EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.credit_card),
-                  SizedBox(width: 10),
-                  Text(
-                    'Metode Pembayaran',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Metode pembayaran belum tersedia.',
-                style: TextStyle(color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // =========================
-    // DAFTAR METODE PEMBAYARAN
-    // =========================
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Metode Pembayaran', style: AppTextStyles.titleLarge),
-
-        const SizedBox(height: 12),
-
-        ..._paymentInfo.map((info) {
-          final type = info['type']?.toString() ?? 'bank';
-
-          final bankName = info['bank_name']?.toString();
-
-          final accountNumber = info['account_number']?.toString();
-
-          final accountName = info['account_name']?.toString();
-
-          final qrisImageUrl = info['qris_image_url']?.toString();
-
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: PaymentMethodCard(
-              type: type,
-              bankName: bankName,
-              accountNumber: accountNumber,
-              accountName: accountName,
-              qrisImageUrl: qrisImageUrl,
-            ),
-          );
-        }),
-      ],
     );
   }
 
@@ -258,18 +197,14 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
             size: 48,
             color: AppColors.textHint,
           ),
-
           const SizedBox(height: 12),
-
           Text(
             'Belum ada tagihan',
             style: AppTextStyles.bodyLarge.copyWith(
               fontWeight: FontWeight.w600,
             ),
           ),
-
           const SizedBox(height: 4),
-
           Text(
             'Tagihan Anda akan muncul di sini.',
             style: AppTextStyles.bodySmall,
@@ -286,27 +221,25 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, size: 48),
-
+            const Icon(
+              Icons.error_outline_rounded,
+              size: 48,
+              color: Colors.red,
+            ),
             const SizedBox(height: 12),
-
             Text(
               'Gagal memuat pembayaran',
               style: AppTextStyles.bodyLarge.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
-
             const SizedBox(height: 8),
-
             Text(
               _error!,
               style: AppTextStyles.bodySmall,
               textAlign: TextAlign.center,
             ),
-
             const SizedBox(height: 16),
-
             ElevatedButton(
               onPressed: _loadPayments,
               child: const Text('Coba Lagi'),

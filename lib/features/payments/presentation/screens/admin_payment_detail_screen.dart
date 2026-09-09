@@ -32,7 +32,6 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
 
   Payment? _payment;
   String? _proofSignedUrl;
-
   bool _isLoading = true;
   bool _isBusy = false;
   String? _error;
@@ -44,11 +43,6 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
     _loadDetail();
   }
 
-  // ==========================================================
-  // DATA
-  // Screen selalu menampilkan kondisi terbaru dari database,
-  // tidak hanya mengandalkan objek payment dari halaman sebelumnya.
-  // ==========================================================
   Future<void> _loadDetail() async {
     if (mounted) {
       setState(() {
@@ -61,6 +55,7 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
       final payment = await _paymentService.getPaymentDetail(widget.paymentId);
 
       String? signedUrl;
+
       if (payment?.hasSubmittedPayment == true) {
         signedUrl = await _paymentService.getProofSignedUrl(payment!.proofUrl);
       }
@@ -87,6 +82,7 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
       final payment = await _paymentService.getPaymentDetail(widget.paymentId);
 
       String? signedUrl;
+
       if (payment?.hasSubmittedPayment == true) {
         signedUrl = await _paymentService.getProofSignedUrl(payment!.proofUrl);
       }
@@ -100,21 +96,18 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
 
       return payment;
     } catch (_) {
-      // Gagal refresh: kembalikan null agar pemanggil tahu
-      // bahwa state terbaru tidak diverifikasi.
       return null;
     }
   }
 
-  // ==========================================================
-  // ACTION ADMIN
-  // ==========================================================
   Future<void> _confirm() async {
     if (_isBusy) return;
 
     final payment = _payment;
 
-    if (payment == null || payment.id == null) return;
+    if (payment == null || payment.id == null) {
+      return;
+    }
 
     final admin = Supabase.instance.client.auth.currentUser;
 
@@ -125,7 +118,9 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
 
     final confirmed = await _showConfirmDialog(payment);
 
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !mounted) {
+      return;
+    }
 
     setState(() {
       _isBusy = true;
@@ -143,7 +138,8 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
 
       if (refreshed != null && !refreshed.isConfirmed) {
         throw Exception(
-          'Status pembayaran tidak berubah menjadi "dikonfirmasi" di database.',
+          'Status pembayaran tidak berubah menjadi '
+          '"dikonfirmasi" di database.',
         );
       }
 
@@ -168,7 +164,9 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
 
     final payment = _payment;
 
-    if (payment == null || payment.id == null) return;
+    if (payment == null || payment.id == null) {
+      return;
+    }
 
     final admin = Supabase.instance.client.auth.currentUser;
 
@@ -179,7 +177,9 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
 
     final confirmed = await _showRejectDialog();
 
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !mounted) {
+      return;
+    }
 
     setState(() {
       _isBusy = true;
@@ -194,7 +194,8 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
 
       if (refreshed != null && !refreshed.isRejected) {
         throw Exception(
-          'Status pembayaran tidak berubah menjadi "ditolak" di database.',
+          'Status pembayaran tidak berubah menjadi '
+          '"ditolak" di database.',
         );
       }
 
@@ -228,6 +229,14 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
               _dialogRow('Kamar', payment.roomNumber ?? '-'),
               _dialogRow('Periode', PaymentFormatter.period(payment.period)),
               _dialogRow('Nominal', PaymentFormatter.rupiah(payment.amount)),
+              _dialogRow(
+                'Metode',
+                payment.isCash
+                    ? 'Tunai'
+                    : payment.paymentMethod == 'qris'
+                    ? 'QRIS'
+                    : 'Bank',
+              ),
             ],
           ),
           actions: [
@@ -297,14 +306,12 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
 
   void _showSnack(String message) {
     if (!mounted) return;
+
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  // ==========================================================
-  // BUILD
-  // ==========================================================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -335,30 +342,18 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
         children: [
-          // 1. HEADER + STATUS
           AdminPaymentHeader(payment: payment),
-
           const SizedBox(height: 20),
-
-          // 2. INFORMASI PENGHUNI
           AdminPaymentTenantCard(payment: payment),
-
           const SizedBox(height: 20),
-
-          // 4. INFORMASI PEMBAYARAN
           AdminPaymentInfoSection(payment: payment),
-
           const SizedBox(height: 20),
-
-          // 5. BUKTI PEMBAYARAN
-          AdminPaymentProofSection(
-            payment: payment,
-            proofSignedUrl: _proofSignedUrl,
-          ),
-
-          const SizedBox(height: 20),
-
-          // 6. ACTION / STATUS AKHIR
+          if (!payment.isCash)
+            AdminPaymentProofSection(
+              payment: payment,
+              proofSignedUrl: _proofSignedUrl,
+            ),
+          if (!payment.isCash) const SizedBox(height: 20),
           ..._buildActionArea(payment),
         ],
       ),
@@ -384,7 +379,7 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
       return [_buildRejectedCard()];
     }
 
-    return [_buildNoProofCard()];
+    return [_buildNoProofCard(payment)];
   }
 
   Widget _buildConfirmedCard(Payment payment) {
@@ -410,10 +405,12 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
     );
   }
 
-  Widget _buildNoProofCard() {
+  Widget _buildNoProofCard(Payment payment) {
     return _buildStatusCard(
       icon: Icons.info_outline,
-      title: 'Menunggu bukti pembayaran',
+      title: payment.isCash
+          ? 'Pembayaran tunai belum dikirim'
+          : 'Menunggu bukti pembayaran',
       backgroundColor: AppColors.warningSoft,
       foregroundColor: AppColors.warning,
     );
@@ -475,25 +472,19 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.error_outline, size: 48, color: AppColors.error),
-
             const SizedBox(height: 12),
-
             Text(
               'Gagal Memuat Detail Pembayaran',
               style: AppTextStyles.titleMedium,
               textAlign: TextAlign.center,
             ),
-
             const SizedBox(height: 8),
-
             Text(
               message,
               textAlign: TextAlign.center,
               style: AppTextStyles.bodySmall,
             ),
-
             const SizedBox(height: 16),
-
             ElevatedButton(
               onPressed: _loadDetail,
               child: const Text('Coba Lagi'),

@@ -44,6 +44,7 @@ class PaymentService {
           user_id,
           room_id,
           payment_type,
+          payment_method,
           amount,
           period,
           due_date,
@@ -101,6 +102,7 @@ class PaymentService {
 
     final extension = file.path.split('.').last.toLowerCase();
     final fileName = '${DateTime.now().millisecondsSinceEpoch}.$extension';
+
     final filePath = 'proofs/$paymentId/$fileName';
 
     await _supabase.storage
@@ -113,6 +115,7 @@ class PaymentService {
   Future<void> submitPaymentProof({
     required String paymentId,
     required String proofUrl,
+    required String paymentMethod,
   }) async {
     final user = _supabase.auth.currentUser;
 
@@ -124,6 +127,10 @@ class PaymentService {
 
     if (trimmedProofUrl.isEmpty) {
       throw Exception('Path bukti pembayaran tidak valid.');
+    }
+
+    if (paymentMethod != 'bank' && paymentMethod != 'qris') {
+      throw Exception('Metode pembayaran tidak valid.');
     }
 
     final payment = await _supabase
@@ -138,6 +145,7 @@ class PaymentService {
     }
 
     final existingProof = payment['proof_url']?.toString().trim();
+
     final currentStatus = payment['status']?.toString().toLowerCase();
 
     final hasExistingProof = existingProof != null && existingProof.isNotEmpty;
@@ -155,16 +163,15 @@ class PaymentService {
     final updatedPayment = await _supabase
         .from('payments')
         .update({
+          'payment_method': paymentMethod,
           'proof_url': trimmedProofUrl,
           'status': 'menunggu',
-          // Saat resubmit setelah ditolak, reset data konfirmasi lama
-          // agar payment kembali menjadi "menunggu konfirmasi" murni.
           'confirmed_by': null,
           'confirmed_at': null,
         })
         .eq('id', paymentId)
         .eq('user_id', user.id)
-        .select('id, user_id, proof_url, status')
+        .select('id, user_id, payment_method, proof_url, status')
         .maybeSingle();
 
     if (updatedPayment == null) {
@@ -175,6 +182,7 @@ class PaymentService {
     }
 
     final savedProof = updatedPayment['proof_url']?.toString().trim();
+
     final savedStatus = updatedPayment['status']?.toString().toLowerCase();
 
     if (savedProof == null || savedProof.isEmpty) {
@@ -186,8 +194,67 @@ class PaymentService {
     }
   }
 
-  /// Guard admin: hanya user dengan role 'admin' yang boleh
-  /// mengonfirmasi/menolak pembayaran.
+  Future<void> submitCashPayment({required String paymentId}) async {
+    final user = _supabase.auth.currentUser;
+
+    if (user == null) {
+      throw Exception('Anda harus login terlebih dahulu');
+    }
+
+    final payment = await _supabase
+        .from('payments')
+        .select('id, user_id, payment_method, proof_url, status')
+        .eq('id', paymentId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+    if (payment == null) {
+      throw Exception('Tagihan tidak ditemukan.');
+    }
+
+    final currentStatus = payment['status']?.toString().toLowerCase();
+
+    if (currentStatus == 'dikonfirmasi') {
+      throw Exception('Pembayaran sudah dikonfirmasi oleh admin.');
+    }
+
+    if (currentStatus == 'menunggu') {
+      throw Exception(
+        'Pembayaran sudah dikirim dan sedang menunggu konfirmasi admin.',
+      );
+    }
+
+    final updated = await _supabase
+        .from('payments')
+        .update({
+          'payment_method': 'cash',
+          'proof_url': null,
+          'status': 'menunggu',
+          'confirmed_by': null,
+          'confirmed_at': null,
+        })
+        .eq('id', paymentId)
+        .eq('user_id', user.id)
+        .select('id, payment_method, proof_url, status')
+        .maybeSingle();
+
+    if (updated == null) {
+      throw Exception('Pembayaran tunai gagal disimpan.');
+    }
+
+    final savedMethod = updated['payment_method']?.toString();
+
+    final savedStatus = updated['status']?.toString().toLowerCase();
+
+    if (savedMethod != 'cash') {
+      throw Exception('Metode pembayaran tunai gagal disimpan.');
+    }
+
+    if (savedStatus != 'menunggu') {
+      throw Exception('Status pembayaran gagal diperbarui.');
+    }
+  }
+
   Future<bool> _isAdmin(String userId) async {
     try {
       final profile = await _supabase
@@ -219,12 +286,14 @@ class PaymentService {
     }
 
     if (!await _isAdmin(user.id)) {
-      throw Exception('Anda tidak memiliki izin admin untuk mengonfirmasi pembayaran.');
+      throw Exception(
+        'Anda tidak memiliki izin admin untuk mengonfirmasi pembayaran.',
+      );
     }
 
     final payment = await _supabase
         .from('payments')
-        .select('id, status, proof_url')
+        .select('id, status, payment_method, proof_url')
         .eq('id', paymentId)
         .maybeSingle();
 
@@ -233,7 +302,10 @@ class PaymentService {
     }
 
     final currentStatus = payment['status']?.toString().toLowerCase();
-    final proof = payment['proof_url']?.toString();
+
+    final paymentMethod = payment['payment_method']?.toString().toLowerCase();
+
+    final proof = payment['proof_url']?.toString().trim();
 
     if (currentStatus != 'menunggu') {
       throw Exception(
@@ -241,15 +313,15 @@ class PaymentService {
       );
     }
 
-    if (proof == null || proof.isEmpty) {
+    final isCash = paymentMethod == 'cash';
+
+    if (!isCash && (proof == null || proof.isEmpty)) {
       throw Exception(
-        'Pembayaran belum memiliki bukti pembayaran, tidak dapat dikonfirmasi.',
+        'Pembayaran belum memiliki bukti pembayaran, '
+        'tidak dapat dikonfirmasi.',
       );
     }
 
-    // UPDATE bersifat atomic: WHERE status = 'menunggu' mencegah
-    // double-action/double-admin. Jika sudah berubah, update tidak
-    // menghasilkan row dan method melempar exception.
     final updated = await _supabase
         .from('payments')
         .update({
@@ -272,7 +344,9 @@ class PaymentService {
     final updatedStatus = updated['status']?.toString().toLowerCase();
 
     if (updatedStatus != 'dikonfirmasi') {
-      throw Exception('Status pembayaran tidak berubah menjadi "dikonfirmasi".');
+      throw Exception(
+        'Status pembayaran tidak berubah menjadi "dikonfirmasi".',
+      );
     }
 
     if ((updated['confirmed_by']?.toString() ?? '').isEmpty) {
@@ -292,7 +366,9 @@ class PaymentService {
     }
 
     if (!await _isAdmin(user.id)) {
-      throw Exception('Anda tidak memiliki izin admin untuk menolak pembayaran.');
+      throw Exception(
+        'Anda tidak memiliki izin admin untuk menolak pembayaran.',
+      );
     }
 
     final payment = await _supabase
@@ -383,9 +459,6 @@ class PaymentService {
   }
 
   Future<List<Map<String, dynamic>>> getPayments() async {
-    // Daftar untuk Admin: hanya pembayaran yang SUDAH memiliki bukti
-    // (proof_url) yang ditampilkan. Tagihan yang belum dibayar/upload
-    // tidak perlu diverifikasi Admin.
     final data = await _supabase
         .from('payments')
         .select('''
@@ -393,6 +466,7 @@ class PaymentService {
           user_id,
           room_id,
           payment_type,
+          payment_method,
           amount,
           period,
           due_date,
@@ -408,14 +482,19 @@ class PaymentService {
             room_number
           )
         ''')
-        .not('proof_url', 'is', null)
+        .or('proof_url.not.is.null,payment_method.eq.cash')
         .order('created_at', ascending: false);
 
-    // Filter tambahan di sisi Dart: tolak baris dengan proof_url kosong
-    // (mis. string kosong), bukan hanya null.
-    return List<Map<String, dynamic>>.from(data).where((p) {
-      final proofUrl = p['proof_url']?.toString();
-      return proofUrl != null && proofUrl.isNotEmpty;
+    return List<Map<String, dynamic>>.from(data).where((payment) {
+      final method = payment['payment_method']?.toString().toLowerCase();
+
+      final proof = payment['proof_url']?.toString().trim();
+
+      if (method == 'cash') {
+        return true;
+      }
+
+      return proof != null && proof.isNotEmpty;
     }).toList();
   }
 
@@ -462,6 +541,7 @@ class PaymentService {
           user_id,
           room_id,
           payment_type,
+          payment_method,
           amount,
           period,
           due_date,
@@ -508,6 +588,7 @@ class PaymentService {
           user_id,
           room_id,
           payment_type,
+          payment_method,
           amount,
           period,
           due_date,
@@ -529,7 +610,6 @@ class PaymentService {
           )
         ''')
         .eq('user_id', user.id)
-        .not('proof_url', 'is', null)
         .order('period', ascending: false);
 
     return (data as List).map((e) => Payment.fromMap(e)).toList();

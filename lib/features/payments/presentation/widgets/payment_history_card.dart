@@ -1,15 +1,9 @@
-// Widget untuk UserPaymentScreen
 import 'package:flutter/material.dart';
 
 class PaymentHistoryCard extends StatelessWidget {
   final List<Map<String, dynamic>> payments;
-  final VoidCallback? onViewAll;
 
-  const PaymentHistoryCard({
-    super.key,
-    required this.payments,
-    this.onViewAll,
-  });
+  const PaymentHistoryCard({super.key, required this.payments});
 
   String _formatRupiah(dynamic amount) {
     if (amount == null) return '-';
@@ -20,10 +14,7 @@ class PaymentHistoryCard extends StatelessWidget {
       return amount.toString();
     }
 
-    return 'Rp ${value.toString().replaceAllMapped(
-          RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-          (match) => '${match[1]}.',
-        )}';
+    return 'Rp ${value.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (match) => '${match[1]}.')}';
   }
 
   String _formatDate(dynamic date) {
@@ -31,7 +22,9 @@ class PaymentHistoryCard extends StatelessWidget {
 
     final parsedDate = DateTime.tryParse(date.toString());
 
-    if (parsedDate == null) return date.toString();
+    if (parsedDate == null) {
+      return date.toString();
+    }
 
     const months = [
       'Jan',
@@ -56,12 +49,15 @@ class PaymentHistoryCard extends StatelessWidget {
       case 'confirmed':
       case 'dikonfirmasi':
         return 'LUNAS';
+
       case 'rejected':
       case 'ditolak':
         return 'DITOLAK';
+
       case 'pending':
       case 'menunggu':
         return 'MENUNGGU KONFIRMASI';
+
       default:
         return status?.toString().toUpperCase() ?? '-';
     }
@@ -72,14 +68,36 @@ class PaymentHistoryCard extends StatelessWidget {
       case 'confirmed':
       case 'dikonfirmasi':
         return Icons.check_circle;
+
       case 'rejected':
       case 'ditolak':
         return Icons.cancel;
+
       case 'pending':
       case 'menunggu':
         return Icons.access_time;
+
       default:
         return Icons.info_outline;
+    }
+  }
+
+  Color _getStatusColor(dynamic status) {
+    switch (status?.toString().toLowerCase()) {
+      case 'confirmed':
+      case 'dikonfirmasi':
+        return Colors.green;
+
+      case 'rejected':
+      case 'ditolak':
+        return Colors.red;
+
+      case 'pending':
+      case 'menunggu':
+        return Colors.orange;
+
+      default:
+        return Colors.grey;
     }
   }
 
@@ -97,54 +115,41 @@ class PaymentHistoryCard extends StatelessWidget {
                 const Expanded(
                   child: Text(
                     'Riwayat Pembayaran',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
-                if (onViewAll != null)
-                  TextButton(
-                    onPressed: onViewAll,
-                    child: const Text('Lihat Semua'),
-                  ),
               ],
             ),
-
             const SizedBox(height: 12),
-
             if (payments.isEmpty)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),
                 child: Column(
                   children: [
-                    Icon(
-                      Icons.receipt_long_outlined,
-                      size: 40,
-                    ),
+                    Icon(Icons.receipt_long_outlined, size: 40),
                     SizedBox(height: 8),
                     Text(
                       'Belum ada riwayat pembayaran',
-                      style: TextStyle(
-                        color: Colors.grey,
-                      ),
+                      style: TextStyle(color: Colors.grey),
                     ),
                   ],
                 ),
               )
             else
-              ...payments.map(
-                (payment) => _PaymentHistoryItem(
+              ...payments.map((payment) {
+                final status = payment['status'];
+
+                return _PaymentHistoryItem(
                   period: payment['period']?.toString() ?? '-',
                   amount: _formatRupiah(payment['amount']),
                   date: _formatDate(
-                    payment['confirmed_at'] ??
-                        payment['created_at'],
+                    payment['confirmed_at'] ?? payment['created_at'],
                   ),
-                  status: _getStatusLabel(payment['status']),
-                  statusIcon: _getStatusIcon(payment['status']),
-                ),
-              ),
+                  status: _getStatusLabel(status),
+                  statusIcon: _getStatusIcon(status),
+                  statusColor: _getStatusColor(status),
+                );
+              }),
           ],
         ),
       ),
@@ -158,6 +163,7 @@ class _PaymentHistoryItem extends StatelessWidget {
   final String date;
   final String status;
   final IconData statusIcon;
+  final Color statusColor;
 
   const _PaymentHistoryItem({
     required this.period,
@@ -165,6 +171,7 @@ class _PaymentHistoryItem extends StatelessWidget {
     required this.date,
     required this.status,
     required this.statusIcon,
+    required this.statusColor,
   });
 
   @override
@@ -172,72 +179,49 @@ class _PaymentHistoryItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14),
       decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.black12,
-          ),
-        ),
+        border: Border(bottom: BorderSide(color: Colors.black12)),
       ),
       child: Row(
         children: [
           Container(
             width: 42,
             height: 42,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.calendar_month,
-            ),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
+            child: const Icon(Icons.calendar_month),
           ),
-
           const SizedBox(width: 12),
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   period,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   date,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ],
             ),
           ),
-
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                amount,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              Text(amount, style: const TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 4),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    statusIcon,
-                    size: 14,
-                  ),
+                  Icon(statusIcon, size: 14, color: statusColor),
                   const SizedBox(width: 4),
                   Text(
                     status,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
+                      color: statusColor,
                     ),
                   ),
                 ],
