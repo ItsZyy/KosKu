@@ -8,6 +8,7 @@ import '../widgets/logout_card.dart';
 import '../widgets/profile_header_card.dart';
 import '../widgets/profile_info_card.dart';
 import '../widgets/room_detail_card.dart';
+import 'edit_profile_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -21,8 +22,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   final ImagePicker _imagePicker = ImagePicker();
 
   ProfileModel? _profile;
+
   bool _isLoading = true;
   bool _isUploadingPhoto = false;
+
   String? _profilePhotoUrl;
 
   @override
@@ -53,6 +56,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         setState(() {
           _profilePhotoUrl = signedUrl;
         });
+      } else {
+        setState(() {
+          _profilePhotoUrl = null;
+        });
       }
     } catch (e) {
       if (!mounted) return;
@@ -75,6 +82,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       );
 
       if (image == null) return;
+
+      if (!mounted) return;
 
       setState(() {
         _isUploadingPhoto = true;
@@ -122,6 +131,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   Future<void> _deleteProfilePhoto() async {
     try {
+      if (!mounted) return;
+
       setState(() {
         _isUploadingPhoto = true;
       });
@@ -192,10 +203,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  void _editProfile() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Fitur edit profil akan segera dibuat')),
+  Future<void> _editProfile() async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (context) => const EditProfileScreen()),
     );
+
+    if (result == true) {
+      await _loadProfile();
+    }
   }
 
   void _changePassword() {
@@ -314,7 +330,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ProfileInfoCard(
                 title: 'Informasi Kontak',
                 name: profile.name,
-                email: '-',
+                email: _profileService.getEmail() ?? '-',
                 phone: profile.phone ?? '-',
                 address: emergencyContact.isEmpty ? '-' : emergencyContact,
                 addressLabel: 'Kontak Darurat',

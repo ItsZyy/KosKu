@@ -6,6 +6,7 @@ class ProfileModel {
   final String? emergencyContactName;
   final String? emergencyContactPhone;
   final String? emergencyContactRelation;
+  final String? kosAddress;
   final String role;
   final DateTime? createdAt;
 
@@ -17,6 +18,7 @@ class ProfileModel {
     this.emergencyContactName,
     this.emergencyContactPhone,
     this.emergencyContactRelation,
+    this.kosAddress,
     required this.role,
     this.createdAt,
   });
@@ -30,6 +32,7 @@ class ProfileModel {
       emergencyContactName: map['emergency_contact_name'] as String?,
       emergencyContactPhone: map['emergency_contact_phone'] as String?,
       emergencyContactRelation: map['emergency_contact_relation'] as String?,
+      kosAddress: map['kos_address'] as String?,
       role: map['role'] as String? ?? 'user',
       createdAt: map['created_at'] != null
           ? DateTime.tryParse(map['created_at'].toString())

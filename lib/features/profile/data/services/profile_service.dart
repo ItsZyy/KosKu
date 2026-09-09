@@ -33,6 +33,10 @@ class ProfileService {
     return profile?.role;
   }
 
+  String? getEmail() {
+    return _supabase.auth.currentUser?.email;
+  }
+
   Future<String> uploadProfilePhoto({
     required Uint8List bytes,
     required String fileExtension,
@@ -96,6 +100,33 @@ class ProfileService {
         .createSignedUrl(photoPath, 3600);
 
     return signedUrl;
+  }
+
+  Future<void> updateProfile({
+    required String name,
+    String? phone,
+    String? kosAddress,
+    String? emergencyContactName,
+    String? emergencyContactPhone,
+    String? emergencyContactRelation,
+  }) async {
+    final user = _supabase.auth.currentUser;
+
+    if (user == null) {
+      throw Exception('Anda harus login terlebih dahulu.');
+    }
+
+    await _supabase
+        .from('profiles')
+        .update({
+          'name': name,
+          'phone': phone,
+          'kos_address': kosAddress,
+          'emergency_contact_name': emergencyContactName,
+          'emergency_contact_phone': emergencyContactPhone,
+          'emergency_contact_relation': emergencyContactRelation,
+        })
+        .eq('id', user.id);
   }
 
   Future<void> logout() async {

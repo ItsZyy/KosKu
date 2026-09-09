@@ -1,14 +1,13 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../data/models/profile_model.dart';
 import '../../data/services/profile_service.dart';
-import '../widgets/profile_header_card.dart';
-import '../widgets/profile_info_card.dart';
 import '../widgets/account_settings_card.dart';
 import '../widgets/logout_card.dart';
+import '../widgets/profile_header_card.dart';
+import '../widgets/profile_info_card.dart';
+import 'edit_admin_profile_screen.dart';
 
 class AdminProfileScreen extends StatefulWidget {
   const AdminProfileScreen({super.key});
@@ -21,10 +20,12 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
   final ProfileService _profileService = ProfileService();
   final ImagePicker _imagePicker = ImagePicker();
 
-  ProfileModel? profile;
-  bool isLoading = true;
-  bool isUploadingPhoto = false;
-  String? profilePhotoUrl;
+  ProfileModel? _profile;
+
+  bool _isLoading = true;
+  bool _isUploadingPhoto = false;
+
+  String? _profilePhotoUrl;
 
   @override
   void initState() {
@@ -34,31 +35,36 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
 
   Future<void> _loadProfile() async {
     try {
-      final data = await _profileService.getProfile();
+      final profile = await _profileService.getProfile();
 
       if (!mounted) return;
 
       setState(() {
-        profile = data;
-        isLoading = false;
+        _profile = profile;
+        _isLoading = false;
       });
 
-      if (data?.profilePhotoUrl != null && data!.profilePhotoUrl!.isNotEmpty) {
+      if (profile?.profilePhotoUrl != null &&
+          profile!.profilePhotoUrl!.isNotEmpty) {
         final signedUrl = await _profileService.getProfilePhotoUrl(
-          data.profilePhotoUrl,
+          profile.profilePhotoUrl,
         );
 
         if (!mounted) return;
 
         setState(() {
-          profilePhotoUrl = signedUrl;
+          _profilePhotoUrl = signedUrl;
+        });
+      } else {
+        setState(() {
+          _profilePhotoUrl = null;
         });
       }
     } catch (e) {
       if (!mounted) return;
 
       setState(() {
-        isLoading = false;
+        _isLoading = false;
       });
 
       ScaffoldMessenger.of(
@@ -76,11 +82,13 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
 
       if (image == null) return;
 
+      if (!mounted) return;
+
       setState(() {
-        isUploadingPhoto = true;
+        _isUploadingPhoto = true;
       });
 
-      final Uint8List bytes = await image.readAsBytes();
+      final bytes = await image.readAsBytes();
 
       final extension = image.name.contains('.')
           ? image.name.split('.').last
@@ -96,23 +104,13 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       if (!mounted) return;
 
       setState(() {
-        profilePhotoUrl = signedUrl;
-        isUploadingPhoto = false;
-
-        if (profile != null) {
-          profile = ProfileModel(
-            id: profile!.id,
-            name: profile!.name,
-            phone: profile!.phone,
-            profilePhotoUrl: path,
-            emergencyContactName: profile!.emergencyContactName,
-            emergencyContactPhone: profile!.emergencyContactPhone,
-            emergencyContactRelation: profile!.emergencyContactRelation,
-            role: profile!.role,
-            createdAt: profile!.createdAt,
-          );
-        }
+        _profilePhotoUrl = signedUrl;
+        _isUploadingPhoto = false;
       });
+
+      await _loadProfile();
+
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Foto profil berhasil diperbarui')),
@@ -121,7 +119,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       if (!mounted) return;
 
       setState(() {
-        isUploadingPhoto = false;
+        _isUploadingPhoto = false;
       });
 
       ScaffoldMessenger.of(
@@ -132,8 +130,10 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
 
   Future<void> _deleteProfilePhoto() async {
     try {
+      if (!mounted) return;
+
       setState(() {
-        isUploadingPhoto = true;
+        _isUploadingPhoto = true;
       });
 
       await _profileService.deleteProfilePhoto();
@@ -141,23 +141,13 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       if (!mounted) return;
 
       setState(() {
-        profilePhotoUrl = null;
-        isUploadingPhoto = false;
-
-        if (profile != null) {
-          profile = ProfileModel(
-            id: profile!.id,
-            name: profile!.name,
-            phone: profile!.phone,
-            profilePhotoUrl: null,
-            emergencyContactName: profile!.emergencyContactName,
-            emergencyContactPhone: profile!.emergencyContactPhone,
-            emergencyContactRelation: profile!.emergencyContactRelation,
-            role: profile!.role,
-            createdAt: profile!.createdAt,
-          );
-        }
+        _profilePhotoUrl = null;
+        _isUploadingPhoto = false;
       });
+
+      await _loadProfile();
+
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Foto profil berhasil dihapus')),
@@ -166,7 +156,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       if (!mounted) return;
 
       setState(() {
-        isUploadingPhoto = false;
+        _isUploadingPhoto = false;
       });
 
       ScaffoldMessenger.of(
@@ -176,9 +166,9 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
   }
 
   Future<void> _showPhotoOptions() async {
-    if (isUploadingPhoto) return;
+    if (_isUploadingPhoto) return;
 
-    final hasPhoto = profilePhotoUrl != null && profilePhotoUrl!.isNotEmpty;
+    final hasPhoto = _profilePhotoUrl != null && _profilePhotoUrl!.isNotEmpty;
 
     await showModalBottomSheet<void>(
       context: context,
@@ -212,6 +202,17 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     );
   }
 
+  Future<void> _editProfile() async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (context) => const EditAdminProfileScreen()),
+    );
+
+    if (result == true) {
+      await _loadProfile();
+    }
+  }
+
   Future<void> _logout() async {
     try {
       await _profileService.logout();
@@ -230,11 +231,11 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
+    if (_isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    if (profile == null) {
+    if (_profile == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Profil Pemilik')),
         body: RefreshIndicator(
@@ -250,20 +251,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       );
     }
 
-    final name = profile!.name;
-    final phone = profile!.phone ?? '-';
-
-    final emergencyContact = [
-      if (profile!.emergencyContactName != null &&
-          profile!.emergencyContactName!.isNotEmpty)
-        profile!.emergencyContactName!,
-      if (profile!.emergencyContactPhone != null &&
-          profile!.emergencyContactPhone!.isNotEmpty)
-        profile!.emergencyContactPhone!,
-      if (profile!.emergencyContactRelation != null &&
-          profile!.emergencyContactRelation!.isNotEmpty)
-        profile!.emergencyContactRelation!,
-    ].join('\n');
+    final profile = _profile!;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Profil Pemilik')),
@@ -276,17 +264,21 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               ProfileHeaderCard(
-                name: name,
-                profilePhotoUrl: profilePhotoUrl,
-                onEdit: () {},
+                name: profile.name,
+                roleLabel: 'Pemilik Kos',
+                profilePhotoUrl: _profilePhotoUrl,
+                isUploadingPhoto: _isUploadingPhoto,
+                onEdit: _editProfile,
                 onEditPhoto: _showPhotoOptions,
               ),
               const SizedBox(height: 20),
               ProfileInfoCard(
-                name: name,
-                email: '-',
-                phone: phone,
-                address: emergencyContact.isEmpty ? '-' : emergencyContact,
+                title: 'Informasi Pemilik',
+                name: profile.name,
+                email: _profileService.getEmail() ?? '-',
+                phone: profile.phone ?? '-',
+                address: profile.kosAddress ?? '-',
+                addressLabel: 'Alamat Kosan',
               ),
               const SizedBox(height: 20),
               AccountSettingsCard(
