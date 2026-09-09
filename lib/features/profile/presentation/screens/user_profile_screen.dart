@@ -8,6 +8,7 @@ import '../widgets/logout_card.dart';
 import '../widgets/profile_header_card.dart';
 import '../widgets/profile_info_card.dart';
 import '../widgets/room_detail_card.dart';
+import 'change_password_screen.dart';
 import 'edit_profile_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
@@ -214,9 +215,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
   }
 
-  void _changePassword() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Fitur ubah password akan segera dibuat')),
+  Future<void> _changePassword() async {
+    await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (context) => const ChangePasswordScreen()),
     );
   }
 

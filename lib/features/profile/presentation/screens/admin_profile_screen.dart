@@ -7,6 +7,7 @@ import '../widgets/account_settings_card.dart';
 import '../widgets/logout_card.dart';
 import '../widgets/profile_header_card.dart';
 import '../widgets/profile_info_card.dart';
+import 'change_password_screen.dart';
 import 'edit_admin_profile_screen.dart';
 
 class AdminProfileScreen extends StatefulWidget {
@@ -213,6 +214,13 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     }
   }
 
+  Future<void> _changePassword() async {
+    await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (context) => const ChangePasswordScreen()),
+    );
+  }
+
   Future<void> _logout() async {
     try {
       await _profileService.logout();
@@ -282,7 +290,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
               ),
               const SizedBox(height: 20),
               AccountSettingsCard(
-                onChangePassword: () {},
+                onChangePassword: _changePassword,
                 onNotification: () {},
               ),
               const SizedBox(height: 20),

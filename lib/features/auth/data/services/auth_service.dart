@@ -13,6 +13,25 @@ class AuthService {
     );
   }
 
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final user = _supabase.auth.currentUser;
+    final email = user?.email;
+
+    if (user == null || email == null) {
+      throw Exception('Sesi login tidak ditemukan.');
+    }
+
+    await _supabase.auth.signInWithPassword(
+      email: email,
+      password: currentPassword,
+    );
+
+    await _supabase.auth.updateUser(UserAttributes(password: newPassword));
+  }
+
   Future<void> logout() async {
     await _supabase.auth.signOut();
   }
