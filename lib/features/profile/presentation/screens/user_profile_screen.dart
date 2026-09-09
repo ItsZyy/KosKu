@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../data/models/profile_model.dart';
 import '../../data/services/profile_service.dart';
@@ -17,9 +18,12 @@ class UserProfileScreen extends StatefulWidget {
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
   final ProfileService _profileService = ProfileService();
+  final ImagePicker _imagePicker = ImagePicker();
 
   ProfileModel? _profile;
   bool _isLoading = true;
+  bool _isUploadingPhoto = false;
+  String? _profilePhotoUrl;
 
   @override
   void initState() {
@@ -37,6 +41,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         _profile = profile;
         _isLoading = false;
       });
+
+      if (profile?.profilePhotoUrl != null &&
+          profile!.profilePhotoUrl!.isNotEmpty) {
+        final signedUrl = await _profileService.getProfilePhotoUrl(
+          profile.profilePhotoUrl,
+        );
+
+        if (!mounted) return;
+
+        setState(() {
+          _profilePhotoUrl = signedUrl;
+        });
+      }
     } catch (e) {
       if (!mounted) return;
 
@@ -50,15 +67,134 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
   }
 
-  void _editProfile() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Fitur edit profil akan segera dibuat')),
+  Future<void> _pickProfilePhoto() async {
+    try {
+      final image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+      );
+
+      if (image == null) return;
+
+      setState(() {
+        _isUploadingPhoto = true;
+      });
+
+      final bytes = await image.readAsBytes();
+
+      final extension = image.name.contains('.')
+          ? image.name.split('.').last
+          : 'jpg';
+
+      final path = await _profileService.uploadProfilePhoto(
+        bytes: bytes,
+        fileExtension: extension,
+      );
+
+      final signedUrl = await _profileService.getProfilePhotoUrl(path);
+
+      if (!mounted) return;
+
+      setState(() {
+        _profilePhotoUrl = signedUrl;
+        _isUploadingPhoto = false;
+      });
+
+      await _loadProfile();
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Foto profil berhasil diperbarui')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isUploadingPhoto = false;
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal mengunggah foto: $e')));
+    }
+  }
+
+  Future<void> _deleteProfilePhoto() async {
+    try {
+      setState(() {
+        _isUploadingPhoto = true;
+      });
+
+      await _profileService.deleteProfilePhoto();
+
+      if (!mounted) return;
+
+      setState(() {
+        _profilePhotoUrl = null;
+        _isUploadingPhoto = false;
+      });
+
+      await _loadProfile();
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Foto profil berhasil dihapus')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isUploadingPhoto = false;
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal menghapus foto: $e')));
+    }
+  }
+
+  Future<void> _editPhoto() async {
+    if (_isUploadingPhoto) return;
+
+    final hasPhoto = _profilePhotoUrl != null && _profilePhotoUrl!.isNotEmpty;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: const Text('Pilih dari galeri'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickProfilePhoto();
+                },
+              ),
+              if (hasPhoto)
+                ListTile(
+                  leading: const Icon(Icons.delete_outline),
+                  title: const Text('Hapus foto'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _deleteProfilePhoto();
+                  },
+                ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  void _editPhoto() {
+  void _editProfile() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Fitur ubah foto akan segera dibuat')),
+      const SnackBar(content: Text('Fitur edit profil akan segera dibuat')),
     );
   }
 
@@ -169,6 +305,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 name: profile.name,
                 roleLabel: 'Penghuni',
                 roomNumber: '03',
+                profilePhotoUrl: _profilePhotoUrl,
+                isUploadingPhoto: _isUploadingPhoto,
                 onEdit: _editProfile,
                 onEditPhoto: _editPhoto,
               ),
