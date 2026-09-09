@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../data/models/profile_model.dart';
 import '../../data/services/profile_service.dart';
 import '../widgets/profile_header_card.dart';
 import '../widgets/profile_info_card.dart';
@@ -17,7 +18,7 @@ class AdminProfileScreen extends StatefulWidget {
 class _AdminProfileScreenState extends State<AdminProfileScreen> {
   final ProfileService _profileService = ProfileService();
 
-  Map<String, dynamic>? profile;
+  ProfileModel? profile;
   bool isLoading = true;
 
   @override
@@ -68,13 +69,39 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final name = profile?['name']?.toString() ?? 'Pemilik Kos';
-    final email = profile?['email']?.toString() ?? '-';
-    final phone = profile?['phone']?.toString() ?? '-';
-    final address = profile?['address']?.toString() ?? '-';
+    if (profile == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Profil Pemilik')),
+        body: RefreshIndicator(
+          onRefresh: _loadProfile,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: const [
+              SizedBox(height: 300),
+              Center(child: Text('Data profil tidak ditemukan')),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final name = profile!.name;
+    final phone = profile!.phone ?? '-';
+
+    final emergencyContact = [
+      if (profile!.emergencyContactName != null &&
+          profile!.emergencyContactName!.isNotEmpty)
+        profile!.emergencyContactName!,
+      if (profile!.emergencyContactPhone != null &&
+          profile!.emergencyContactPhone!.isNotEmpty)
+        profile!.emergencyContactPhone!,
+      if (profile!.emergencyContactRelation != null &&
+          profile!.emergencyContactRelation!.isNotEmpty)
+        profile!.emergencyContactRelation!,
+    ].join('\n');
 
     return Scaffold(
       appBar: AppBar(title: const Text('Profil Pemilik')),
@@ -86,37 +113,21 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ProfileHeaderCard(
-                name: name,
-                onEdit: () {
-                  // Edit profil dibuat di tahap berikutnya.
-                },
-              ),
-
+              ProfileHeaderCard(name: name, onEdit: () {}),
               const SizedBox(height: 20),
-
               ProfileInfoCard(
                 name: name,
-                email: email,
+                email: '-',
                 phone: phone,
-                address: address,
+                address: emergencyContact.isEmpty ? '-' : emergencyContact,
               ),
-
               const SizedBox(height: 20),
-
               AccountSettingsCard(
-                onChangePassword: () {
-                  // Ubah password dibuat di tahap berikutnya.
-                },
-                onNotification: () {
-                  // Pengaturan notifikasi dibuat di tahap berikutnya.
-                },
+                onChangePassword: () {},
+                onNotification: () {},
               ),
-
               const SizedBox(height: 20),
-
               LogoutCard(onLogout: _logout),
-
               const SizedBox(height: 20),
             ],
           ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../data/models/profile_model.dart';
+import '../../data/services/profile_service.dart';
 import '../widgets/account_settings_card.dart';
 import '../widgets/logout_card.dart';
 import '../widgets/profile_header_card.dart';
@@ -14,6 +16,40 @@ class UserProfileScreen extends StatefulWidget {
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
+  final ProfileService _profileService = ProfileService();
+
+  ProfileModel? _profile;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      final profile = await _profileService.getProfile();
+
+      if (!mounted) return;
+
+      setState(() {
+        _profile = profile;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal memuat profil: $e')));
+    }
+  }
+
   void _editProfile() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Fitur edit profil akan segera dibuat')),
@@ -38,8 +74,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  void _logout() {
-    showDialog(
+  Future<void> _logout() async {
+    final shouldLogout = await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
@@ -48,17 +84,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pop(context, false);
               },
               child: const Text('Batal'),
             ),
             FilledButton(
               onPressed: () {
-                Navigator.pop(context);
-
-                ScaffoldMessenger.of(this.context).showSnackBar(
-                  const SnackBar(content: Text('Logout akan segera diproses')),
-                );
+                Navigator.pop(context, true);
               },
               child: const Text('Keluar'),
             ),
@@ -66,66 +98,108 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         );
       },
     );
+
+    if (shouldLogout != true) return;
+
+    try {
+      await _profileService.logout();
+
+      if (!mounted) return;
+
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal logout: $e')));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Profil')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_profile == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Profil')),
+        body: RefreshIndicator(
+          onRefresh: _loadProfile,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: const [
+              SizedBox(height: 300),
+              Center(child: Text('Data profil tidak ditemukan')),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final profile = _profile!;
+
+    final emergencyContact = [
+      if (profile.emergencyContactName != null &&
+          profile.emergencyContactName!.isNotEmpty)
+        profile.emergencyContactName!,
+      if (profile.emergencyContactPhone != null &&
+          profile.emergencyContactPhone!.isNotEmpty)
+        profile.emergencyContactPhone!,
+      if (profile.emergencyContactRelation != null &&
+          profile.emergencyContactRelation!.isNotEmpty)
+        profile.emergencyContactRelation!,
+    ].join('\n');
+
     return Scaffold(
       appBar: AppBar(title: const Text('Profil')),
-
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // HEADER PROFIL
-            ProfileHeaderCard(
-              name: 'Ezy M Ikbal',
-              roleLabel: 'Penghuni',
-              roomNumber: '03',
-              onEdit: _editProfile,
-              onEditPhoto: _editPhoto,
-            ),
-
-            const SizedBox(height: 20),
-
-            // INFORMASI KONTAK
-            ProfileInfoCard(
-              title: 'Informasi Kontak',
-              name: 'Ezy M Ikbal',
-              email: 'ezymikbal@gmail.com',
-              phone: '+62 812-1503-5275',
-              address: 'Ibunya Ezy\n+62 812-3456-789',
-              addressLabel: 'Kontak Darurat',
-            ),
-
-            const SizedBox(height: 20),
-
-            // DETAIL KAMAR
-            RoomDetailCard(
-              roomNumber: '03',
-              contractStart: 'Juni 2026',
-              contractEnd: 'Juni 2027',
-              rentPrice: 'Rp 1.650.000',
-              dueDate: 'Tanggal 5 setiap bulan',
-              facilities: const ['Kasur', 'Kamar Mandi', 'WiFi'],
-            ),
-
-            const SizedBox(height: 20),
-
-            // PENGATURAN AKUN
-            AccountSettingsCard(
-              onChangePassword: _changePassword,
-              onNotification: _notification,
-            ),
-
-            const SizedBox(height: 20),
-
-            // LOGOUT
-            LogoutCard(onLogout: _logout),
-
-            const SizedBox(height: 20),
-          ],
+      body: RefreshIndicator(
+        onRefresh: _loadProfile,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ProfileHeaderCard(
+                name: profile.name,
+                roleLabel: 'Penghuni',
+                roomNumber: '03',
+                onEdit: _editProfile,
+                onEditPhoto: _editPhoto,
+              ),
+              const SizedBox(height: 20),
+              ProfileInfoCard(
+                title: 'Informasi Kontak',
+                name: profile.name,
+                email: '-',
+                phone: profile.phone ?? '-',
+                address: emergencyContact.isEmpty ? '-' : emergencyContact,
+                addressLabel: 'Kontak Darurat',
+              ),
+              const SizedBox(height: 20),
+              RoomDetailCard(
+                roomNumber: '03',
+                contractStart: 'Juni 2026',
+                contractEnd: 'Juni 2027',
+                rentPrice: 'Rp 1.650.000',
+                dueDate: 'Tanggal 5 setiap bulan',
+                facilities: const ['Kasur', 'Kamar Mandi', 'WiFi'],
+              ),
+              const SizedBox(height: 20),
+              AccountSettingsCard(
+                onChangePassword: _changePassword,
+                onNotification: _notification,
+              ),
+              const SizedBox(height: 20),
+              LogoutCard(onLogout: _logout),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );

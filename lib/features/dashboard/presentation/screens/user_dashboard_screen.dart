@@ -26,6 +26,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
   final _announcementService = AnnouncementService();
 
   String? userName;
+
   Map<String, dynamic>? room;
   Map<String, dynamic>? payment;
   AnnouncementModel? announcement;
@@ -46,7 +47,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
 
       if (profile != null && mounted) {
         setState(() {
-          userName = profile['name'];
+          userName = profile.name;
         });
       }
     } catch (e) {
@@ -102,9 +103,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     }
   }
 
-  void _onViewAnnouncements() {
-    // TODO: Navigasi ke halaman semua pengumuman.
-  }
+  void _onViewAnnouncements() {}
 
   @override
   Widget build(BuildContext context) {
@@ -118,15 +117,12 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
               clipBehavior: Clip.none,
               alignment: Alignment.topCenter,
               children: [
-                // HEADER BIRU + ruang untuk card tagihan menutupi header
                 Column(
                   children: [
                     UserDashboardHeader(userName: userName),
                     const SizedBox(height: 100),
                   ],
                 ),
-
-                // CARD TAGIHAN (overlap header tanpa keluar dari jangkauan hit-test)
                 Positioned(
                   left: 20,
                   right: 20,
@@ -136,32 +132,21 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
               ],
             ),
           ),
-
           const SliverToBoxAdapter(child: SizedBox(height: 15)),
-
-          // CONTENT
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             sliver: SliverToBoxAdapter(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // BANNER
                   const UserDashboardBanner(),
-
                   const SizedBox(height: 24),
-
-                  // INFORMASI KAMAR
                   UserDashboardRoomCard(room: room),
-
                   const SizedBox(height: 24),
-
-                  // PENGUMUMAN
                   UserDashboardAnnouncement(
                     announcement: announcement,
                     onViewAll: _onViewAnnouncements,
                   ),
-
                   const SizedBox(height: 24),
                 ],
               ),
