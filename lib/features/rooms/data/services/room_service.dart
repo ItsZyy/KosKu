@@ -809,4 +809,44 @@ class RoomService {
       };
     }).toList();
   }
+
+  Future<List<RoomModel>> getAvailableRooms() async {
+    final roomsData = await _supabase
+        .from(_tableRooms)
+        .select()
+        .order('room_number', ascending: true);
+
+    final occupanciesData = await _supabase
+        .from('occupancies')
+        .select('room_id')
+        .eq('status', 'active');
+
+    final Map<String, int> occupantCounts = {};
+
+    for (final occupancy in occupanciesData) {
+      final roomId = occupancy['room_id']?.toString();
+
+      if (roomId == null) {
+        continue;
+      }
+
+      occupantCounts[roomId] = (occupantCounts[roomId] ?? 0) + 1;
+    }
+
+    final rooms = roomsData
+        .map<RoomModel>(
+          (item) => RoomModel.fromMap(Map<String, dynamic>.from(item)),
+        )
+        .toList();
+
+    return rooms.where((room) {
+      if (room.status.toLowerCase() == 'perbaikan') {
+        return false;
+      }
+
+      final occupantCount = occupantCounts[room.id] ?? 0;
+
+      return occupantCount < room.capacity;
+    }).toList();
+  }
 }

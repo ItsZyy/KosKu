@@ -5,9 +5,11 @@ import '../../features/dashboard/presentation/screens/user_main_screen.dart';
 import '../../features/announcements/presentation/screens/announcements_screen.dart';
 import '../../features/dashboard/presentation/screens/admin_main_screen.dart';
 import '../../features/complaints/presentation/screens/reports_screen.dart';
+import '../../features/auth/presentation/screens/register_account_screen.dart';
 
 class AppRouter {
   static const String login = '/login';
+  static const String register = '/register';
   static const String userDashboard = '/user-dashboard';
   static const String adminDashboard = '/admin-dashboard';
   static const String announcements = '/announcements';
@@ -19,5 +21,6 @@ class AppRouter {
     adminDashboard: (context) => const AdminMainScreen(),
     announcements: (context) => const AnnouncementsScreen(),
     reports: (context) => const ReportsScreen(),
+    register: (context) => const RegisterAccountScreen(),
   };
 }

@@ -44,7 +44,17 @@ class OccupantSelectionCard extends StatelessWidget {
               ),
             )
           else
-            ...users.map(_buildUserItem),
+            RadioGroup<String>(
+              groupValue: selectedUserId,
+              onChanged: (value) {
+                if (value == null) return;
+
+                final user = users.firstWhere((item) => item['id'] == value);
+
+                onSelected(user);
+              },
+              child: Column(children: users.map(_buildUserItem).toList()),
+            ),
         ],
       ),
     );
@@ -52,10 +62,9 @@ class OccupantSelectionCard extends StatelessWidget {
 
   Widget _buildUserItem(Map<String, dynamic> user) {
     final userId = user['id'] as String;
-    final name = (user['name'] as String?) ?? 'Tanpa Nama';
+    final name = user['name'] as String? ?? 'Tanpa Nama';
     final phone = user['phone'] as String?;
     final roomNumber = user['room_number'] as String?;
-
     final hasRoom = roomNumber != null && roomNumber.isNotEmpty;
     final isSelected = selectedUserId == userId;
 
@@ -129,12 +138,7 @@ class OccupantSelectionCard extends StatelessWidget {
               if (hasRoom)
                 const Icon(Icons.lock_outline, color: AppColors.textDisabled)
               else
-                Radio<String>(
-                  value: userId,
-                  groupValue: selectedUserId,
-                  onChanged: (_) => onSelected(user),
-                  activeColor: AppColors.primary,
-                ),
+                Radio<String>(value: userId, activeColor: AppColors.primary),
             ],
           ),
         ),

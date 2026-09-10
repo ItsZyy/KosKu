@@ -1,5 +1,5 @@
-// Widget untuk LoginScreen
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import 'custom_text_field.dart';
@@ -9,8 +9,6 @@ class LoginCard extends StatelessWidget {
   final TextEditingController emailController;
   final TextEditingController passwordController;
   final bool isLoading;
-  final bool rememberMe;
-  final ValueChanged<bool> onRememberMeChanged;
   final VoidCallback onSubmit;
   final VoidCallback onForgotPassword;
   final VoidCallback onRegister;
@@ -20,8 +18,6 @@ class LoginCard extends StatelessWidget {
     required this.emailController,
     required this.passwordController,
     required this.isLoading,
-    required this.rememberMe,
-    required this.onRememberMeChanged,
     required this.onSubmit,
     required this.onForgotPassword,
     required this.onRegister,
@@ -46,7 +42,6 @@ class LoginCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Judul card
           Text('Masuk ke Akun Anda', style: AppTextStyles.headlineMedium),
           const SizedBox(height: 8),
           Text(
@@ -56,8 +51,6 @@ class LoginCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-
-          // Form Fields
           CustomTextField(
             label: 'Email',
             hintText: 'masukan email Anda',
@@ -68,14 +61,15 @@ class LoginCard extends StatelessWidget {
               if (value == null || value.isEmpty) {
                 return 'Email tidak boleh kosong';
               }
+
               if (!value.contains('@') || !value.contains('.')) {
                 return 'Masukkan email yang valid';
               }
+
               return null;
             },
           ),
           const SizedBox(height: 20),
-
           CustomTextField(
             label: 'Password',
             hintText: '••••••••',
@@ -86,60 +80,29 @@ class LoginCard extends StatelessWidget {
               if (value == null || value.isEmpty) {
                 return 'Password tidak boleh kosong';
               }
+
               if (value.length < 6) {
                 return 'Password minimal 6 karakter';
               }
+
               return null;
             },
           ),
-          const SizedBox(height: 16),
-
-          // Remember Me & Forgot Password
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [_buildRememberMe(), _buildForgotPassword()],
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerRight,
+            child: _buildForgotPassword(),
           ),
           const SizedBox(height: 28),
-
-          // Login Button
           PrimaryButton(
             text: 'Masuk',
             isLoading: isLoading,
             onPressed: onSubmit,
           ),
           const SizedBox(height: 16),
-
-          // Register Link
           _buildRegisterLink(),
         ],
       ),
-    );
-  }
-
-  Widget _buildRememberMe() {
-    return Row(
-      children: [
-        SizedBox(
-          height: 20,
-          width: 20,
-          child: Checkbox(
-            value: rememberMe,
-            onChanged: (value) => onRememberMeChanged(value ?? false),
-            activeColor: AppColors.primary,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6),
-            ),
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          'Ingat Saya',
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
-          ),
-        ),
-      ],
     );
   }
 

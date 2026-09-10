@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../data/services/auth_service.dart';
 import '../../../profile/data/services/profile_service.dart';
 import '../../../../core/router/app_router.dart';
@@ -16,12 +17,12 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+
   final _authService = AuthService();
   final _profileService = ProfileService();
   final _formKey = GlobalKey<FormState>();
 
   bool _isLoading = false;
-  bool _rememberMe = false;
 
   @override
   void dispose() {
@@ -42,6 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (!mounted) return;
+
       final role = await _profileService.getRole();
 
       if (!mounted) return;
@@ -53,6 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Login gagal: $e'),
@@ -71,10 +74,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _handleForgotPassword() {
-    // Navigasi ke halaman lupa password
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Fitur lupa pw belum ada ey!'),
+        content: const Text('Fitur lupa pw belum ada ey!'),
         backgroundColor: AppColors.info,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -83,16 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _handleRegister() {
-    // Navigasi ke halaman registrasi
-    // Navigator.pushNamed(context, AppRouter.register);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Fitur daftar belum ada ey!'),
-        backgroundColor: AppColors.info,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+    Navigator.pushNamed(context, AppRouter.register);
   }
 
   @override
@@ -119,12 +112,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     emailController: _emailController,
                     passwordController: _passwordController,
                     isLoading: _isLoading,
-                    rememberMe: _rememberMe,
-                    onRememberMeChanged: (value) {
-                      setState(() {
-                        _rememberMe = value;
-                      });
-                    },
                     onSubmit: _handleLogin,
                     onForgotPassword: _handleForgotPassword,
                     onRegister: _handleRegister,
