@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../data/models/payment_formatter.dart';
+
 class PaymentHistoryCard extends StatelessWidget {
   final List<Map<String, dynamic>> payments;
 
@@ -140,7 +142,15 @@ class PaymentHistoryCard extends StatelessWidget {
                 final status = payment['status'];
 
                 return _PaymentHistoryItem(
-                  period: payment['period']?.toString() ?? '-',
+                  period: PaymentFormatter.periodRange(
+                    DateTime.tryParse(
+                      payment['contract_start']?.toString() ?? '',
+                    ),
+                    DateTime.tryParse(
+                      payment['contract_end']?.toString() ?? '',
+                    ),
+                    fallbackPeriod: payment['period'],
+                  ),
                   amount: _formatRupiah(payment['amount']),
                   date: _formatDate(
                     payment['confirmed_at'] ?? payment['created_at'],

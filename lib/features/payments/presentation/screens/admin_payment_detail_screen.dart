@@ -227,7 +227,14 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
             children: [
               _dialogRow('Penghuni', payment.userName ?? '-'),
               _dialogRow('Kamar', payment.roomNumber ?? '-'),
-              _dialogRow('Periode', PaymentFormatter.period(payment.period)),
+              _dialogRow(
+                'Periode',
+                PaymentFormatter.periodRange(
+                  payment.contractStart,
+                  payment.contractEnd,
+                  fallbackPeriod: payment.period,
+                ),
+              ),
               _dialogRow('Nominal', PaymentFormatter.rupiah(payment.amount)),
               _dialogRow(
                 'Metode',

@@ -257,7 +257,7 @@ class RoomCard extends StatelessWidget {
 
         const SizedBox(width: 5),
 
-        const Text('/ bulan'),
+        const Text('/ 6 bln'),
       ],
     );
   }

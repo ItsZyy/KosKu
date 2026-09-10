@@ -45,8 +45,8 @@ class PaymentBillSection extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Rincian Tagihan - '
-                  '${PaymentFormatter.period(payment.period)}',
+                  'Rincian Tagihan '
+                  '${PaymentFormatter.periodRange(payment.contractStart, payment.contractEnd, fallbackPeriod: payment.period)}',
                   style: AppTextStyles.titleMedium.copyWith(
                     fontWeight: FontWeight.w700,
                   ),

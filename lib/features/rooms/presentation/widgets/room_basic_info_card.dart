@@ -46,7 +46,7 @@ class RoomBasicInfoCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _Label(text: 'Harga Sewa / Bulan'),
+          _Label(text: 'Harga Sewa / 6 Bulan'),
           const SizedBox(height: 8),
           TextFormField(
             controller: priceController,

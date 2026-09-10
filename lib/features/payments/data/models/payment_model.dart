@@ -55,6 +55,8 @@ class Payment {
   final int amount;
   final String? period;
   final DateTime? dueDate;
+  final DateTime? contractStart;
+  final DateTime? contractEnd;
   final String? proofUrl;
   final String status;
   final String? confirmedBy;
@@ -75,6 +77,8 @@ class Payment {
     this.amount = 0,
     this.period,
     this.dueDate,
+    this.contractStart,
+    this.contractEnd,
     this.proofUrl,
     this.status = 'menunggu',
     this.confirmedBy,
@@ -114,6 +118,8 @@ class Payment {
       amount: (map['amount'] as num?)?.toInt() ?? 0,
       period: map['period']?.toString(),
       dueDate: _parseDate(map['due_date']),
+      contractStart: _parseDate(map['contract_start']),
+      contractEnd: _parseDate(map['contract_end']),
       proofUrl: map['proof_url']?.toString(),
       status: map['status']?.toString() ?? 'menunggu',
       confirmedBy: map['confirmed_by']?.toString(),

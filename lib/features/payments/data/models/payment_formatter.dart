@@ -37,6 +37,39 @@ class PaymentFormatter {
     return '${months[date.month - 1]} ${date.year}';
   }
 
+  /// Menampilkan rentang periode tagihan/kontrak penghuni, misalnya
+  /// "Sep 2026 - Feb 2027". Jika data kontrak tidak tersedia, kembali
+  /// ke format periode tunggal lama.
+  static String periodRange(
+    DateTime? contractStart,
+    DateTime? contractEnd, {
+    dynamic fallbackPeriod,
+  }) {
+    if (contractStart != null && contractEnd != null) {
+      const months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'Mei',
+        'Jun',
+        'Jul',
+        'Agu',
+        'Sep',
+        'Okt',
+        'Nov',
+        'Des',
+      ];
+
+      final start = '${months[contractStart.month - 1]} ${contractStart.year}';
+      final end = '${months[contractEnd.month - 1]} ${contractEnd.year}';
+
+      return '$start - $end';
+    }
+
+    return period(fallbackPeriod);
+  }
+
   static String date(dynamic value) {
     if (value == null) return '-';
 

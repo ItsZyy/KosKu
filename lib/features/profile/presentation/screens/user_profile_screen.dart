@@ -280,18 +280,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   String _formatDate(DateTime date) {
     const months = [
-      'Januari',
-      'Februari',
-      'Maret',
-      'April',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
       'Mei',
-      'Juni',
-      'Juli',
-      'Agustus',
-      'September',
-      'Oktober',
-      'November',
-      'Desember',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
     ];
 
     return '${date.day} ${months[date.month - 1]} ${date.year}';
@@ -373,7 +373,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   contractStart: _formatDate(occupancy.contractStart),
                   contractEnd: _formatDate(occupancy.contractEnd),
                   rentPrice: _formatPrice(occupancy.rentPrice),
-                  dueDate: 'Tanggal ${occupancy.paymentDay} setiap bulan',
+                  dueDate: 'Tanggal ${occupancy.contractStart.day} setiap 6 bulan',
                   facilities: occupancy.facilities,
                 )
               else

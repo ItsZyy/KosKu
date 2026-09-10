@@ -106,7 +106,7 @@ class RoomUserCard extends StatelessWidget {
 
           _InfoRow(
             icon: Icons.payments_outlined,
-            label: 'Harga kamar perbulan',
+            label: 'Harga kamar per 6 bulan',
             value: _formatPrice(user!.rentPrice),
           ),
 

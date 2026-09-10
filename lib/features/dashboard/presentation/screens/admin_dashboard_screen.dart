@@ -126,7 +126,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   child: StatCard(
                     title: 'Pendapatan',
                     value: 'Rp $totalIncome',
-                    subtitle: 'Bulan ini',
+                    subtitle: 'Total pemasukan',
                     icon: Icons.payments,
                   ),
                 ),

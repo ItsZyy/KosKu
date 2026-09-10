@@ -28,7 +28,7 @@ class _AddOccupantScreenState extends State<AddOccupantScreen> {
 
   double _rentPrice = 0;
 
-  int _paymentIntervalMonths = 1;
+  final int _paymentIntervalMonths = 6;
   late int _paymentDay;
 
   bool _isLoading = true;
@@ -167,15 +167,9 @@ class _AddOccupantScreenState extends State<AddOccupantScreen> {
               contractStart: _contractStart,
               contractEnd: _contractEnd,
               rentPrice: _rentPrice,
-              paymentIntervalMonths: _paymentIntervalMonths,
               paymentDay: _paymentDay,
               onSelectStartDate: _selectContractStart,
               onSelectEndDate: _selectContractEnd,
-              onIntervalChanged: (value) {
-                setState(() {
-                  _paymentIntervalMonths = value;
-                });
-              },
               onPaymentDayChanged: (value) {
                 setState(() {
                   _paymentDay = value;

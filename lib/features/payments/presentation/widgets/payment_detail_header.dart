@@ -26,7 +26,7 @@ class PaymentDetailHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Tagihan ${PaymentFormatter.period(payment.period)}',
+                'Tagihan ${PaymentFormatter.periodRange(payment.contractStart, payment.contractEnd, fallbackPeriod: payment.period)}',
                 style: AppTextStyles.headlineLarge,
               ),
               const SizedBox(height: 4),

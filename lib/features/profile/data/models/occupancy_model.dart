@@ -47,7 +47,7 @@ class OccupancyModel {
       contractEnd: DateTime.parse(map['contract_end'].toString()),
       rentPrice: (map['rent_price'] as num).toDouble(),
       status: map['status'] as String? ?? '',
-      paymentIntervalMonths: map['payment_interval_months'] as int? ?? 1,
+      paymentIntervalMonths: map['payment_interval_months'] as int? ?? 6,
       paymentDay: map['payment_day'] as int? ?? 1,
       roomNumber: room?['room_number'] as String? ?? '-',
       facilities: facilities,

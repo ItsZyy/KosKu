@@ -77,7 +77,11 @@ class PaymentService {
       return null;
     }
 
-    return Payment.fromMap(data);
+    final map = Map<String, dynamic>.from(data);
+
+    await _attachContract(map);
+
+    return Payment.fromMap(map);
   }
 
   Future<List<PaymentItem>> getPaymentItems(String paymentId) async {
@@ -484,7 +488,11 @@ class PaymentService {
         ''')
         .order('created_at', ascending: false);
 
-    return List<Map<String, dynamic>>.from(data);
+    final payments = List<Map<String, dynamic>>.from(data);
+
+    await _attachContracts(payments);
+
+    return payments;
   }
 
   Future<List<Map<String, dynamic>>> getPaymentHistory() async {
@@ -500,7 +508,11 @@ class PaymentService {
         .eq('user_id', user.id)
         .order('period', ascending: false);
 
-    return List<Map<String, dynamic>>.from(data);
+    final payments = List<Map<String, dynamic>>.from(data);
+
+    await _attachContracts(payments);
+
+    return payments;
   }
 
   Future<List<Map<String, dynamic>>> getPaymentInfo() async {
@@ -560,7 +572,11 @@ class PaymentService {
       return null;
     }
 
-    return Payment.fromMap(data);
+    final map = Map<String, dynamic>.from(data);
+
+    await _attachContract(map);
+
+    return Payment.fromMap(map);
   }
 
   Future<List<Payment>> getPaymentHistoryTyped() async {
@@ -602,5 +618,85 @@ class PaymentService {
         .order('period', ascending: false);
 
     return (data as List).map((e) => Payment.fromMap(e)).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _getOccupancies() async {
+    try {
+      return List<Map<String, dynamic>>.from(
+        await _supabase
+            .from('occupancies')
+            .select(
+              'user_id, room_id, contract_start, contract_end, status',
+            )
+            .order('contract_start', ascending: true),
+      );
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  void _attachContractToMap(
+    Map<String, dynamic> payment,
+    List<Map<String, dynamic>> occupancies,
+  ) {
+    final userId = payment['user_id']?.toString();
+
+    final roomId = payment['room_id']?.toString();
+
+    if (userId == null || roomId == null) return;
+
+    final period = DateTime.tryParse(payment['period']?.toString() ?? '');
+
+    Map<String, dynamic>? candidate;
+
+    Map<String, dynamic>? fallback;
+
+    for (final occupancy in occupancies) {
+      if (occupancy['user_id']?.toString() != userId) continue;
+
+      if (occupancy['room_id']?.toString() != roomId) continue;
+
+      fallback ??= occupancy;
+
+      if (period == null) continue;
+
+      final start = DateTime.tryParse(
+        occupancy['contract_start']?.toString() ?? '',
+      );
+
+      final end = DateTime.tryParse(
+        occupancy['contract_end']?.toString() ?? '',
+      );
+
+      if (start == null || end == null) continue;
+
+      if (!period.isBefore(start) && !period.isAfter(end)) {
+        candidate = occupancy;
+        break;
+      }
+    }
+
+    final matched = candidate ?? fallback;
+
+    if (matched == null) return;
+
+    payment['contract_start'] = matched['contract_start'];
+
+    payment['contract_end'] = matched['contract_end'];
+  }
+
+  Future<void> _attachContract(Map<String, dynamic> payment) async {
+    final occupancies = await _getOccupancies();
+    _attachContractToMap(payment, occupancies);
+  }
+
+  Future<void> _attachContracts(
+    List<Map<String, dynamic>> payments,
+  ) async {
+    if (payments.isEmpty) return;
+    final occupancies = await _getOccupancies();
+    for (final payment in payments) {
+      _attachContractToMap(payment, occupancies);
+    }
   }
 }

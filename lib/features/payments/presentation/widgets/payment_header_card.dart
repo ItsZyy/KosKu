@@ -14,7 +14,11 @@ class PaymentHeaderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final periodLabel = PaymentFormatter.period(payment.period);
+    final periodLabel = PaymentFormatter.periodRange(
+      payment.contractStart,
+      payment.contractEnd,
+      fallbackPeriod: payment.period,
+    );
     final totalDisplay = PaymentFormatter.rupiah(payment.totalAmount);
 
     return Container(

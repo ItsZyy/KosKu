@@ -7,12 +7,10 @@ class OccupantContractCard extends StatelessWidget {
   final DateTime contractStart;
   final DateTime contractEnd;
   final double rentPrice;
-  final int paymentIntervalMonths;
   final int paymentDay;
 
   final VoidCallback onSelectStartDate;
   final VoidCallback onSelectEndDate;
-  final ValueChanged<int> onIntervalChanged;
   final ValueChanged<int> onPaymentDayChanged;
 
   const OccupantContractCard({
@@ -20,11 +18,9 @@ class OccupantContractCard extends StatelessWidget {
     required this.contractStart,
     required this.contractEnd,
     required this.rentPrice,
-    required this.paymentIntervalMonths,
     required this.paymentDay,
     required this.onSelectStartDate,
     required this.onSelectEndDate,
-    required this.onIntervalChanged,
     required this.onPaymentDayChanged,
   });
 
@@ -61,7 +57,7 @@ class OccupantContractCard extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          Text('Harga Sewa', style: AppTextStyles.labelMedium),
+          Text('Harga Sewa (6 Bulan)', style: AppTextStyles.labelMedium),
           const SizedBox(height: 6),
 
           Container(
@@ -86,7 +82,7 @@ class OccupantContractCard extends StatelessWidget {
           const SizedBox(height: 6),
 
           DropdownButtonFormField<int>(
-            initialValue: paymentIntervalMonths,
+            initialValue: 6,
             decoration: InputDecoration(
               filled: true,
               fillColor: AppColors.inputBackground,
@@ -100,17 +96,9 @@ class OccupantContractCard extends StatelessWidget {
               ),
             ),
             items: const [
-              DropdownMenuItem(value: 1, child: Text('1 bulan sekali')),
-              DropdownMenuItem(value: 2, child: Text('2 bulan sekali')),
-              DropdownMenuItem(value: 3, child: Text('3 bulan sekali')),
               DropdownMenuItem(value: 6, child: Text('6 bulan sekali')),
-              DropdownMenuItem(value: 12, child: Text('12 bulan sekali')),
             ],
-            onChanged: (value) {
-              if (value != null) {
-                onIntervalChanged(value);
-              }
-            },
+            onChanged: null,
           ),
 
           const SizedBox(height: 16),
