@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../features/profile/data/services/profile_service.dart';
 import '../../data/models/complaint_model.dart';
 
 class ComplaintCard extends StatelessWidget {
@@ -356,13 +357,17 @@ class ComplaintCard extends StatelessWidget {
   }
 
   Widget _buildUserAvatar(String displayName) {
+    final photoUrl = ProfileService.resolveProfilePhotoUrl(
+      complaint.userPhotoUrl,
+    );
+
     String initial = 'P';
 
     if (displayName.isNotEmpty) {
       initial = displayName[0].toUpperCase();
     }
 
-    return Container(
+    final fallback = Container(
       width: 32,
       height: 32,
       decoration: const BoxDecoration(
@@ -376,6 +381,27 @@ class ComplaintCard extends StatelessWidget {
           color: AppColors.onPrimary,
           fontWeight: FontWeight.w700,
         ),
+      ),
+    );
+
+    if (photoUrl == null) {
+      return fallback;
+    }
+
+    return ClipOval(
+      child: Image.network(
+        photoUrl,
+        width: 32,
+        height: 32,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => fallback,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) {
+            return child;
+          }
+
+          return fallback;
+        },
       ),
     );
   }

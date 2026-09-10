@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:kosku/core/theme/app_colors.dart';
 import 'package:kosku/core/theme/app_text_styles.dart';
+import 'package:kosku/features/profile/data/services/profile_service.dart';
 import 'package:kosku/features/rooms/data/models/room_detail_model.dart';
 
 class RoomUserManagementCard extends StatelessWidget {
@@ -118,6 +119,10 @@ class RoomUserManagementCard extends StatelessWidget {
   Widget _buildUserItem(RoomDetailUser user) {
     final canManageUser = onEditUser != null || onRemoveUser != null;
 
+    final photoUrl = ProfileService.resolveProfilePhotoUrl(
+      user.profilePhotoUrl,
+    );
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -131,11 +136,8 @@ class RoomUserManagementCard extends StatelessWidget {
           CircleAvatar(
             radius: 24,
             backgroundColor: AppColors.border,
-            backgroundImage:
-                user.profilePhotoUrl != null && user.profilePhotoUrl!.isNotEmpty
-                ? NetworkImage(user.profilePhotoUrl!)
-                : null,
-            child: user.profilePhotoUrl == null || user.profilePhotoUrl!.isEmpty
+            backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+            child: photoUrl == null
                 ? const Icon(Icons.person_outline)
                 : null,
           ),

@@ -90,16 +90,35 @@ class ProfileService {
         .eq('id', user.id);
   }
 
+  /// Menyelesaikan nilai `profile_photo_url` menjadi URL yang bisa dirender.
+  ///
+  /// Nilai yang tersimpan bisa berupa path storage (misal `{userId}/profile.jpg`)
+  /// atau URL utuh. Bucket `profile-images` harus public agar path bisa diakses
+  /// oleh semua pengguna (penghuni, teman sekamar, admin).
+  static String? resolveProfilePhotoUrl(String? photoPath) {
+    if (photoPath == null || photoPath.isEmpty) {
+      return null;
+    }
+
+    final value = photoPath.trim();
+
+    if (value.startsWith('http://') || value.startsWith('https://')) {
+      return value;
+    }
+
+    return Supabase.instance.client.storage
+        .from('profile-images')
+        .getPublicUrl(value);
+  }
+
   Future<String?> getProfilePhotoUrl(String? photoPath) async {
     if (photoPath == null || photoPath.isEmpty) {
       return null;
     }
 
-    final signedUrl = await _supabase.storage
+    return _supabase.storage
         .from('profile-images')
         .createSignedUrl(photoPath, 3600);
-
-    return signedUrl;
   }
 
   Future<void> updateProfile({

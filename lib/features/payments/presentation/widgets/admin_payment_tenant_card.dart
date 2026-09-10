@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../features/profile/data/services/profile_service.dart';
 import '../../data/models/payment_model.dart';
 
 class AdminPaymentTenantCard extends StatelessWidget {
@@ -34,12 +35,13 @@ class AdminPaymentTenantCard extends StatelessWidget {
   }
 
   Widget _buildAvatar({String? name, String? photoUrl}) {
-    final hasPhoto = photoUrl != null && photoUrl.isNotEmpty;
+    final resolvedPhotoUrl = ProfileService.resolveProfilePhotoUrl(photoUrl);
+    final hasPhoto = resolvedPhotoUrl != null;
 
     return CircleAvatar(
       radius: 26,
       backgroundColor: AppColors.primarySoft,
-      backgroundImage: hasPhoto ? NetworkImage(photoUrl) : null,
+      backgroundImage: hasPhoto ? NetworkImage(resolvedPhotoUrl) : null,
       child: hasPhoto
           ? null
           : Text(

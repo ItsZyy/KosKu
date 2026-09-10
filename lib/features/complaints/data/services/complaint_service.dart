@@ -58,7 +58,8 @@ class ComplaintService {
           resolved_at,
           created_at,
           profiles (
-            name
+            name,
+            profile_photo_url
           ),
           rooms (
             room_number
@@ -106,7 +107,8 @@ class ComplaintService {
           resolved_at,
           created_at,
           profiles (
-            name
+            name,
+            profile_photo_url
           ),
           rooms (
             room_number

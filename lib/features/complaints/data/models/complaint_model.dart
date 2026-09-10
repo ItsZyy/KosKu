@@ -9,6 +9,7 @@ class ComplaintModel {
   final DateTime? resolvedAt;
   final DateTime createdAt;
   final String? userName;
+  final String? userPhotoUrl;
   final String? roomNumber;
 
   ComplaintModel({
@@ -22,6 +23,7 @@ class ComplaintModel {
     this.resolvedAt,
     required this.createdAt,
     this.userName,
+    this.userPhotoUrl,
     this.roomNumber,
   });
 
@@ -42,6 +44,7 @@ class ComplaintModel {
           : null,
       createdAt: DateTime.parse(map['created_at'].toString()),
       userName: profile?['name']?.toString(),
+      userPhotoUrl: profile?['profile_photo_url']?.toString(),
       roomNumber: room?['room_number']?.toString(),
     );
   }

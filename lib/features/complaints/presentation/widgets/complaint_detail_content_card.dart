@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../features/profile/data/services/profile_service.dart';
 import '../../data/models/complaint_model.dart';
 
 class ComplaintDetailContentCard extends StatelessWidget {
@@ -90,24 +91,7 @@ class ComplaintDetailContentCard extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.primarySoft,
-            border: Border.all(color: AppColors.primarySoft, width: 2),
-          ),
-          child: Center(
-            child: Text(
-              name.isNotEmpty ? name[0].toUpperCase() : '?',
-              style: AppTextStyles.titleMedium.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ),
+        _buildTenantAvatar(name),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -132,6 +116,52 @@ class ComplaintDetailContentCard extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildTenantAvatar(String name) {
+    final photoUrl = ProfileService.resolveProfilePhotoUrl(
+      complaint.userPhotoUrl,
+    );
+
+    final fallback = Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.primarySoft,
+        border: Border.all(color: AppColors.primarySoft, width: 2),
+      ),
+      child: Center(
+        child: Text(
+          name.isNotEmpty ? name[0].toUpperCase() : '?',
+          style: AppTextStyles.titleMedium.copyWith(
+            color: AppColors.primary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+
+    if (photoUrl == null) {
+      return fallback;
+    }
+
+    return ClipOval(
+      child: Image.network(
+        photoUrl,
+        width: 48,
+        height: 48,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => fallback,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) {
+            return child;
+          }
+
+          return fallback;
+        },
+      ),
     );
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../features/profile/data/services/profile_service.dart';
 
 class TenantCard extends StatelessWidget {
   final String name;
@@ -102,13 +103,15 @@ class TenantCard extends StatelessWidget {
   }
 
   Widget _buildAvatar() {
+    final resolvedPhotoUrl = ProfileService.resolveProfilePhotoUrl(photoUrl);
+
     return CircleAvatar(
       radius: 26,
       backgroundColor: AppColors.primarySoft,
-      backgroundImage: photoUrl != null && photoUrl!.isNotEmpty
-          ? NetworkImage(photoUrl!)
+      backgroundImage: resolvedPhotoUrl != null
+          ? NetworkImage(resolvedPhotoUrl)
           : null,
-      child: photoUrl == null || photoUrl!.isEmpty
+      child: resolvedPhotoUrl == null
           ? Text(
               name.isNotEmpty ? name[0].toUpperCase() : '?',
               style: AppTextStyles.titleLarge.copyWith(
