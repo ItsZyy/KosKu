@@ -22,6 +22,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
   final TextEditingController _emergencyNameController =
       TextEditingController();
   final TextEditingController _emergencyPhoneController =
@@ -61,6 +62,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _nameController.text = profile.name;
       _emailController.text = _profileService.getEmail() ?? '';
       _phoneController.text = profile.phone ?? '';
+      _addressController.text = profile.address ?? '';
       _emergencyNameController.text = profile.emergencyContactName ?? '';
       _emergencyPhoneController.text = profile.emergencyContactPhone ?? '';
       _emergencyRelationController.text =
@@ -232,6 +234,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         phone: _phoneController.text.trim().isEmpty
             ? null
             : _phoneController.text.trim(),
+        address: _addressController.text.trim().isEmpty
+            ? null
+            : _addressController.text.trim(),
         emergencyContactName: _emergencyNameController.text.trim().isEmpty
             ? null
             : _emergencyNameController.text.trim(),
@@ -269,6 +274,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _addressController.dispose();
     _emergencyNameController.dispose();
     _emergencyPhoneController.dispose();
     _emergencyRelationController.dispose();
@@ -329,6 +335,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     icon: Icons.phone_outlined,
                     hint: 'Masukkan nomor telepon',
                     keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: 16),
+                  ProfileTextField(
+                    label: 'Asal Kota',
+                    controller: _addressController,
+                    icon: Icons.home_outlined,
+                    hint: 'Masukkan asal kota',
+                    keyboardType: TextInputType.streetAddress,
                   ),
                 ],
               ),

@@ -105,6 +105,7 @@ class ProfileService {
   Future<void> updateProfile({
     required String name,
     String? phone,
+    String? address,
     String? kosAddress,
     String? emergencyContactName,
     String? emergencyContactPhone,
@@ -121,6 +122,7 @@ class ProfileService {
         .update({
           'name': name,
           'phone': phone,
+          'address': address,
           'kos_address': kosAddress,
           'emergency_contact_name': emergencyContactName,
           'emergency_contact_phone': emergencyContactPhone,

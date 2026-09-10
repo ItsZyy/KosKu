@@ -362,6 +362,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 name: profile.name,
                 email: _profileService.getEmail() ?? '-',
                 phone: profile.phone ?? '-',
+                address: profile.address ?? '',
+                addressLabel: 'Asal Kota',
                 emergencyName: profile.emergencyContactName,
                 emergencyPhone: profile.emergencyContactPhone,
                 emergencyRelation: profile.emergencyContactRelation,
@@ -373,7 +375,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   contractStart: _formatDate(occupancy.contractStart),
                   contractEnd: _formatDate(occupancy.contractEnd),
                   rentPrice: _formatPrice(occupancy.rentPrice),
-                  dueDate: 'Tanggal ${occupancy.contractStart.day} setiap 6 bulan',
+                  dueDate:
+                      'Tanggal ${occupancy.contractStart.day} setiap 6 bulan',
                   facilities: occupancy.facilities,
                 )
               else
