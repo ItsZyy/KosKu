@@ -16,8 +16,6 @@ class RoomService {
   static const String _tableFacilities = 'facilities';
   static const String _tableRoomFacilities = 'room_facilities';
 
-  // STORAGE
-
   static String storagePathToPublicUrl(String path) {
     return Supabase.instance.client.storage
         .from(_storageBucket)
@@ -89,9 +87,6 @@ class RoomService {
     return jsonEncode(paths);
   }
 
-  // USER
-
-  // User - melihat kamar yang sedang ditempati
   Future<Map<String, dynamic>?> getRoom() async {
     final user = _supabase.auth.currentUser;
 
@@ -142,9 +137,6 @@ class RoomService {
     };
   }
 
-  // ADMIN - STATISTIK
-
-  // Admin - statistik kamar
   Future<Map<String, int>> getRoomStats() async {
     final data = await _supabase.from(_tableRooms).select('id, status');
 
@@ -157,9 +149,6 @@ class RoomService {
     return {'total': total, 'terisi': terisi};
   }
 
-  // ADMIN - DAFTAR KAMAR
-
-  // Admin - melihat semua kamar
   Future<List<RoomModel>> getRooms() async {
     final data = await _supabase
         .from(_tableRooms)
@@ -169,11 +158,7 @@ class RoomService {
     return data.map<RoomModel>((item) => RoomModel.fromMap(item)).toList();
   }
 
-  // ADMIN - DETAIL KAMAR
-
-  // Admin - melihat detail kamar
   Future<RoomDetailModel?> getRoomDetail(String roomId) async {
-    // 1. DATA KAMAR
     final roomData = await _supabase
         .from(_tableRooms)
         .select('''
@@ -195,7 +180,6 @@ class RoomService {
 
     final room = RoomModel.fromMap(Map<String, dynamic>.from(roomData));
 
-    // 2. FASILITAS KAMAR
     final facilitiesData = await _supabase
         .from(_tableRoomFacilities)
         .select('''
@@ -222,46 +206,22 @@ class RoomService {
       }
     }
 
-    // 3. SEMUA PENGHUNI AKTIF
-
-    final occupancyData = await _supabase
-        .from('occupancies')
-        .select('''
-          user_id,
-          contract_start,
-          contract_end,
-          rent_price,
-          status,
-          profiles!occupancies_user_id_fkey (
-            name,
-            phone,
-            profile_photo_url
-          )
-        ''')
-        .eq('room_id', roomId)
-        .eq('status', 'active');
+    final occupantsData = await _supabase.rpc(
+      'get_room_occupants',
+      params: {'p_room_id': roomId},
+    );
 
     final List<RoomDetailUser> users = [];
 
-    for (final occupancy in occupancyData) {
-      final profileData = occupancy['profiles'];
-
-      String? name;
-      String? phone;
-      String? profilePhotoUrl;
-
-      if (profileData is Map) {
-        name = profileData['name']?.toString();
-        phone = profileData['phone']?.toString();
-        profilePhotoUrl = profileData['profile_photo_url']?.toString();
-      }
+    for (final item in occupantsData) {
+      final occupancy = Map<String, dynamic>.from(item);
 
       users.add(
         RoomDetailUser(
           userId: occupancy['user_id'].toString(),
-          name: name ?? '-',
-          phone: phone,
-          profilePhotoUrl: profilePhotoUrl,
+          name: occupancy['name']?.toString() ?? '-',
+          phone: occupancy['phone']?.toString(),
+          profilePhotoUrl: occupancy['profile_photo_url']?.toString(),
           contractStart: _parseDate(occupancy['contract_start']),
           contractEnd: _parseDate(occupancy['contract_end']),
           rentPrice: (occupancy['rent_price'] as num?)?.toDouble() ?? 0,
@@ -270,7 +230,6 @@ class RoomService {
       );
     }
 
-    // 4. PEMBAYARAN
     final List<Payment> payments = [];
 
     final paymentsData = await _supabase
@@ -306,7 +265,6 @@ class RoomService {
       ),
     );
 
-    // 5. KELUHAN
     final List<ComplaintModel> complaints = [];
 
     final complaintsData = await _supabase
@@ -330,7 +288,7 @@ class RoomService {
         (item) => ComplaintModel.fromMap(Map<String, dynamic>.from(item)),
       ),
     );
-    // 6. GABUNGKAN SEMUA DATA
+
     return RoomDetailModel(
       room: room,
       facilities: facilities,
@@ -340,10 +298,6 @@ class RoomService {
     );
   }
 
-  // ADMIN - PENGHUNI KAMAR
-
-  // Admin - mengambil daftar penghuni yang tersedia
-  // Hanya user dengan role "user" yang belum memiliki kamar
   Future<List<Map<String, dynamic>>> getAvailableUsers() async {
     final activeOccupancies = await _supabase
         .from('occupancies')
@@ -381,7 +335,6 @@ class RoomService {
         .toList();
   }
 
-  // Admin - memilih dan menambahkan penghuni ke kamar
   Future<void> addOccupancy({
     required String roomId,
     required String userId,
@@ -391,8 +344,6 @@ class RoomService {
     required int paymentIntervalMonths,
     required int paymentDay,
   }) async {
-    // 1. CEK USER SUDAH PUNYA KAMAR AKTIF ATAU BELUM
-
     final existing = await _supabase
         .from('occupancies')
         .select('id')
@@ -403,8 +354,6 @@ class RoomService {
     if (existing != null) {
       throw Exception('User tersebut masih memiliki kamar aktif.');
     }
-
-    // 2. AMBIL DATA KAMAR
 
     final room = await _supabase
         .from(_tableRooms)
@@ -422,8 +371,6 @@ class RoomService {
 
     final capacity = (room['capacity'] as num?)?.toInt() ?? 1;
 
-    // 3. HITUNG PENGHUNI AKTIF SAAT INI
-
     final activeOccupancies = await _supabase
         .from('occupancies')
         .select('id')
@@ -432,11 +379,10 @@ class RoomService {
 
     final currentOccupantCount = activeOccupancies.length;
 
-    // 4. CEK CAPACITY
     if (currentOccupantCount >= capacity) {
       throw Exception('Kamar sudah penuh ($currentOccupantCount/$capacity).');
     }
-    // 5. TAMBAHKAN PENGHUNI
+
     await _supabase.from('occupancies').insert({
       'room_id': roomId,
       'user_id': userId,
@@ -448,15 +394,12 @@ class RoomService {
       'payment_day': paymentDay,
     });
 
-    // 6. UPDATE STATUS KAMAR
     await _supabase
         .from(_tableRooms)
         .update({'status': 'Terisi'})
         .eq('id', roomId);
   }
 
-  // Admin - melihat semua user yang menempati kamar
-  // Sekarang satu roomId dapat memiliki banyak penghuni.
   Future<Map<String, List<Map<String, dynamic>>>> getRoomUsers() async {
     final data = await _supabase
         .from('occupancies')
@@ -503,8 +446,6 @@ class RoomService {
     return users;
   }
 
-  // FACILITIES
-  // Admin - mengambil daftar fasilitas
   Future<List<FacilityModel>> getFacilities({bool activeOnly = true}) async {
     var query = _supabase.from(_tableFacilities).select();
 
@@ -519,7 +460,6 @@ class RoomService {
         .toList();
   }
 
-  // Admin - mengambil fasilitas yang dimiliki sebuah kamar
   Future<List<FacilityModel>> getRoomFacilities(String roomId) async {
     final data = await _supabase
         .from(_tableRoomFacilities)
@@ -550,9 +490,6 @@ class RoomService {
     return result;
   }
 
-  // ADMIN - TAMBAH KAMAR
-
-  // Admin - tambah kamar
   Future<RoomModel> createRoom({
     required String roomNumber,
     required double price,
@@ -593,9 +530,6 @@ class RoomService {
             .eq('id', roomId);
       }
     } catch (e) {
-      // Best-effort cleanup agar tidak meninggalkan
-      // data kamar yatim jika proses gagal.
-
       try {
         await _supabase
             .from(_tableRoomFacilities)
@@ -616,9 +550,7 @@ class RoomService {
 
     return RoomModel.fromMap(data);
   }
-  // ADMIN - UBAH KAMAR
 
-  // Admin - ubah kamar
   Future<void> updateRoom({
     required String id,
     required String roomNumber,
@@ -630,8 +562,6 @@ class RoomService {
     List<String> retainedImagePaths = const [],
     List<File> images = const [],
   }) async {
-    // 1. AMBIL FOTO LAMA
-
     final currentRoomData = await _supabase
         .from(_tableRooms)
         .select('image_url')
@@ -644,13 +574,9 @@ class RoomService {
 
     final existingPaths = parseImageUrls(currentRoomData['image_url']);
 
-    // 2. SIMPAN FOTO LAMA YANG MASIH DIPAKAI
-
     final retainedPaths = existingPaths
         .where((path) => retainedImagePaths.contains(path))
         .toList();
-
-    // 3. UPLOAD FOTO BARU
 
     List<String> newPaths = [];
 
@@ -662,8 +588,6 @@ class RoomService {
 
     final imageUrl = allPaths.isEmpty ? null : encodeImageUrls(allPaths);
 
-    // 4. HAPUS FOTO LAMA YANG SUDAH TIDAK DIPAKAI
-
     final pathsToDelete = existingPaths
         .where((path) => !retainedPaths.contains(path))
         .toList();
@@ -674,7 +598,6 @@ class RoomService {
       } catch (_) {}
     }
 
-    // 5. UPDATE DATA KAMAR
     await _supabase
         .from(_tableRooms)
         .update({
@@ -687,25 +610,17 @@ class RoomService {
         })
         .eq('id', id);
 
-    // 6. UPDATE FASILITAS
     await _replaceRoomFacilities(id, facilityIds);
   }
 
-  // ADMIN - HAPUS KAMAR
-
-  // Admin - hapus kamar
   Future<void> deleteRoom(String id) async {
-    // Hapus relasi fasilitas kamar terlebih dahulu.
     await _supabase.from(_tableRoomFacilities).delete().eq('room_id', id);
 
-    // Hapus foto-foto kamar dari storage.
     await _deleteStorageFiles(id);
 
-    // Hapus data kamar.
     await _supabase.from(_tableRooms).delete().eq('id', id);
   }
 
-  // PRIVATE HELPERS
   Future<void> _replaceRoomFacilities(
     String roomId,
     List<String> facilityIds,
@@ -741,9 +656,7 @@ class RoomService {
       final paths = files.map((file) => 'rooms/$roomId/${file.name}').toList();
 
       await _supabase.storage.from(_storageBucket).remove(paths);
-    } catch (_) {
-      // Proses utama hapus kamar tetap dilanjutkan.
-    }
+    } catch (_) {}
   }
 
   static DateTime? _parseDate(dynamic value) {
@@ -758,18 +671,18 @@ class RoomService {
     final response = await _supabase
         .from('profiles')
         .select('''
-        id,
-        name,
-        phone,
-        profile_photo_url,
-        occupancies!left(
-          room_id,
-          status,
-          rooms(
-            room_number
+          id,
+          name,
+          phone,
+          profile_photo_url,
+          occupancies!left(
+            room_id,
+            status,
+            rooms(
+              room_number
+            )
           )
-        )
-      ''')
+        ''')
         .eq('role', 'user')
         .order('name');
 
