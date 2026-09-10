@@ -13,7 +13,9 @@ class PaymentBillSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayItems = items ?? payment.items;
+    final displayItems = (items ?? payment.items)
+        .where((item) => item.amount > 0)
+        .toList();
 
     return Container(
       width: double.infinity,
@@ -119,7 +121,7 @@ class PaymentBillSection extends StatelessWidget {
       case 'room':
       case 'kamar':
       case 'sewa':
-        return 'Sewa Kamar';
+        return 'Kamar';
 
       case 'utilities':
       case 'utility':

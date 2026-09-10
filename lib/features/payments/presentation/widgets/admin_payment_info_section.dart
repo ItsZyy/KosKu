@@ -12,8 +12,8 @@ class AdminPaymentInfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final type = _paymentTypeLabel(payment.paymentType);
-    final isInstallment = (payment.paymentType ?? '').toLowerCase() == 'cicil';
+    final type = _descriptionLabel(payment.description);
+    final isInstallment = (payment.description ?? '').toLowerCase() == 'cicil';
 
     return Container(
       width: double.infinity,
@@ -28,7 +28,7 @@ class AdminPaymentInfoSection extends StatelessWidget {
         children: [
           _buildTitle(),
           const SizedBox(height: 16),
-          _buildRow('Jenis Pembayaran', type),
+          _buildRow('Deskripsi', type),
           const Divider(height: 24, color: AppColors.divider),
           _buildRow('Nominal', PaymentFormatter.rupiah(payment.amount)),
           if (isInstallment) ...[
@@ -132,8 +132,8 @@ class AdminPaymentInfoSection extends StatelessWidget {
     );
   }
 
-  String _paymentTypeLabel(String? type) {
-    switch ((type ?? '').toLowerCase()) {
+  String _descriptionLabel(String? description) {
+    switch ((description ?? '').toLowerCase()) {
       case 'lunas':
       case 'full':
         return 'Lunas';
@@ -141,7 +141,7 @@ class AdminPaymentInfoSection extends StatelessWidget {
       case 'installment':
         return 'Cicilan';
       default:
-        return '-';
+        return (description == null || description.isEmpty) ? '-' : description;
     }
   }
 }

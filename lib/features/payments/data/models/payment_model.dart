@@ -50,7 +50,7 @@ class Payment {
   final String? userName;
   final String? userPhone;
   final String? userPhotoUrl;
-  final String? paymentType;
+  final String? description;
   final String? paymentMethod;
   final int amount;
   final String? period;
@@ -70,7 +70,7 @@ class Payment {
     this.userName,
     this.userPhone,
     this.userPhotoUrl,
-    this.paymentType,
+    this.description,
     this.paymentMethod,
     this.amount = 0,
     this.period,
@@ -109,7 +109,7 @@ class Payment {
       userName: _extractUserName(map),
       userPhone: _extractProfileField(map, 'phone'),
       userPhotoUrl: _extractProfileField(map, 'profile_photo_url'),
-      paymentType: map['payment_type']?.toString(),
+      description: map['description']?.toString(),
       paymentMethod: map['payment_method']?.toString(),
       amount: (map['amount'] as num?)?.toInt() ?? 0,
       period: map['period']?.toString(),
@@ -141,7 +141,7 @@ class Payment {
       if (id != null) 'id': id,
       if (userId != null) 'user_id': userId,
       if (roomId != null) 'room_id': roomId,
-      'payment_type': paymentType,
+      'description': description,
       'payment_method': paymentMethod,
       'amount': amount,
       'period': period,

@@ -111,7 +111,9 @@ class PaymentHeaderCard extends StatelessWidget {
   }
 
   Widget _buildBreakdown() {
-    if (!payment.hasBreakdown) {
+    final items = payment.items.where((item) => item.amount > 0).toList();
+
+    if (items.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -124,15 +126,15 @@ class PaymentHeaderCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          for (int i = 0; i < payment.items.length; i++) ...[
+          for (int i = 0; i < items.length; i++) ...[
             _BreakdownRow(
               label:
-                  payment.items[i].description ??
-                  payment.items[i].itemType ??
+                  items[i].description ??
+                  items[i].itemType ??
                   'Tagihan',
-              value: PaymentFormatter.rupiah(payment.items[i].amount),
+              value: PaymentFormatter.rupiah(items[i].amount),
             ),
-            if (i < payment.items.length - 1) const SizedBox(height: 12),
+            if (i < items.length - 1) const SizedBox(height: 12),
           ],
         ],
       ),

@@ -3,15 +3,17 @@ import 'package:kosku/features/payments/data/models/payment_model.dart';
 
 class RoomPaymentSummaryCard extends StatelessWidget {
   final List<Payment> payments;
+  final int grandTotal;
 
-  const RoomPaymentSummaryCard({super.key, required this.payments});
+  const RoomPaymentSummaryCard({
+    super.key,
+    required this.payments,
+    this.grandTotal = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final total = payments.fold<double>(
-      0,
-      (sum, payment) => sum + payment.amount,
-    );
+    final total = grandTotal;
 
     final waiting = payments
         .where((payment) => payment.status == 'menunggu')
@@ -89,7 +91,7 @@ class RoomPaymentSummaryCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'TOTAL TRANSAKSI',
+                  'TOTAL PEMASUKAN KESELURUHAN',
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
@@ -99,7 +101,7 @@ class RoomPaymentSummaryCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  _formatPrice(total),
+                  _formatPrice(total.toDouble()),
                   style: TextStyle(
                     fontSize: 21,
                     fontWeight: FontWeight.w800,
@@ -119,7 +121,6 @@ class RoomPaymentSummaryCard extends StatelessWidget {
                 child: _StatusItem(
                   label: 'Menunggu',
                   value: waiting,
-                  icon: Icons.hourglass_empty,
                   color: Colors.orange,
                 ),
               ),
@@ -128,7 +129,6 @@ class RoomPaymentSummaryCard extends StatelessWidget {
                 child: _StatusItem(
                   label: 'Dikonfirmasi',
                   value: confirmed,
-                  icon: Icons.check_circle_outline,
                   color: Colors.green,
                 ),
               ),
@@ -137,7 +137,6 @@ class RoomPaymentSummaryCard extends StatelessWidget {
                 child: _StatusItem(
                   label: 'Ditolak',
                   value: rejected,
-                  icon: Icons.cancel_outlined,
                   color: Colors.red,
                 ),
               ),
@@ -189,13 +188,11 @@ class RoomPaymentSummaryCard extends StatelessWidget {
 class _StatusItem extends StatelessWidget {
   final String label;
   final int value;
-  final IconData icon;
   final Color color;
 
   const _StatusItem({
     required this.label,
     required this.value,
-    required this.icon,
     required this.color,
   });
 
@@ -209,8 +206,6 @@ class _StatusItem extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(height: 5),
           Text(
             value.toString(),
             style: TextStyle(

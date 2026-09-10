@@ -5,6 +5,7 @@ import '../../../rooms/data/services/room_service.dart';
 import '../../../payments/data/services/payment_service.dart';
 import '../../../announcements/data/models/announcement_model.dart';
 import '../../../announcements/data/services/announcement_service.dart';
+import '../../../announcements/presentation/screens/announcements_screen.dart';
 
 import '../widgets/user_dashboard_header.dart';
 import '../widgets/user_dashboard_banner.dart';
@@ -13,7 +14,9 @@ import '../widgets/user_dashboard_room_card.dart';
 import '../widgets/user_dashboard_announcement.dart';
 
 class UserDashboardScreen extends StatefulWidget {
-  const UserDashboardScreen({super.key});
+  final VoidCallback? onOpenProfile;
+
+  const UserDashboardScreen({super.key, this.onOpenProfile});
 
   @override
   State<UserDashboardScreen> createState() => _UserDashboardScreenState();
@@ -26,10 +29,11 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
   final _announcementService = AnnouncementService();
 
   String? userName;
+  String? profilePhotoUrl;
 
   Map<String, dynamic>? room;
   Map<String, dynamic>? payment;
-  AnnouncementModel? announcement;
+  List<AnnouncementModel> announcements = [];
 
   @override
   void initState() {
@@ -49,6 +53,19 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
         setState(() {
           userName = profile.name;
         });
+
+        if (profile.profilePhotoUrl != null &&
+            profile.profilePhotoUrl!.isNotEmpty) {
+          final signedUrl = await _profileService.getProfilePhotoUrl(
+            profile.profilePhotoUrl,
+          );
+
+          if (mounted) {
+            setState(() {
+              profilePhotoUrl = signedUrl;
+            });
+          }
+        }
       }
     } catch (e) {
       debugPrint('UserDashboard load user error: $e');
@@ -93,9 +110,9 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     try {
       final data = await _announcementService.getAnnouncements();
 
-      if (data.isNotEmpty && mounted) {
+      if (mounted) {
         setState(() {
-          announcement = data.first;
+          announcements = data.take(3).toList();
         });
       }
     } catch (e) {
@@ -103,7 +120,12 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     }
   }
 
-  void _onViewAnnouncements() {}
+  void _onViewAnnouncements() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AnnouncementsScreen()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +141,11 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
               children: [
                 Column(
                   children: [
-                    UserDashboardHeader(userName: userName),
+                    UserDashboardHeader(
+                      userName: userName,
+                      profilePhotoUrl: profilePhotoUrl,
+                      onProfileTap: widget.onOpenProfile,
+                    ),
                     const SizedBox(height: 100),
                   ],
                 ),
@@ -144,7 +170,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   UserDashboardRoomCard(room: room),
                   const SizedBox(height: 24),
                   UserDashboardAnnouncement(
-                    announcement: announcement,
+                    announcements: announcements,
                     onViewAll: _onViewAnnouncements,
                   ),
                   const SizedBox(height: 24),

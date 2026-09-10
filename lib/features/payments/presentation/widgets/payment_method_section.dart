@@ -193,11 +193,18 @@ class _BankDetail extends StatelessWidget {
             ),
           ],
           if (method.accountName != null && method.accountName!.isNotEmpty) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: 10),
             Text(
-              'a.n. ${method.accountName!}',
+              'Atas Nama',
               style: AppTextStyles.bodySmall.copyWith(
                 color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              method.accountName!,
+              style: AppTextStyles.bodyLarge.copyWith(
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -406,6 +413,8 @@ class _PaymentMethodTile extends StatelessWidget {
                     ? 'QRIS'
                     : method.isCash
                     ? 'Tunai'
+                    : method.bankName != null && method.bankName!.isNotEmpty
+                    ? 'Transfer Bank ${method.bankName}'
                     : 'Transfer Bank',
                 style: AppTextStyles.bodyLarge.copyWith(
                   fontWeight: FontWeight.w500,

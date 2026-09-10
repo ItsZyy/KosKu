@@ -91,7 +91,7 @@ class _AddRoomScreenState extends State<AddRoomScreen> {
   }
 
   String? _validatePrice(String? value) {
-    final v = value?.trim() ?? '';
+    final v = value?.replaceAll('.', '').trim() ?? '';
     if (v.isEmpty) return 'Harga sewa wajib diisi';
     final n = num.tryParse(v);
     if (n == null || n <= 0) return 'Harga harus berupa angka lebih dari 0';
@@ -130,7 +130,7 @@ class _AddRoomScreenState extends State<AddRoomScreen> {
   Future<void> _saveRoom() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final priceStr = _priceController.text.trim();
+    final priceStr = _priceController.text.replaceAll('.', '').trim();
     final price = double.parse(priceStr);
 
     setState(() => _isLoading = true);

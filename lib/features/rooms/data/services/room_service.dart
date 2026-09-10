@@ -279,7 +279,7 @@ class RoomService {
           id,
           user_id,
           room_id,
-          payment_type,
+          description,
           amount,
           period,
           due_date,

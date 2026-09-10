@@ -7,12 +7,12 @@ import '../../../announcements/data/models/announcement_model.dart';
 import '../../../announcements/presentation/widgets/announcement_card.dart';
 
 class UserDashboardAnnouncement extends StatelessWidget {
-  final AnnouncementModel? announcement;
+  final List<AnnouncementModel> announcements;
   final VoidCallback? onViewAll;
 
   const UserDashboardAnnouncement({
     super.key,
-    required this.announcement,
+    this.announcements = const [],
     this.onViewAll,
   });
 
@@ -34,8 +34,15 @@ class UserDashboardAnnouncement extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        if (announcement != null)
-          AnnouncementCard(announcement: announcement!)
+        if (announcements.isNotEmpty)
+          ...announcements.map(
+            (a) => Padding(
+              padding: EdgeInsets.only(
+                bottom: a != announcements.last ? 12 : 0,
+              ),
+              child: AnnouncementCard(announcement: a),
+            ),
+          )
         else
           Container(
             width: double.infinity,

@@ -15,11 +15,17 @@ class UserMainScreen extends StatefulWidget {
 class _UserMainScreenState extends State<UserMainScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [
-    UserDashboardScreen(),
-    UserPaymentScreen(),
-    ComplaintsScreen(),
-    UserProfileScreen(),
+  late final List<Widget> _pages = [
+    UserDashboardScreen(
+      onOpenProfile: () {
+        setState(() {
+          _currentIndex = 3;
+        });
+      },
+    ),
+    const UserPaymentScreen(),
+    const ComplaintsScreen(),
+    const UserProfileScreen(),
   ];
 
   @override

@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
-enum PaymentType { full, installment }
+enum PaymentOption { full, installment }
 
-class PaymentTypeSelector extends StatelessWidget {
-  final PaymentType selectedType;
-  final ValueChanged<PaymentType> onChanged;
+class PaymentOptionSelector extends StatelessWidget {
+  final PaymentOption selectedOption;
+  final ValueChanged<PaymentOption> onChanged;
 
-  const PaymentTypeSelector({
+  const PaymentOptionSelector({
     super.key,
-    required this.selectedType,
+    required this.selectedOption,
     required this.onChanged,
   });
 
@@ -21,7 +21,7 @@ class PaymentTypeSelector extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Jenis Pembayaran',
+          'Pilihan Pembayaran',
           style: AppTextStyles.labelMedium.copyWith(
             color: AppColors.textSecondary,
           ),
@@ -30,23 +30,23 @@ class PaymentTypeSelector extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: _PaymentTypeCard(
-                title: 'LUNAS',
-                selected: selectedType == PaymentType.full,
+              child: _PaymentOptionCard(
+                title: 'Lunas',
+                selected: selectedOption == PaymentOption.full,
                 backgroundColor: AppColors.success.withValues(alpha: 0.10),
                 onTap: () {
-                  onChanged(PaymentType.full);
+                  onChanged(PaymentOption.full);
                 },
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _PaymentTypeCard(
-                title: 'CICIL',
-                selected: selectedType == PaymentType.installment,
+              child: _PaymentOptionCard(
+                title: 'Cicil',
+                selected: selectedOption == PaymentOption.installment,
                 backgroundColor: AppColors.warning.withValues(alpha: 0.10),
                 onTap: () {
-                  onChanged(PaymentType.installment);
+                  onChanged(PaymentOption.installment);
                 },
               ),
             ),
@@ -57,13 +57,13 @@ class PaymentTypeSelector extends StatelessWidget {
   }
 }
 
-class _PaymentTypeCard extends StatelessWidget {
+class _PaymentOptionCard extends StatelessWidget {
   final String title;
   final bool selected;
   final Color backgroundColor;
   final VoidCallback onTap;
 
-  const _PaymentTypeCard({
+  const _PaymentOptionCard({
     required this.title,
     required this.selected,
     required this.backgroundColor,

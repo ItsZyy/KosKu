@@ -1,4 +1,3 @@
-// widget uuntuk room edit
 import 'package:flutter/material.dart';
 
 import 'package:kosku/core/theme/app_colors.dart';
@@ -21,6 +20,9 @@ class RoomUserManagementCard extends StatelessWidget {
     this.onRemoveUser,
   });
 
+  bool get isReadOnly =>
+      onAddUser == null && onEditUser == null && onRemoveUser == null;
+
   @override
   Widget build(BuildContext context) {
     final isFull = users.length >= capacity;
@@ -29,7 +31,7 @@ class RoomUserManagementCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),
@@ -51,7 +53,6 @@ class RoomUserManagementCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-
           if (users.isEmpty)
             _buildEmptyState()
           else
@@ -61,8 +62,7 @@ class RoomUserManagementCard extends StatelessWidget {
                 child: _buildUserItem(user),
               ),
             ),
-
-          if (!isFull) ...[
+          if (!isReadOnly && !isFull) ...[
             const SizedBox(height: 4),
             SizedBox(
               width: double.infinity,
@@ -88,7 +88,11 @@ class RoomUserManagementCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(Icons.person_outline, size: 32, color: AppColors.textSecondary),
+          const Icon(
+            Icons.person_outline,
+            size: 32,
+            color: AppColors.textSecondary,
+          ),
           const SizedBox(height: 8),
           Text(
             'Belum ada penghuni',
@@ -96,20 +100,24 @@ class RoomUserManagementCard extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            'Tambahkan penghuni ke kamar ini.',
-            textAlign: TextAlign.center,
-            style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textSecondary,
+          if (!isReadOnly) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Tambahkan penghuni ke kamar ini.',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
   }
 
   Widget _buildUserItem(RoomDetailUser user) {
+    final canManageUser = onEditUser != null || onRemoveUser != null;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -132,7 +140,6 @@ class RoomUserManagementCard extends StatelessWidget {
                 : null,
           ),
           const SizedBox(width: 12),
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -162,20 +169,20 @@ class RoomUserManagementCard extends StatelessWidget {
               ],
             ),
           ),
-
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'edit') {
-                onEditUser?.call(user);
-              } else if (value == 'remove') {
-                onRemoveUser?.call(user);
-              }
-            },
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: 'edit', child: Text('Edit')),
-              PopupMenuItem(value: 'remove', child: Text('Hapus Penghuni')),
-            ],
-          ),
+          if (canManageUser)
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'edit') {
+                  onEditUser?.call(user);
+                } else if (value == 'remove') {
+                  onRemoveUser?.call(user);
+                }
+              },
+              itemBuilder: (context) => const [
+                PopupMenuItem(value: 'edit', child: Text('Edit')),
+                PopupMenuItem(value: 'remove', child: Text('Hapus Penghuni')),
+              ],
+            ),
         ],
       ),
     );

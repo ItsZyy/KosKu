@@ -53,7 +53,7 @@ class ProfileService {
 
     await _supabase.storage
         .from('profile-images')
-        .upload(
+        .uploadBinary(
           filePath,
           bytes,
           fileOptions: FileOptions(

@@ -11,13 +11,12 @@ import '../../data/services/payment_method_service.dart';
 import '../../data/services/payment_service.dart';
 import '../widgets/payment_amount_section.dart';
 import '../widgets/payment_bill_section.dart';
-import '../widgets/payment_category_filter.dart';
 import '../widgets/payment_confirmation_button.dart';
 import '../widgets/payment_detail_header.dart';
 import '../widgets/payment_method_section.dart';
 import '../widgets/payment_proof_section.dart';
 import '../widgets/payment_submit_status_card.dart';
-import '../widgets/payment_type_selector.dart';
+import '../widgets/payment_option_selector.dart';
 
 class PaymentDetailScreen extends StatefulWidget {
   final String paymentId;
@@ -45,8 +44,7 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
   PaymentMethodModel? _selectedPaymentMethod;
   String? _qrisSignedUrl;
 
-  PaymentType _paymentType = PaymentType.full;
-  PaymentCategory _selectedCategory = PaymentCategory.all;
+  PaymentOption _paymentOption = PaymentOption.full;
 
   File? _proofImage;
 
@@ -129,15 +127,15 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
     }
   }
 
-  void _onPaymentTypeChanged(PaymentType type) {
+  void _onPaymentOptionChanged(PaymentOption option) {
     final payment = _payment;
 
     if (payment == null) return;
 
     setState(() {
-      _paymentType = type;
+      _paymentOption = option;
 
-      if (type == PaymentType.full) {
+      if (option == PaymentOption.full) {
         _amountController.text = payment.amount.toString();
       } else {
         _amountController.clear();
@@ -160,11 +158,11 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
 
     if (payment == null) return null;
 
-    if (_paymentType == PaymentType.full) {
+    if (_paymentOption == PaymentOption.full) {
       return payment.amount;
     }
 
-    final raw = _amountController.text.trim();
+    final raw = _amountController.text.replaceAll('.', '').trim();
 
     if (raw.isEmpty) {
       return null;
@@ -184,21 +182,17 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
   }
 
   int? _getPreviewAmount(Payment payment) {
-    if (_paymentType == PaymentType.full) {
+    if (_paymentOption == PaymentOption.full) {
       return payment.amount;
     }
 
-    final raw = _amountController.text.trim();
+    final raw = _amountController.text.replaceAll('.', '').trim();
 
     if (raw.isEmpty) {
       return null;
     }
 
     return int.tryParse(raw);
-  }
-
-  List<PaymentItem> _getFilteredItems(Payment payment) {
-    return _selectedCategory.filterItems(payment.items);
   }
 
   Future<void> _confirmPayment() async {
@@ -422,16 +416,7 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
           const SizedBox(height: 20),
           PaymentBillSection(
             payment: payment,
-            items: _getFilteredItems(payment),
-          ),
-          const SizedBox(height: 20),
-          PaymentCategoryFilter(
-            selectedCategory: _selectedCategory,
-            onCategoryChanged: (category) {
-              setState(() {
-                _selectedCategory = category;
-              });
-            },
+            items: payment.items,
           ),
           const SizedBox(height: 24),
           PaymentMethodSection(
@@ -442,17 +427,17 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
           ),
           if (canSubmit) ...[
             const SizedBox(height: 24),
-            PaymentTypeSelector(
-              selectedType: _paymentType,
-              onChanged: _onPaymentTypeChanged,
+            PaymentOptionSelector(
+              selectedOption: _paymentOption,
+              onChanged: _onPaymentOptionChanged,
             ),
             const SizedBox(height: 20),
             PaymentAmountSection(
-              paymentType: _paymentType,
+              option: _paymentOption,
               totalAmount: payment.amount,
               controller: _amountController,
             ),
-            if (_paymentType == PaymentType.installment &&
+            if (_paymentOption == PaymentOption.installment &&
                 _amountController.text.isNotEmpty &&
                 currentAmount != null &&
                 currentAmount < payment.amount) ...[

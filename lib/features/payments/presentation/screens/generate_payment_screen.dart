@@ -104,6 +104,8 @@ class _GeneratePaymentScreenState extends State<GeneratePaymentScreen> {
   }
 
   Future<void> _generate() async {
+    if (_isSaving) return;
+
     if (_selectedTenant == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -136,12 +138,24 @@ class _GeneratePaymentScreenState extends State<GeneratePaymentScreen> {
       Navigator.pop(context, {'payment_id': paymentId});
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal membuat tagihan: $e'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+
+      final raw = e.toString();
+
+      if (raw.contains('Tagihan untuk periode ini sudah dibuat')) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tagihan untuk periode ini sudah dibuat.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal membuat tagihan: $raw'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }

@@ -30,7 +30,7 @@ class PaymentService {
     );
 
     if (paymentId == null) {
-      throw Exception('Gagal membuat tagihan. Tagihan mungkin sudah ada.');
+      throw Exception('Tagihan untuk periode ini sudah dibuat.');
     }
 
     return paymentId.toString();
@@ -43,7 +43,7 @@ class PaymentService {
           id,
           user_id,
           room_id,
-          payment_type,
+          description,
           payment_method,
           amount,
           period,
@@ -465,7 +465,7 @@ class PaymentService {
           id,
           user_id,
           room_id,
-          payment_type,
+          description,
           payment_method,
           amount,
           period,
@@ -482,20 +482,9 @@ class PaymentService {
             room_number
           )
         ''')
-        .or('proof_url.not.is.null,payment_method.eq.cash')
         .order('created_at', ascending: false);
 
-    return List<Map<String, dynamic>>.from(data).where((payment) {
-      final method = payment['payment_method']?.toString().toLowerCase();
-
-      final proof = payment['proof_url']?.toString().trim();
-
-      if (method == 'cash') {
-        return true;
-      }
-
-      return proof != null && proof.isNotEmpty;
-    }).toList();
+    return List<Map<String, dynamic>>.from(data);
   }
 
   Future<List<Map<String, dynamic>>> getPaymentHistory() async {
@@ -540,7 +529,7 @@ class PaymentService {
           id,
           user_id,
           room_id,
-          payment_type,
+          description,
           payment_method,
           amount,
           period,
@@ -587,7 +576,7 @@ class PaymentService {
           id,
           user_id,
           room_id,
-          payment_type,
+          description,
           payment_method,
           amount,
           period,

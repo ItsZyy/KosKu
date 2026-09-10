@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:kosku/core/theme/app_colors.dart';
 import 'package:kosku/core/theme/app_text_styles.dart';
 
@@ -34,12 +35,12 @@ class _RoomImageCarouselState extends State<RoomImageCarousel> {
   @override
   Widget build(BuildContext context) {
     final hasImages = widget.imageUrls.isNotEmpty;
+    final hasQuickActions = widget.onEdit != null || widget.onDelete != null;
 
     return SizedBox(
       height: widget.height,
       child: Stack(
         children: [
-          // FOTO / PLACEHOLDER
           ClipRRect(
             borderRadius: BorderRadius.circular(20),
             child: hasImages
@@ -76,8 +77,6 @@ class _RoomImageCarouselState extends State<RoomImageCarousel> {
                   )
                 : _buildPlaceholder(),
           ),
-
-          // GRADIENT BAWAH
           if (hasImages)
             Positioned(
               left: 0,
@@ -102,8 +101,6 @@ class _RoomImageCarouselState extends State<RoomImageCarousel> {
                 ),
               ),
             ),
-
-          // INDICATOR
           if (widget.imageUrls.length > 1)
             Positioned(
               left: 0,
@@ -129,35 +126,36 @@ class _RoomImageCarouselState extends State<RoomImageCarousel> {
                 }),
               ),
             ),
-
-          // QUICK ACTIONS
-          Positioned(
-            top: 16,
-            right: 16,
-            child: Column(
-              children: [
-                _buildQuickAction(
-                  icon: Icons.edit_outlined,
-                  iconColor: AppColors.textPrimary,
-                  onTap: widget.onEdit,
-                  tooltip: 'Edit kamar',
-                ),
-                const SizedBox(height: 8),
-                _buildQuickAction(
-                  icon: Icons.delete_outline,
-                  iconColor: AppColors.error,
-                  onTap: widget.onDelete,
-                  tooltip: 'Hapus kamar',
-                ),
-              ],
+          if (hasQuickActions)
+            Positioned(
+              top: 16,
+              right: 16,
+              child: Column(
+                children: [
+                  if (widget.onEdit != null)
+                    _buildQuickAction(
+                      icon: Icons.edit_outlined,
+                      iconColor: AppColors.textPrimary,
+                      onTap: widget.onEdit,
+                      tooltip: 'Edit kamar',
+                    ),
+                  if (widget.onEdit != null && widget.onDelete != null)
+                    const SizedBox(height: 8),
+                  if (widget.onDelete != null)
+                    _buildQuickAction(
+                      icon: Icons.delete_outline,
+                      iconColor: AppColors.error,
+                      onTap: widget.onDelete,
+                      tooltip: 'Hapus kamar',
+                    ),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
   }
 
-  // QUICK ACTION BUTTON
   Widget _buildQuickAction({
     required IconData icon,
     required Color iconColor,
@@ -184,7 +182,6 @@ class _RoomImageCarouselState extends State<RoomImageCarousel> {
     );
   }
 
-  // PLACEHOLDER
   Widget _buildPlaceholder() {
     return Container(
       height: widget.height,
@@ -204,7 +201,6 @@ class _RoomImageCarouselState extends State<RoomImageCarousel> {
     );
   }
 
-  // IMAGE ERROR
   Widget _buildImageError() {
     return Container(
       color: AppColors.inputBackground,
