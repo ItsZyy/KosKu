@@ -275,11 +275,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       },
                     ),
                     ActionButtonCard(
-                      title: 'Tambah Penghuni',
-                      icon: Icons.person_add,
-                      onPressed: () {},
-                    ),
-                    ActionButtonCard(
                       title: 'Kelola Kontrak',
                       icon: Icons.description,
                       onPressed: () {

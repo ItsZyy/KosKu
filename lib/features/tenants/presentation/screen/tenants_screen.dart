@@ -157,15 +157,6 @@ class _TenantsScreenState extends State<TenantsScreen> {
     }
   }
 
-  void _handleAddTenant() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Fitur tambah penghuni belum tersedia'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
   @override
   void dispose() {
     _searchController.dispose();
@@ -222,14 +213,6 @@ class _TenantsScreenState extends State<TenantsScreen> {
               onToggleStatus: _handleToggleStatus,
             ),
             const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _handleAddTenant,
-                icon: const Icon(Icons.person_add_outlined),
-                label: const Text('Tambah Penghuni'),
-              ),
-            ),
           ],
         ),
       ),
