@@ -67,4 +67,8 @@ class AnnouncementService {
       'image_url': imageUrl,
     });
   }
+
+  Future<void> deleteAnnouncement(String id) async {
+    await _supabase.from('announcements').delete().eq('id', id);
+  }
 }

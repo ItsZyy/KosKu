@@ -5,10 +5,14 @@ import 'package:flutter/material.dart';
 import '../../../rooms/data/services/room_service.dart';
 import '../../../payments/data/services/payment_service.dart';
 import '../../../complaints/data/services/complaint_service.dart';
+import '../../../activities/data/models/activity_model.dart';
+import '../../../activities/data/services/activity_service.dart';
+import '../../../activities/presentation/screens/activities_screen.dart';
 import '../../data/services/dashboard_service.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/action_button_card.dart';
-import '../../../announcements/presentation/screens/add_announcement_screen.dart';
+import '../widgets/activity_feed.dart';
+import '../../../announcements/presentation/screens/admin_announcements_screen.dart';
 import '../../../rooms/presentation/screens/add_room_screen.dart';
 import '../../../rooms/presentation/screens/admin_facilities_screen.dart';
 import '../../../payments/presentation/screens/admin_payment_methods_screen.dart';
@@ -26,12 +30,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   final _paymentService = PaymentService();
   final _complaintService = ComplaintService();
   final _dashboardService = DashboardService();
+  final _activityService = ActivityService();
 
   int totalRooms = 0;
   int occupiedRooms = 0;
   int tenantCount = 0;
   int totalIncome = 0;
   int activeComplaints = 0;
+  List<ActivityModel>? activities;
 
   @override
   void initState() {
@@ -40,6 +46,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     _loadTenantCount();
     _loadIncome();
     _loadActiveComplaints();
+    _loadActivities();
+  }
+
+  Future<void> _loadActivities() async {
+    final data = await _activityService.getRecentActivities();
+
+    if (!mounted) return;
+
+    setState(() {
+      activities = data;
+    });
   }
 
   Future<void> _loadRoomStats() async {
@@ -141,21 +158,39 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ],
             ),
             const SizedBox(height: 28),
-            const Text(
-              'Aktivitas Terkini',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                const Text(
+                  'Aktivitas Terkini',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const Spacer(),
+                if (activities != null && activities!.length > 3)
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ActivitiesScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text('Lihat Semua'),
+                  ),
+              ],
             ),
             const SizedBox(height: 12),
-            Card(
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.notifications_none),
-                    title: const Text('Belum Ada aktivitas terbaru'),
+            if (activities == null)
+              const Card(
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Center(
+                    child: CircularProgressIndicator(),
                   ),
-                ],
-              ),
-            ),
+                ),
+              )
+            else
+              ActivityFeed(activities: activities!.take(3).toList()),
             const SizedBox(height: 28),
             const Text(
               'Aksi Cepat',
@@ -216,13 +251,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               },
             ),
             ActionButtonCard(
-              title: 'Tambah Pengumuman Baru',
+              title: 'Kelola Pengumuman',
               icon: Icons.campaign_sharp,
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const AddAnnouncementScreen(),
+                    builder: (context) => const AdminAnnouncementsScreen(),
                   ),
                 );
               },
