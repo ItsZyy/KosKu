@@ -118,21 +118,24 @@ class _LoginScreenState extends State<LoginScreen> {
               horizontal: isSmallScreen ? 20 : 32,
               vertical: 24,
             ),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  const LoginHeader(),
-                  const SizedBox(height: 32),
-                  LoginCard(
-                    emailController: _emailController,
-                    passwordController: _passwordController,
-                    isLoading: _isLoading,
-                    onSubmit: _handleLogin,
-                    onForgotPassword: _handleForgotPassword,
-                    onRegister: _handleRegister,
-                  ),
-                ],
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    const LoginHeader(),
+                    const SizedBox(height: 32),
+                    LoginCard(
+                      emailController: _emailController,
+                      passwordController: _passwordController,
+                      isLoading: _isLoading,
+                      onSubmit: _handleLogin,
+                      onForgotPassword: _handleForgotPassword,
+                      onRegister: _handleRegister,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
