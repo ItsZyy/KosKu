@@ -29,13 +29,20 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
   @override
   void initState() {
     super.initState();
+    _paymentService.subscribeToPayments(_onPaymentsChanged);
     _loadPayments();
   }
 
   @override
   void dispose() {
+    _paymentService.unsubscribeFromPayments(_onPaymentsChanged);
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onPaymentsChanged() {
+    if (!mounted) return;
+    _loadPayments();
   }
 
   // LOAD DATA

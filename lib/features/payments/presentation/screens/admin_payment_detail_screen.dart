@@ -40,6 +40,18 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
   void initState() {
     super.initState();
     _payment = widget.initial;
+    _paymentService.subscribeToPayments(_onPaymentsChanged);
+    _loadDetail();
+  }
+
+  @override
+  void dispose() {
+    _paymentService.unsubscribeFromPayments(_onPaymentsChanged);
+    super.dispose();
+  }
+
+  void _onPaymentsChanged() {
+    if (!mounted) return;
     _loadDetail();
   }
 

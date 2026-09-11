@@ -7,6 +7,56 @@ import '../models/payment_model.dart';
 class PaymentService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
+  static RealtimeChannel? _paymentsChannel;
+  static final List<void Function()> _paymentsListeners = [];
+
+  void subscribeToPayments(void Function() onChanged) {
+    _paymentsListeners.add(onChanged);
+    _ensurePaymentsChannel();
+  }
+
+  void unsubscribeFromPayments(void Function() onChanged) {
+    _paymentsListeners.remove(onChanged);
+
+    if (_paymentsListeners.isEmpty) {
+      _disposePaymentsChannel();
+    }
+  }
+
+  void _ensurePaymentsChannel() {
+    if (_paymentsChannel != null) return;
+
+    final channel = _supabase.channel('kosku-payments-realtime');
+
+    channel
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'payments',
+          callback: (payload) {
+            for (final listener in List.of(_paymentsListeners)) {
+              listener();
+            }
+          },
+        )
+        .subscribe();
+
+    _paymentsChannel = channel;
+  }
+
+  Future<void> _disposePaymentsChannel() async {
+    final channel = _paymentsChannel;
+    _paymentsChannel = null;
+
+    if (channel == null) return;
+
+    await channel.unsubscribe();
+
+    try {
+      _supabase.removeChannel(channel);
+    } catch (_) {}
+  }
+
   Future<String> generatePayment({
     required String userId,
     required String roomId,

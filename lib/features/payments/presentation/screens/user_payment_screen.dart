@@ -32,6 +32,18 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
   @override
   void initState() {
     super.initState();
+    _paymentService.subscribeToPayments(_onPaymentsChanged);
+    _loadPayments();
+  }
+
+  @override
+  void dispose() {
+    _paymentService.unsubscribeFromPayments(_onPaymentsChanged);
+    super.dispose();
+  }
+
+  void _onPaymentsChanged() {
+    if (!mounted) return;
     _loadPayments();
   }
 
