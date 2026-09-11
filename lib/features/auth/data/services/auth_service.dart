@@ -66,6 +66,10 @@ class AuthService {
     return await _supabase.auth.signUp(email: email, password: password);
   }
 
+  Future<void> resetPassword({required String email}) async {
+    await _supabase.auth.resetPasswordForEmail(email);
+  }
+
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
