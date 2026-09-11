@@ -1,3 +1,5 @@
+import 'payment_status.dart';
+
 class PaymentItem {
   final String? id;
   final String? paymentId;
@@ -80,7 +82,7 @@ class Payment {
     this.contractStart,
     this.contractEnd,
     this.proofUrl,
-    this.status = 'menunggu',
+    required this.status,
     this.confirmedBy,
     this.confirmedAt,
     this.createdAt,
@@ -95,6 +97,8 @@ class Payment {
     return amount;
   }
 
+  PaymentStatus? get paymentStatus => PaymentStatus.tryParse(status);
+
   bool get hasBreakdown => items.isNotEmpty;
 
   bool get hasSubmittedPayment => proofUrl != null && proofUrl!.isNotEmpty;
@@ -104,11 +108,11 @@ class Payment {
   bool get isWaitingConfirmation =>
       isPending && (hasSubmittedPayment || isCash);
 
-  bool get isPending => status.toLowerCase() == 'menunggu';
+  bool get isPending => paymentStatus == PaymentStatus.pending;
 
-  bool get isConfirmed => status.toLowerCase() == 'dikonfirmasi';
+  bool get isConfirmed => paymentStatus == PaymentStatus.confirmed;
 
-  bool get isRejected => status.toLowerCase() == 'ditolak';
+  bool get isRejected => paymentStatus == PaymentStatus.rejected;
 
   factory Payment.fromMap(Map<String, dynamic> map) {
     return Payment(
@@ -127,7 +131,7 @@ class Payment {
       contractStart: _parseDate(map['contract_start']),
       contractEnd: _parseDate(map['contract_end']),
       proofUrl: map['proof_url']?.toString(),
-      status: map['status']?.toString() ?? 'menunggu',
+      status: map['status']?.toString() ?? PaymentStatus.pending.value,
       confirmedBy: map['confirmed_by']?.toString(),
       confirmedAt: _parseDate(map['confirmed_at']),
       createdAt: _parseDate(map['created_at']),

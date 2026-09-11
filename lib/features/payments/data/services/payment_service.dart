@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/payment_model.dart';
+import '../models/payment_status.dart';
 
 class PaymentService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -205,8 +206,8 @@ class PaymentService {
 
     final hasExistingProof = existingProof != null && existingProof.isNotEmpty;
 
-    if (hasExistingProof && currentStatus != 'ditolak') {
-      if (currentStatus == 'dikonfirmasi') {
+    if (hasExistingProof && currentStatus != PaymentStatus.rejected.value) {
+      if (currentStatus == PaymentStatus.confirmed.value) {
         throw Exception('Pembayaran sudah dikonfirmasi oleh admin.');
       }
 
@@ -220,7 +221,7 @@ class PaymentService {
         .update({
           'payment_method': paymentMethod,
           'proof_url': trimmedProofUrl,
-          'status': 'menunggu',
+          'status': PaymentStatus.pending.value,
           'confirmed_by': null,
           'confirmed_at': null,
         })
@@ -244,7 +245,7 @@ class PaymentService {
       throw Exception('Bukti pembayaran gagal disimpan ke database.');
     }
 
-    if (savedStatus != 'menunggu') {
+    if (savedStatus != PaymentStatus.pending.value) {
       throw Exception('Status pembayaran gagal diperbarui.');
     }
   }
@@ -269,11 +270,11 @@ class PaymentService {
 
     final currentStatus = payment['status']?.toString().toLowerCase();
 
-    if (currentStatus == 'dikonfirmasi') {
+    if (currentStatus == PaymentStatus.confirmed.value) {
       throw Exception('Pembayaran sudah dikonfirmasi oleh admin.');
     }
 
-    if (currentStatus == 'menunggu') {
+    if (currentStatus == PaymentStatus.pending.value) {
       throw Exception(
         'Pembayaran sudah dikirim dan sedang menunggu konfirmasi admin.',
       );
@@ -284,7 +285,7 @@ class PaymentService {
         .update({
           'payment_method': 'cash',
           'proof_url': null,
-          'status': 'menunggu',
+          'status': PaymentStatus.pending.value,
           'confirmed_by': null,
           'confirmed_at': null,
         })
@@ -305,7 +306,7 @@ class PaymentService {
       throw Exception('Metode pembayaran tunai gagal disimpan.');
     }
 
-    if (savedStatus != 'menunggu') {
+    if (savedStatus != PaymentStatus.pending.value) {
       throw Exception('Status pembayaran gagal diperbarui.');
     }
   }
@@ -362,7 +363,7 @@ class PaymentService {
 
     final proof = payment['proof_url']?.toString().trim();
 
-    if (currentStatus != 'menunggu') {
+    if (currentStatus != PaymentStatus.pending.value) {
       throw Exception(
         'Pembayaran tidak dapat dikonfirmasi karena status saat ini bukan "menunggu".',
       );
@@ -380,12 +381,12 @@ class PaymentService {
     final updated = await _supabase
         .from('payments')
         .update({
-          'status': 'dikonfirmasi',
+          'status': PaymentStatus.confirmed.value,
           'confirmed_by': user.id,
           'confirmed_at': DateTime.now().toUtc().toIso8601String(),
         })
         .eq('id', paymentId)
-        .eq('status', 'menunggu')
+        .eq('status', PaymentStatus.pending.value)
         .select('id, status, confirmed_by, confirmed_at')
         .maybeSingle();
 
@@ -398,7 +399,7 @@ class PaymentService {
 
     final updatedStatus = updated['status']?.toString().toLowerCase();
 
-    if (updatedStatus != 'dikonfirmasi') {
+    if (updatedStatus != PaymentStatus.confirmed.value) {
       throw Exception(
         'Status pembayaran tidak berubah menjadi "dikonfirmasi".',
       );
@@ -438,7 +439,7 @@ class PaymentService {
 
     final currentStatus = payment['status']?.toString().toLowerCase();
 
-    if (currentStatus != 'menunggu') {
+    if (currentStatus != PaymentStatus.pending.value) {
       throw Exception(
         'Pembayaran tidak dapat ditolak karena status saat ini bukan "menunggu".',
       );
@@ -446,9 +447,9 @@ class PaymentService {
 
     final updated = await _supabase
         .from('payments')
-        .update({'status': 'ditolak'})
+        .update({'status': PaymentStatus.rejected.value})
         .eq('id', paymentId)
-        .eq('status', 'menunggu')
+        .eq('status', PaymentStatus.pending.value)
         .select('id, status')
         .maybeSingle();
 
@@ -461,7 +462,7 @@ class PaymentService {
 
     final updatedStatus = updated['status']?.toString().toLowerCase();
 
-    if (updatedStatus != 'ditolak') {
+    if (updatedStatus != PaymentStatus.rejected.value) {
       throw Exception('Status pembayaran tidak berubah menjadi "ditolak".');
     }
   }
@@ -507,7 +508,7 @@ class PaymentService {
             amount
           )
         ''')
-        .eq('status', 'dikonfirmasi');
+        .eq('status', PaymentStatus.confirmed.value);
 
     int total = 0;
 

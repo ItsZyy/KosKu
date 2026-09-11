@@ -1,3 +1,5 @@
+import 'payment_status.dart';
+
 class PaymentFormatter {
   PaymentFormatter._();
 
@@ -95,17 +97,14 @@ class PaymentFormatter {
   }
 
   static String statusLabel(String status) {
-    switch (status.toLowerCase()) {
-      case 'dikonfirmasi':
-      case 'confirmed':
+    switch (PaymentStatus.tryParse(status)) {
+      case PaymentStatus.confirmed:
         return 'Lunas';
-      case 'ditolak':
-      case 'rejected':
+      case PaymentStatus.rejected:
         return 'Ditolak';
-      case 'menunggu':
-      case 'pending':
+      case PaymentStatus.pending:
         return 'Menunggu Pembayaran';
-      default:
+      case null:
         return status;
     }
   }

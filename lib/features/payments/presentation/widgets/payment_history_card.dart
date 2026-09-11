@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../data/models/payment_formatter.dart';
+import '../../data/models/payment_status.dart';
 
 class PaymentHistoryCard extends StatelessWidget {
   final List<Map<String, dynamic>> payments;
@@ -47,58 +48,49 @@ class PaymentHistoryCard extends StatelessWidget {
   }
 
   String _getStatusLabel(dynamic status) {
-    switch (status?.toString().toLowerCase()) {
-      case 'confirmed':
-      case 'dikonfirmasi':
+    switch (PaymentStatus.tryParse(status?.toString())) {
+      case PaymentStatus.confirmed:
         return 'LUNAS';
 
-      case 'rejected':
-      case 'ditolak':
+      case PaymentStatus.rejected:
         return 'DITOLAK';
 
-      case 'pending':
-      case 'menunggu':
+      case PaymentStatus.pending:
         return 'MENUNGGU KONFIRMASI';
 
-      default:
+      case null:
         return status?.toString().toUpperCase() ?? '-';
     }
   }
 
   IconData _getStatusIcon(dynamic status) {
-    switch (status?.toString().toLowerCase()) {
-      case 'confirmed':
-      case 'dikonfirmasi':
+    switch (PaymentStatus.tryParse(status?.toString())) {
+      case PaymentStatus.confirmed:
         return Icons.check_circle;
 
-      case 'rejected':
-      case 'ditolak':
+      case PaymentStatus.rejected:
         return Icons.cancel;
 
-      case 'pending':
-      case 'menunggu':
+      case PaymentStatus.pending:
         return Icons.access_time;
 
-      default:
+      case null:
         return Icons.info_outline;
     }
   }
 
   Color _getStatusColor(dynamic status) {
-    switch (status?.toString().toLowerCase()) {
-      case 'confirmed':
-      case 'dikonfirmasi':
+    switch (PaymentStatus.tryParse(status?.toString())) {
+      case PaymentStatus.confirmed:
         return Colors.green;
 
-      case 'rejected':
-      case 'ditolak':
+      case PaymentStatus.rejected:
         return Colors.red;
 
-      case 'pending':
-      case 'menunggu':
+      case PaymentStatus.pending:
         return Colors.orange;
 
-      default:
+      case null:
         return Colors.grey;
     }
   }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../data/models/payment_status.dart';
 
 class PaymentStatusBadge extends StatelessWidget {
   final String status;
@@ -16,38 +17,36 @@ class PaymentStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final normalizedStatus = status.toLowerCase();
-
     String label;
     Color backgroundColor;
     Color textColor;
     IconData? icon;
 
-    if (normalizedStatus == 'confirmed' || normalizedStatus == 'dikonfirmasi') {
-      label = 'Lunas';
-      backgroundColor = AppColors.successSoft;
-      textColor = AppColors.success;
-      icon = Icons.check_circle;
-    } else if (normalizedStatus == 'rejected' || normalizedStatus == 'ditolak') {
-      label = 'Ditolak';
-      backgroundColor = AppColors.errorSoft;
-      textColor = AppColors.error;
-      icon = Icons.cancel;
-    } else if (normalizedStatus == 'menunggu' ||
-        normalizedStatus == 'pending') {
-      if (hasProof) {
-        label = 'Menunggu Konfirmasi';
-      } else {
-        label = 'Belum Dibayar';
-      }
-      backgroundColor = AppColors.warningSoft;
-      textColor = AppColors.warning;
-      icon = Icons.access_time;
-    } else {
-      label = status;
-      backgroundColor = AppColors.warningSoft;
-      textColor = AppColors.warning;
-      icon = Icons.access_time;
+    switch (PaymentStatus.tryParse(status)) {
+      case PaymentStatus.confirmed:
+        label = 'Lunas';
+        backgroundColor = AppColors.successSoft;
+        textColor = AppColors.success;
+        icon = Icons.check_circle;
+      case PaymentStatus.rejected:
+        label = 'Ditolak';
+        backgroundColor = AppColors.errorSoft;
+        textColor = AppColors.error;
+        icon = Icons.cancel;
+      case PaymentStatus.pending:
+        if (hasProof) {
+          label = 'Menunggu Konfirmasi';
+        } else {
+          label = 'Belum Dibayar';
+        }
+        backgroundColor = AppColors.warningSoft;
+        textColor = AppColors.warning;
+        icon = Icons.access_time;
+      case null:
+        label = status;
+        backgroundColor = AppColors.warningSoft;
+        textColor = AppColors.warning;
+        icon = Icons.access_time;
     }
 
     return Container(

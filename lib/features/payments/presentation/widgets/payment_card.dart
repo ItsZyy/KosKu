@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../profile/data/services/profile_service.dart';
+import '../../data/models/payment_status.dart';
 import 'payment_status_badge.dart';
 
 class PaymentCard extends StatelessWidget {
@@ -91,7 +92,7 @@ class PaymentCard extends StatelessWidget {
       amount = (payment['amount'] as num?)?.toInt() ?? 0;
     }
 
-    final status = payment['status']?.toString() ?? 'menunggu';
+    final status = payment['status']?.toString() ?? PaymentStatus.pending.value;
 
     final createdAt = payment['created_at']?.toString();
 
@@ -103,7 +104,7 @@ class PaymentCard extends StatelessWidget {
     // benar-benar bisa dikonfirmasi/ditolak: status menunggu DAN
     // penghuni sudah mengirim bukti (badge "Menunggu Konfirmasi").
     final canBeConfirmed =
-        status.toLowerCase() == 'menunggu' &&
+        PaymentStatus.tryParse(status) == PaymentStatus.pending &&
         proofUrl != null &&
         proofUrl.isNotEmpty;
 

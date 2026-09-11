@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../data/models/payment_status.dart';
 import '../../data/services/payment_service.dart';
 import '../widgets/payment_card.dart';
 import '../widgets/payment_summary.dart';
@@ -91,11 +92,11 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
       bool matchesFilter = true;
 
       if (_selectedFilter == 'Lunas') {
-        matchesFilter = status == 'dikonfirmasi';
+        matchesFilter = status == PaymentStatus.confirmed.value;
       } else if (_selectedFilter == 'Menunggu') {
-        matchesFilter = status == 'menunggu';
+        matchesFilter = status == PaymentStatus.pending.value;
       } else if (_selectedFilter == 'Belum Bayar') {
-        matchesFilter = status == 'ditolak';
+        matchesFilter = status == PaymentStatus.rejected.value;
       }
 
       final matchesSearch =
@@ -137,7 +138,7 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
     int total = 0;
 
     for (final payment in _payments) {
-      if (payment['status'] == 'dikonfirmasi') {
+      if (payment['status']?.toString() == PaymentStatus.confirmed.value) {
         total += _calcTotal(payment);
       }
     }

@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../data/models/payment_formatter.dart';
 import '../../data/models/payment_model.dart';
+import '../../data/models/payment_status.dart';
 
 class AdminPaymentInfoSection extends StatelessWidget {
   final Payment payment;
@@ -82,12 +83,16 @@ class AdminPaymentInfoSection extends StatelessWidget {
 
   Widget _buildStatusRow() {
     const statusInfo = {
-      'menunggu': ('Menunggu', AppColors.warning, Icons.access_time),
-      'dikonfirmasi': ('Lunas', AppColors.success, Icons.check_circle),
-      'ditolak': ('Ditolak', AppColors.error, Icons.cancel),
+      PaymentStatus.pending: ('Menunggu', AppColors.warning, Icons.access_time),
+      PaymentStatus.confirmed: (
+        'Lunas',
+        AppColors.success,
+        Icons.check_circle,
+      ),
+      PaymentStatus.rejected: ('Ditolak', AppColors.error, Icons.cancel),
     };
 
-    final status = payment.status.toLowerCase();
+    final status = PaymentStatus.tryParse(payment.status);
     final (label, color, icon) =
         statusInfo[status] ??
         (payment.status, AppColors.textSecondary, Icons.help_outline);
