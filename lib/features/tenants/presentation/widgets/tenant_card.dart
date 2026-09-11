@@ -1,4 +1,3 @@
-// Widget untuk TenantsScreen
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -12,6 +11,7 @@ class TenantCard extends StatelessWidget {
   final String status;
   final String? photoUrl;
   final VoidCallback? onDetail;
+  final VoidCallback? onToggleStatus;
 
   const TenantCard({
     super.key,
@@ -21,9 +21,10 @@ class TenantCard extends StatelessWidget {
     required this.status,
     this.photoUrl,
     this.onDetail,
+    this.onToggleStatus,
   });
 
-  bool get isActive => status.toLowerCase() == 'aktif';
+  bool get isActive => status.toLowerCase() == 'active';
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +95,21 @@ class TenantCard extends StatelessWidget {
                   ),
                 ),
                 TextButton(onPressed: onDetail, child: const Text('Detail')),
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'toggle') {
+                      onToggleStatus?.call();
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'toggle',
+                      child: Text(
+                        isActive ? 'Nonaktifkan Penghuni' : 'Aktifkan Penghuni',
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ],
@@ -124,9 +140,12 @@ class TenantCard extends StatelessWidget {
 
   Widget _buildStatus() {
     final color = isActive ? AppColors.success : AppColors.textSecondary;
+
     final backgroundColor = isActive
         ? AppColors.successSoft
         : AppColors.inputBackground;
+
+    final label = isActive ? 'Aktif' : 'Nonaktif';
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -143,7 +162,7 @@ class TenantCard extends StatelessWidget {
             decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           const SizedBox(width: 5),
-          Text(status, style: AppTextStyles.labelSmall.copyWith(color: color)),
+          Text(label, style: AppTextStyles.labelSmall.copyWith(color: color)),
         ],
       ),
     );

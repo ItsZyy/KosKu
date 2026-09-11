@@ -16,6 +16,7 @@ class TenantsScreen extends StatefulWidget {
 
 class _TenantsScreenState extends State<TenantsScreen> {
   final TextEditingController _searchController = TextEditingController();
+
   final TenantService _tenantService = TenantService();
 
   List<TenantModel> _tenants = [];
@@ -46,6 +47,8 @@ class _TenantsScreenState extends State<TenantsScreen> {
         _filteredTenants = tenants;
         _isLoading = false;
       });
+
+      _handleSearch(_searchController.text);
     } catch (e) {
       if (!mounted) return;
 
@@ -81,6 +84,78 @@ class _TenantsScreenState extends State<TenantsScreen> {
     );
   }
 
+  Future<void> _handleToggleStatus(TenantModel tenant) async {
+    final isActive = tenant.status.toLowerCase() == 'active';
+
+    final action = isActive ? 'menonaktifkan' : 'mengaktifkan';
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(isActive ? 'Nonaktifkan Penghuni' : 'Aktifkan Penghuni'),
+          content: Text(
+            isActive
+                ? 'Apakah kamu yakin ingin menonaktifkan '
+                      '${tenant.name}? Penghuni akan dikeluarkan '
+                      'dari status aktif kamar.'
+                : 'Apakah kamu yakin ingin mengaktifkan kembali '
+                      '${tenant.name}? Sistem akan mengecek '
+                      'kapasitas kamar terlebih dahulu.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: const Text('Batal'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: Text(isActive ? 'Nonaktifkan' : 'Aktifkan'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted) {
+      return;
+    }
+
+    try {
+      if (isActive) {
+        await _tenantService.deactivateTenant(tenant.id);
+      } else {
+        await _tenantService.activateTenant(tenant.id);
+      }
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${tenant.name} berhasil $action.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      await _loadTenants();
+    } catch (e) {
+      if (!mounted) return;
+
+      final message = e.toString().replaceFirst('Exception: ', '');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal $action: $message'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   void _handleAddTenant() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -113,6 +188,10 @@ class _TenantsScreenState extends State<TenantsScreen> {
       return _buildError();
     }
 
+    final activeTenants = _tenants
+        .where((tenant) => tenant.status.toLowerCase() == 'active')
+        .toList();
+
     return RefreshIndicator(
       onRefresh: _loadTenants,
       child: SingleChildScrollView(
@@ -127,8 +206,8 @@ class _TenantsScreenState extends State<TenantsScreen> {
             ),
             const SizedBox(height: 16),
             TenantSummary(
-              totalTenants: _tenants.length,
-              occupiedRooms: _tenants
+              totalTenants: activeTenants.length,
+              occupiedRooms: activeTenants
                   .map((tenant) => tenant.roomId)
                   .toSet()
                   .length,
@@ -136,7 +215,11 @@ class _TenantsScreenState extends State<TenantsScreen> {
             const SizedBox(height: 20),
             Text('Daftar Penghuni', style: AppTextStyles.titleLarge),
             const SizedBox(height: 12),
-            TenantList(tenants: _filteredTenants, onDetail: _handleDetail),
+            TenantList(
+              tenants: _filteredTenants,
+              onDetail: _handleDetail,
+              onToggleStatus: _handleToggleStatus,
+            ),
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,

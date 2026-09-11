@@ -414,6 +414,28 @@ class RoomService {
         .eq('id', roomId);
   }
 
+  Future<void> removeOccupant({
+    required String userId,
+    required String roomId,
+    DateTime? exitDate,
+  }) async {
+    final result = await _supabase.rpc(
+      'remove_occupant',
+      params: {
+        'p_user_id': userId,
+        'p_room_id': roomId,
+        'p_exit_date': (exitDate ?? DateTime.now())
+            .toIso8601String()
+            .split('T')
+            .first,
+      },
+    );
+
+    if (result != true) {
+      throw Exception('Gagal mengeluarkan penghuni.');
+    }
+  }
+
   Future<Map<String, List<Map<String, dynamic>>>> getRoomUsers() async {
     final data = await _supabase
         .from('occupancies')

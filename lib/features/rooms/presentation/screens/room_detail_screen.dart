@@ -10,7 +10,7 @@ import '../widgets/room_info_card.dart';
 import '../widgets/room_facilities_detail_card.dart';
 import '../widgets/room_payment_summary_card.dart';
 import '../widgets/room_user_management_card.dart';
-import '../widgets/room_detail_bottom_action.dart';
+
 import 'edit_room_screen.dart';
 import 'add_occupant_screen.dart';
 
@@ -30,7 +30,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
   RoomDetailModel? _detail;
 
   int _grandTotal = 0;
-
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -91,13 +90,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: _buildBody(),
-      bottomNavigationBar: _detail == null
-          ? null
-          : RoomDetailBottomAction(
-              label: 'Edit Kamar',
-              icon: Icons.edit_outlined,
-              onPressed: _onEditRoom,
-            ),
     );
   }
 
@@ -223,11 +215,77 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
   }
 
   void _onEditUser(RoomDetailUser user) {
-    // Nanti sambungkan ke halaman edit penghuni.
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Edit penghuni ${user.name} belum tersedia.'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
-  void _onRemoveUser(RoomDetailUser user) {
-    // Nanti sambungkan ke fungsi hapus penghuni.
+  Future<void> _onRemoveUser(RoomDetailUser user) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Keluarkan Penghuni'),
+          content: Text(
+            'Apakah kamu yakin ingin mengeluarkan ${user.name} dari kamar ini?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: const Text('Batal'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: const Text('Keluarkan'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted) {
+      return;
+    }
+
+    try {
+      await _roomService.removeOccupant(
+        userId: user.userId,
+        roomId: widget.roomId,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${user.name} berhasil dikeluarkan dari kamar.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      await _loadRoomDetail();
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      debugPrint('Remove occupant error: $e');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal mengeluarkan penghuni: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Future<void> _onDeleteRoom() async {

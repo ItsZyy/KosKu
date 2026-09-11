@@ -20,6 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   final _authService = AuthService();
   final _profileService = ProfileService();
+
   final _formKey = GlobalKey<FormState>();
 
   bool _isLoading = false;
@@ -32,9 +33,13 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+    });
 
     try {
       await _authService.login(
@@ -42,23 +47,39 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text,
       );
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       final role = await _profileService.getRole();
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       if (role == 'user') {
         Navigator.pushReplacementNamed(context, AppRouter.userDashboard);
       } else if (role == 'admin') {
         Navigator.pushReplacementNamed(context, AppRouter.adminDashboard);
+      } else {
+        await _authService.logout();
+
+        if (!mounted) {
+          return;
+        }
+
+        throw Exception('Role pengguna tidak valid.');
       }
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
+
+      final message = e.toString().replaceFirst('Exception: ', '');
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Login gagal: $e'),
+          content: Text('Login gagal: $message'),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -68,7 +89,9 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }

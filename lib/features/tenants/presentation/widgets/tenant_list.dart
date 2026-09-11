@@ -1,4 +1,3 @@
-// Widget untuk TenantsScreen
 import 'package:flutter/material.dart';
 
 import '../../data/models/tenant_model.dart';
@@ -7,8 +6,14 @@ import 'tenant_card.dart';
 class TenantList extends StatelessWidget {
   final List<TenantModel> tenants;
   final ValueChanged<TenantModel>? onDetail;
+  final ValueChanged<TenantModel>? onToggleStatus;
 
-  const TenantList({super.key, required this.tenants, this.onDetail});
+  const TenantList({
+    super.key,
+    required this.tenants,
+    this.onDetail,
+    this.onToggleStatus,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,17 +25,18 @@ class TenantList extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: tenants.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final tenant = tenants[index];
 
         return TenantCard(
           name: tenant.name,
           roomNumber: tenant.roomNumber,
-          joinedDate: tenant.contractStart.toString(),
+          joinedDate: tenant.joinedDate,
           status: tenant.status,
           photoUrl: tenant.profilePhotoUrl,
           onDetail: () => onDetail?.call(tenant),
+          onToggleStatus: () => onToggleStatus?.call(tenant),
         );
       },
     );

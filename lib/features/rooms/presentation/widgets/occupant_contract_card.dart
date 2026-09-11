@@ -7,21 +7,16 @@ class OccupantContractCard extends StatelessWidget {
   final DateTime contractStart;
   final DateTime contractEnd;
   final double rentPrice;
-  final int paymentDay;
-
   final VoidCallback onSelectStartDate;
   final VoidCallback onSelectEndDate;
-  final ValueChanged<int> onPaymentDayChanged;
 
   const OccupantContractCard({
     super.key,
     required this.contractStart,
     required this.contractEnd,
     required this.rentPrice,
-    required this.paymentDay,
     required this.onSelectStartDate,
     required this.onSelectEndDate,
-    required this.onPaymentDayChanged,
   });
 
   @override
@@ -60,77 +55,21 @@ class OccupantContractCard extends StatelessWidget {
           Text('Harga Sewa (6 Bulan)', style: AppTextStyles.labelMedium),
           const SizedBox(height: 6),
 
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-            decoration: BoxDecoration(
-              color: AppColors.inputBackground,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Text(
-              _formatCurrency(rentPrice),
-              style: AppTextStyles.bodyMedium.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
+          _buildInfoField(value: _formatCurrency(rentPrice), isBold: true),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
           Text('Periode Pembayaran', style: AppTextStyles.labelMedium),
           const SizedBox(height: 6),
 
-          DropdownButtonFormField<int>(
-            initialValue: 6,
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: AppColors.inputBackground,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: AppColors.border),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: AppColors.border),
-              ),
-            ),
-            items: const [
-              DropdownMenuItem(value: 6, child: Text('6 bulan sekali')),
-            ],
-            onChanged: null,
-          ),
+          _buildInfoField(value: '6 bulan sekali'),
 
           const SizedBox(height: 16),
 
           Text('Tanggal Pembayaran', style: AppTextStyles.labelMedium),
           const SizedBox(height: 6),
 
-          DropdownButtonFormField<int>(
-            initialValue: paymentDay,
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: AppColors.inputBackground,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: AppColors.border),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: AppColors.border),
-              ),
-            ),
-            items: List.generate(31, (index) {
-              final day = index + 1;
-
-              return DropdownMenuItem(value: day, child: Text('Tanggal $day'));
-            }),
-            onChanged: (value) {
-              if (value != null) {
-                onPaymentDayChanged(value);
-              }
-            },
-          ),
+          _buildInfoField(value: 'Tanggal ${contractStart.day}'),
 
           const SizedBox(height: 8),
 
@@ -141,7 +80,7 @@ class OccupantContractCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Tanggal pembayaran secara default mengikuti tanggal mulai kontrak.',
+                  'Tanggal pembayaran otomatis mengikuti tanggal mulai kontrak dan pembayaran dilakukan setiap 6 bulan.',
                   style: AppTextStyles.caption.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -187,6 +126,24 @@ class OccupantContractCard extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildInfoField({required String value, bool isBold = false}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      decoration: BoxDecoration(
+        color: AppColors.inputBackground,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Text(
+        value,
+        style: AppTextStyles.bodyMedium.copyWith(
+          fontWeight: isBold ? FontWeight.w700 : FontWeight.w400,
+        ),
+      ),
     );
   }
 

@@ -137,9 +137,7 @@ class RoomUserManagementCard extends StatelessWidget {
             radius: 24,
             backgroundColor: AppColors.border,
             backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
-            child: photoUrl == null
-                ? const Icon(Icons.person_outline)
-                : null,
+            child: photoUrl == null ? const Icon(Icons.person_outline) : null,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -182,7 +180,10 @@ class RoomUserManagementCard extends StatelessWidget {
               },
               itemBuilder: (context) => const [
                 PopupMenuItem(value: 'edit', child: Text('Edit')),
-                PopupMenuItem(value: 'remove', child: Text('Hapus Penghuni')),
+                PopupMenuItem(
+                  value: 'remove',
+                  child: Text('Keluarkan Penghuni'),
+                ),
               ],
             ),
         ],

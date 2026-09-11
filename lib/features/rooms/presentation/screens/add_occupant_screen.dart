@@ -20,7 +20,6 @@ class _AddOccupantScreenState extends State<AddOccupantScreen> {
   final RoomService _roomService = RoomService();
 
   List<Map<String, dynamic>> _users = [];
-
   Map<String, dynamic>? _selectedUser;
 
   DateTime _contractStart = DateTime.now();
@@ -29,7 +28,6 @@ class _AddOccupantScreenState extends State<AddOccupantScreen> {
   double _rentPrice = 0;
 
   final int _paymentIntervalMonths = 6;
-  late int _paymentDay;
 
   bool _isLoading = true;
   bool _isSaving = false;
@@ -45,8 +43,6 @@ class _AddOccupantScreenState extends State<AddOccupantScreen> {
       _contractStart.month,
       _contractStart.day,
     );
-
-    _paymentDay = _contractStart.day;
 
     _loadData();
   }
@@ -167,14 +163,8 @@ class _AddOccupantScreenState extends State<AddOccupantScreen> {
               contractStart: _contractStart,
               contractEnd: _contractEnd,
               rentPrice: _rentPrice,
-              paymentDay: _paymentDay,
               onSelectStartDate: _selectContractStart,
               onSelectEndDate: _selectContractEnd,
-              onPaymentDayChanged: (value) {
-                setState(() {
-                  _paymentDay = value;
-                });
-              },
             ),
           ],
         ],
@@ -202,7 +192,6 @@ class _AddOccupantScreenState extends State<AddOccupantScreen> {
 
     setState(() {
       _contractStart = selectedDate;
-      _paymentDay = selectedDate.day;
 
       if (!_contractEnd.isAfter(selectedDate)) {
         _contractEnd = DateTime(
@@ -257,7 +246,7 @@ class _AddOccupantScreenState extends State<AddOccupantScreen> {
         contractEnd: _contractEnd,
         rentPrice: _rentPrice,
         paymentIntervalMonths: _paymentIntervalMonths,
-        paymentDay: _paymentDay,
+        paymentDay: _contractStart.day,
       );
 
       if (!mounted) {

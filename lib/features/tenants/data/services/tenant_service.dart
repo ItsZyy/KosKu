@@ -17,7 +17,8 @@ class TenantService {
           rent_price,
           status
         ''')
-        .eq('status', 'active')
+        .inFilter('status', ['active', 'inactive'])
+        .order('status', ascending: true)
         .order('contract_start', ascending: false);
 
     if (occupancies.isEmpty) {
@@ -68,5 +69,27 @@ class TenantService {
         'status': item['status'],
       });
     }).toList();
+  }
+
+  Future<void> deactivateTenant(String occupancyId) async {
+    final result = await _supabase.rpc(
+      'deactivate_tenant',
+      params: {'p_occupancy_id': occupancyId},
+    );
+
+    if (result != true) {
+      throw Exception('Gagal menonaktifkan penghuni.');
+    }
+  }
+
+  Future<void> activateTenant(String occupancyId) async {
+    final result = await _supabase.rpc(
+      'activate_tenant',
+      params: {'p_occupancy_id': occupancyId},
+    );
+
+    if (result != true) {
+      throw Exception('Gagal mengaktifkan penghuni.');
+    }
   }
 }

@@ -9,10 +9,54 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    return await _supabase.auth.signInWithPassword(
+    final response = await _supabase.auth.signInWithPassword(
       email: email,
       password: password,
     );
+
+    final user = response.user;
+
+    if (user == null) {
+      throw Exception('Login gagal.');
+    }
+
+    final profile = await _supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+    if (profile == null) {
+      await _supabase.auth.signOut();
+      throw Exception('Profil pengguna tidak ditemukan.');
+    }
+
+    final role = profile['role']?.toString().toLowerCase();
+
+    if (role == 'admin') {
+      return response;
+    }
+
+    if (role == 'user') {
+      final occupancy = await _supabase
+          .from('occupancies')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .limit(1)
+          .maybeSingle();
+
+      if (occupancy == null) {
+        await _supabase.auth.signOut();
+        throw Exception('Akun kamu sudah tidak aktif. Silakan hubungi admin.');
+      }
+
+      return response;
+    }
+
+    await _supabase.auth.signOut();
+
+    throw Exception('Role pengguna tidak valid.');
   }
 
   Future<AuthResponse> register({
