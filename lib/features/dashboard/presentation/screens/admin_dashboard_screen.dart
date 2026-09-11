@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
 import '../../../rooms/data/services/room_service.dart';
 import '../../../payments/data/services/payment_service.dart';
 import '../../../complaints/data/services/complaint_service.dart';
@@ -11,6 +12,7 @@ import '../../../announcements/presentation/screens/add_announcement_screen.dart
 import '../../../rooms/presentation/screens/add_room_screen.dart';
 import '../../../rooms/presentation/screens/admin_facilities_screen.dart';
 import '../../../payments/presentation/screens/admin_payment_methods_screen.dart';
+import '../../../contracts/presentation/pages/contracts_page.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -94,9 +96,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               'Halo, Pemilik Kos 👋',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 24),
-
             Row(
               children: [
                 Expanded(
@@ -118,9 +118,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 ),
               ],
             ),
-
             const SizedBox(height: 12),
-
             Row(
               children: [
                 Expanded(
@@ -142,16 +140,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 ),
               ],
             ),
-
             const SizedBox(height: 28),
-
             const Text(
               'Aktivitas Terkini',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 12),
-
             Card(
               child: Column(
                 children: [
@@ -162,16 +156,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 ],
               ),
             ),
-
             const SizedBox(height: 28),
-
             const Text(
               'Aksi Cepat',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 12),
-
             ActionButtonCard(
               title: 'Tambah Kamar',
               icon: Icons.add_home,
@@ -184,19 +174,23 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 );
               },
             ),
-
             ActionButtonCard(
               title: 'Tambah Penghuni',
               icon: Icons.person_add,
               onPressed: () {},
             ),
-
             ActionButtonCard(
               title: 'Kelola Kontrak',
               icon: Icons.description,
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ContractsPage(),
+                  ),
+                );
+              },
             ),
-
             ActionButtonCard(
               title: 'Kelola Metode Pembayaran',
               icon: Icons.payment,
@@ -209,7 +203,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 );
               },
             ),
-
             ActionButtonCard(
               title: 'Kelola Fasilitas',
               icon: Icons.checklist_outlined,
@@ -222,7 +215,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 );
               },
             ),
-
             ActionButtonCard(
               title: 'Tambah Pengumuman Baru',
               icon: Icons.campaign_sharp,
