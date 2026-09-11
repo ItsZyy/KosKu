@@ -81,7 +81,7 @@ class PaymentBillSection extends StatelessWidget {
                 ),
               ),
               Text(
-                PaymentFormatter.rupiah(payment.amount),
+                PaymentFormatter.rupiah(payment.totalAmount),
                 style: AppTextStyles.titleMedium.copyWith(
                   fontWeight: FontWeight.w700,
                   color: AppColors.primary,

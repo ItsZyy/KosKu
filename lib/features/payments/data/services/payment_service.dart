@@ -451,13 +451,26 @@ class PaymentService {
   Future<int> getTotalIncome() async {
     final data = await _supabase
         .from('payments')
-        .select('amount')
+        .select('''
+          amount,
+          payment_items (
+            amount
+          )
+        ''')
         .eq('status', 'dikonfirmasi');
 
     int total = 0;
 
     for (final payment in data) {
-      total += (payment['amount'] as num).toInt();
+      final items = payment['payment_items'];
+
+      if (items is List && items.isNotEmpty) {
+        for (final item in items) {
+          total += (item['amount'] as num?)?.toInt() ?? 0;
+        }
+      } else {
+        total += (payment['amount'] as num?)?.toInt() ?? 0;
+      }
     }
 
     return total;
@@ -482,6 +495,14 @@ class PaymentService {
           created_at,
           rooms (
             room_number
+          ),
+          payment_items (
+            id,
+            payment_id,
+            item_type,
+            description,
+            amount,
+            created_at
           )
         ''')
         .order('created_at', ascending: false);
@@ -504,7 +525,17 @@ class PaymentService {
 
     final data = await _supabase
         .from('payments')
-        .select()
+        .select('''
+          *,
+          payment_items (
+            id,
+            payment_id,
+            item_type,
+            description,
+            amount,
+            created_at
+          )
+        ''')
         .eq('user_id', user.id)
         .order('period', ascending: false);
 

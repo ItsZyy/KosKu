@@ -141,6 +141,22 @@ class PaymentHistoryCard extends StatelessWidget {
               ...payments.map((payment) {
                 final status = payment['status'];
 
+                final items = payment['payment_items'];
+
+                final int amount;
+
+                if (items is List && items.isNotEmpty) {
+                  int sum = 0;
+
+                  for (final item in items) {
+                    sum += (item['amount'] as num?)?.toInt() ?? 0;
+                  }
+
+                  amount = sum;
+                } else {
+                  amount = (payment['amount'] as num?)?.toInt() ?? 0;
+                }
+
                 return _PaymentHistoryItem(
                   period: PaymentFormatter.periodRange(
                     DateTime.tryParse(
@@ -151,7 +167,7 @@ class PaymentHistoryCard extends StatelessWidget {
                     ),
                     fallbackPeriod: payment['period'],
                   ),
-                  amount: _formatRupiah(payment['amount']),
+                  amount: _formatRupiah(amount),
                   date: _formatDate(
                     payment['confirmed_at'] ?? payment['created_at'],
                   ),

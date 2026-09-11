@@ -87,7 +87,13 @@ class Payment {
     this.items = const [],
   });
 
-  int get totalAmount => amount;
+  int get totalAmount {
+    if (items.isNotEmpty) {
+      return items.fold(0, (sum, item) => sum + item.amount);
+    }
+
+    return amount;
+  }
 
   bool get hasBreakdown => items.isNotEmpty;
 

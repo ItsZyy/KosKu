@@ -13,7 +13,6 @@ class AdminPaymentInfoSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final type = _descriptionLabel(payment.description);
-    final isInstallment = (payment.description ?? '').toLowerCase() == 'cicil';
 
     return Container(
       width: double.infinity,
@@ -30,15 +29,7 @@ class AdminPaymentInfoSection extends StatelessWidget {
           const SizedBox(height: 16),
           _buildRow('Deskripsi', type),
           const Divider(height: 24, color: AppColors.divider),
-          _buildRow('Nominal', PaymentFormatter.rupiah(payment.amount)),
-          if (isInstallment) ...[
-            const SizedBox(height: 6),
-            Text(
-              'Schema payments belum menyimpan nominal cicilan aktual. '
-              'Nominal di atas adalah total tagihan resmi.',
-              style: AppTextStyles.bodySmall,
-            ),
-          ],
+          _buildRow('Nominal', PaymentFormatter.rupiah(payment.totalAmount)),
           const Divider(height: 24, color: AppColors.divider),
           _buildStatusRow(),
           const Divider(height: 24, color: AppColors.divider),
@@ -137,9 +128,6 @@ class AdminPaymentInfoSection extends StatelessWidget {
       case 'lunas':
       case 'full':
         return 'Lunas';
-      case 'cicil':
-      case 'installment':
-        return 'Cicilan';
       default:
         return (description == null || description.isEmpty) ? '-' : description;
     }

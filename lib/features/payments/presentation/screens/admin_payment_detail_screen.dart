@@ -235,7 +235,7 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
                   fallbackPeriod: payment.period,
                 ),
               ),
-              _dialogRow('Nominal', PaymentFormatter.rupiah(payment.amount)),
+              _dialogRow('Nominal', PaymentFormatter.rupiah(payment.totalAmount)),
               _dialogRow(
                 'Metode',
                 payment.isCash

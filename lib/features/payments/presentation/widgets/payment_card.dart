@@ -75,7 +75,21 @@ class PaymentCard extends StatelessWidget {
 
     final resolvedPhotoUrl = ProfileService.resolveProfilePhotoUrl(photoPath);
 
-    final amount = (payment['amount'] as num?)?.toInt() ?? 0;
+    final items = payment['payment_items'];
+
+    final int amount;
+
+    if (items is List && items.isNotEmpty) {
+      int sum = 0;
+
+      for (final item in items) {
+        sum += (item['amount'] as num?)?.toInt() ?? 0;
+      }
+
+      amount = sum;
+    } else {
+      amount = (payment['amount'] as num?)?.toInt() ?? 0;
+    }
 
     final status = payment['status']?.toString() ?? 'menunggu';
 

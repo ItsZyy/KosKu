@@ -16,7 +16,6 @@ import '../widgets/payment_detail_header.dart';
 import '../widgets/payment_method_section.dart';
 import '../widgets/payment_proof_section.dart';
 import '../widgets/payment_submit_status_card.dart';
-import '../widgets/payment_option_selector.dart';
 
 class PaymentDetailScreen extends StatefulWidget {
   final String paymentId;
@@ -37,14 +36,11 @@ class PaymentDetailScreen extends StatefulWidget {
 class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
   final _paymentService = PaymentService();
   final _paymentMethodService = PaymentMethodService();
-  final _amountController = TextEditingController();
 
   Payment? _payment;
   List<PaymentMethodModel> _paymentMethods = [];
   PaymentMethodModel? _selectedPaymentMethod;
   String? _qrisSignedUrl;
-
-  PaymentOption _paymentOption = PaymentOption.full;
 
   File? _proofImage;
 
@@ -57,12 +53,6 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
     super.initState();
     _payment = widget.initial;
     _loadDetail();
-  }
-
-  @override
-  void dispose() {
-    _amountController.dispose();
-    super.dispose();
   }
 
   Future<void> _loadDetail() async {
@@ -112,10 +102,6 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
         _qrisSignedUrl = qrisUrl;
         _selectedPaymentMethod = selectedMethod;
         _isLoading = false;
-
-        if (payment != null) {
-          _amountController.text = payment.amount.toString();
-        }
       });
     } catch (e) {
       if (!mounted) return;
@@ -127,22 +113,6 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
     }
   }
 
-  void _onPaymentOptionChanged(PaymentOption option) {
-    final payment = _payment;
-
-    if (payment == null) return;
-
-    setState(() {
-      _paymentOption = option;
-
-      if (option == PaymentOption.full) {
-        _amountController.text = payment.amount.toString();
-      } else {
-        _amountController.clear();
-      }
-    });
-  }
-
   void _onPaymentMethodChanged(PaymentMethodModel method) {
     setState(() {
       _selectedPaymentMethod = method;
@@ -151,48 +121,6 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
         _proofImage = null;
       }
     });
-  }
-
-  int? _getPaymentAmount() {
-    final payment = _payment;
-
-    if (payment == null) return null;
-
-    if (_paymentOption == PaymentOption.full) {
-      return payment.amount;
-    }
-
-    final raw = _amountController.text.replaceAll('.', '').trim();
-
-    if (raw.isEmpty) {
-      return null;
-    }
-
-    final amount = int.tryParse(raw);
-
-    if (amount == null || amount <= 0) {
-      return null;
-    }
-
-    if (amount > payment.amount) {
-      return null;
-    }
-
-    return amount;
-  }
-
-  int? _getPreviewAmount(Payment payment) {
-    if (_paymentOption == PaymentOption.full) {
-      return payment.amount;
-    }
-
-    final raw = _amountController.text.replaceAll('.', '').trim();
-
-    if (raw.isEmpty) {
-      return null;
-    }
-
-    return int.tryParse(raw);
   }
 
   Future<void> _confirmPayment() async {
@@ -220,23 +148,7 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
       return;
     }
 
-    final amount = _getPaymentAmount();
-
-    if (amount == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nominal pembayaran tidak valid.')),
-      );
-      return;
-    }
-
-    if (amount > payment.amount) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Nominal tidak boleh melebihi total tagihan.'),
-        ),
-      );
-      return;
-    }
+    final amount = payment.totalAmount;
 
     if (_isSubmitting) return;
 
@@ -383,8 +295,6 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
       return _buildError('Tagihan tidak ditemukan.');
     }
 
-    final currentAmount = _getPreviewAmount(payment);
-
     final isWaiting = payment.isWaitingConfirmation;
 
     final isRejected = payment.isRejected;
@@ -427,29 +337,7 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
           ),
           if (canSubmit) ...[
             const SizedBox(height: 24),
-            PaymentOptionSelector(
-              selectedOption: _paymentOption,
-              onChanged: _onPaymentOptionChanged,
-            ),
-            const SizedBox(height: 20),
-            PaymentAmountSection(
-              option: _paymentOption,
-              totalAmount: payment.amount,
-              controller: _amountController,
-            ),
-            if (_paymentOption == PaymentOption.installment &&
-                _amountController.text.isNotEmpty &&
-                currentAmount != null &&
-                currentAmount < payment.amount) ...[
-              const SizedBox(height: 8),
-              Text(
-                'Sisa tagihan: '
-                '${PaymentFormatter.rupiah(payment.amount - currentAmount)}',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
+            PaymentAmountSection(totalAmount: payment.totalAmount),
             if (!isCash) ...[
               const SizedBox(height: 24),
               PaymentProofSection(

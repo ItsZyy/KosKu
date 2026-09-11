@@ -100,11 +100,27 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
 
   // SUMMARY
 
+  int _calcTotal(Map<String, dynamic> payment) {
+    final items = payment['payment_items'];
+
+    if (items is List && items.isNotEmpty) {
+      int sum = 0;
+
+      for (final item in items) {
+        sum += (item['amount'] as num?)?.toInt() ?? 0;
+      }
+
+      return sum;
+    }
+
+    return (payment['amount'] as num?)?.toInt() ?? 0;
+  }
+
   int get _totalBill {
     int total = 0;
 
     for (final payment in _payments) {
-      total += (payment['amount'] as num?)?.toInt() ?? 0;
+      total += _calcTotal(payment);
     }
 
     return total;
@@ -115,7 +131,7 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
 
     for (final payment in _payments) {
       if (payment['status'] == 'dikonfirmasi') {
-        total += (payment['amount'] as num?)?.toInt() ?? 0;
+        total += _calcTotal(payment);
       }
     }
 
