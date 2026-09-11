@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../profile/data/services/profile_service.dart';
 import 'payment_status_badge.dart';
 
 class PaymentCard extends StatelessWidget {
@@ -41,6 +42,23 @@ class PaymentCard extends StatelessWidget {
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
+  Widget _buildAvatar({String? photoUrl}) {
+    final hasPhoto = photoUrl != null && photoUrl.isNotEmpty;
+
+    return CircleAvatar(
+      radius: 24,
+      backgroundColor: AppColors.primarySoft,
+      backgroundImage: hasPhoto ? NetworkImage(photoUrl) : null,
+      child: hasPhoto
+          ? null
+          : Icon(
+              Icons.person,
+              size: 24,
+              color: AppColors.primary,
+            ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final profile = payment['profiles'] as Map<String, dynamic>?;
@@ -49,6 +67,10 @@ class PaymentCard extends StatelessWidget {
 
     final name = profile?['name'] ?? 'Penghuni';
     final roomNumber = room?['room_number'] ?? '-';
+
+    final photoPath = profile?['profile_photo_url']?.toString();
+
+    final resolvedPhotoUrl = ProfileService.resolveProfilePhotoUrl(photoPath);
 
     final amount = (payment['amount'] as num?)?.toInt() ?? 0;
 
@@ -77,7 +99,7 @@ class PaymentCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(radius: 24, child: const Icon(Icons.person)),
+                _buildAvatar(photoUrl: resolvedPhotoUrl),
 
                 const SizedBox(width: 12),
 

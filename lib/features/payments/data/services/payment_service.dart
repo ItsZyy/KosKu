@@ -53,11 +53,6 @@ class PaymentService {
           confirmed_by,
           confirmed_at,
           created_at,
-          profiles!payments_user_id_fkey (
-            name,
-            phone,
-            profile_photo_url
-          ),
           rooms (
             room_number
           ),
@@ -78,6 +73,12 @@ class PaymentService {
     }
 
     final map = Map<String, dynamic>.from(data);
+
+    final profile = await _fetchProfile(map['user_id']);
+
+    if (profile != null) {
+      map['profiles'] = profile;
+    }
 
     await _attachContract(map);
 
@@ -479,9 +480,6 @@ class PaymentService {
           confirmed_by,
           confirmed_at,
           created_at,
-          profiles!payments_user_id_fkey (
-            name
-          ),
           rooms (
             room_number
           )
@@ -491,6 +489,8 @@ class PaymentService {
     final payments = List<Map<String, dynamic>>.from(data);
 
     await _attachContracts(payments);
+
+    await _attachProfiles(payments);
 
     return payments;
   }
@@ -688,6 +688,66 @@ class PaymentService {
   Future<void> _attachContract(Map<String, dynamic> payment) async {
     final occupancies = await _getOccupancies();
     _attachContractToMap(payment, occupancies);
+  }
+
+  Future<Map<String, dynamic>?> _fetchProfile(dynamic userId) async {
+    if (userId == null) {
+      return null;
+    }
+
+    try {
+      final data = await _supabase
+          .from('profiles')
+          .select('id, name, phone, profile_photo_url')
+          .eq('id', userId.toString())
+          .maybeSingle();
+
+      if (data == null) {
+        return null;
+      }
+
+      return Map<String, dynamic>.from(data);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _attachProfiles(
+    List<Map<String, dynamic>> payments,
+  ) async {
+    if (payments.isEmpty) {
+      return;
+    }
+
+    final userIds = payments
+        .map((payment) => payment['user_id']?.toString())
+        .whereType<String>()
+        .toSet()
+        .toList();
+
+    if (userIds.isEmpty) {
+      return;
+    }
+
+    try {
+      final profiles = await _supabase
+          .from('profiles')
+          .select('id, name, phone, profile_photo_url')
+          .inFilter('id', userIds);
+
+      final profileMap = <String, Map<String, dynamic>>{
+        for (final profile in profiles)
+          profile['id'].toString(): Map<String, dynamic>.from(profile),
+      };
+
+      for (final payment in payments) {
+        final userId = payment['user_id']?.toString();
+
+        if (userId != null) {
+          payment['profiles'] = profileMap[userId];
+        }
+      }
+    } catch (_) {}
   }
 
   Future<void> _attachContracts(

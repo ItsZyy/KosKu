@@ -140,10 +140,24 @@ class RoomService {
   Future<Map<String, int>> getRoomStats() async {
     final data = await _supabase.from(_tableRooms).select('id, status');
 
+    final occupancies = await _supabase
+        .from('occupancies')
+        .select('room_id')
+        .eq('status', 'active');
+
+    final occupiedRoomIds = occupancies
+        .map((item) => item['room_id']?.toString())
+        .whereType<String>()
+        .toSet();
+
     final total = data.length;
 
     final terisi = data.where((room) {
-      return room['status'] == 'Terisi';
+      if (room['status']?.toString() == 'Perbaikan') {
+        return false;
+      }
+
+      return occupiedRoomIds.contains(room['id']?.toString());
     }).length;
 
     return {'total': total, 'terisi': terisi};

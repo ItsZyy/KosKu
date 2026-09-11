@@ -5,7 +5,7 @@ import 'room_facilities_card.dart';
 
 /// Pemetaan icon untuk nama fasilitas yang umum.
 /// Bisa diperluas bila ada fasilitas baru yang perlu icon tertentu.
-IconData _iconForFacility(String name) {
+IconData iconForFacility(String name) {
   final n = name.toLowerCase();
   if (n.contains('kasur') || n.contains('bed')) {
     return Icons.bed_outlined;
@@ -47,7 +47,7 @@ List<RoomFacilityOption> buildRoomFacilityOptions(
       .map(
         (f) => RoomFacilityOption.fromFacility(
           f,
-          icon: _iconForFacility(f.name),
+          icon: iconForFacility(f.name),
         ),
       )
       .toList();

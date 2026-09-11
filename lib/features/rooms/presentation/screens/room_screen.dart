@@ -86,11 +86,25 @@ class _RoomsScreenState extends State<RoomsScreen> {
 
       final matchesSearch = roomNumber.contains(query) || hasMatchingUser;
 
+      // Status 'Terisi'/'Kosong' diturunkan dari occupancy aktif (bukan
+      // kolom rooms.status yang bisa basi), supaya konsisten dengan detail.
+      final derivedStatus = _derivedStatusFor(room);
+
       final matchesFilter =
-          _selectedFilter == 'Semua' || room.status == _selectedFilter;
+          _selectedFilter == 'Semua' || derivedStatus == _selectedFilter;
 
       return matchesSearch && matchesFilter;
     }).toList();
+  }
+
+  String _derivedStatusFor(RoomModel room) {
+    final users = _roomUsers[room.id] ?? [];
+
+    if (room.status == 'Perbaikan') {
+      return 'Perbaikan';
+    }
+
+    return users.isNotEmpty ? 'Terisi' : 'Kosong';
   }
 
   int get _totalRooms {
@@ -98,9 +112,7 @@ class _RoomsScreenState extends State<RoomsScreen> {
   }
 
   int get _occupiedRooms {
-    return _rooms.where((room) {
-      return room.status == 'Terisi';
-    }).length;
+    return _roomUsers.values.where((users) => users.isNotEmpty).length;
   }
 
   int get _totalUsers {
@@ -211,19 +223,11 @@ class _RoomsScreenState extends State<RoomsScreen> {
     return rooms.map((room) {
       final users = _roomUsers[room.id] ?? [];
 
-      final firstUser = users.isNotEmpty ? users.first : null;
-
-      final userName = firstUser?['name']?.toString();
-
-      final contractStart = firstUser?['contract_start']?.toString();
-
-      final contractEnd = firstUser?['contract_end']?.toString();
-
+      // Semua penghuni diteruskan supaya kartu menampilkan seluruh nama
+      // (kapasitas kamar bisa lebih dari satu), bukan hanya user pertama.
       return RoomCard(
         room: room,
-        userName: userName,
-        contractStart: contractStart,
-        contractEnd: contractEnd,
+        users: users,
 
         onDetail: () {
           Navigator.of(context).push(

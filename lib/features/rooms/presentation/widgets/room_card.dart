@@ -7,9 +7,9 @@ import '../../data/services/room_service.dart';
 class RoomCard extends StatelessWidget {
   final RoomModel room;
 
-  final String? userName;
-  final String? contractStart;
-  final String? contractEnd;
+  /// Daftar penghuni aktif (dari occupancy), bisa lebih dari satu karena
+  /// kapasitas kamar. Sebelumnya hanya user pertama yang ditampilkan.
+  final List<Map<String, dynamic>> users;
 
   final VoidCallback? onDetail;
   final VoidCallback? onRent;
@@ -19,23 +19,44 @@ class RoomCard extends StatelessWidget {
   const RoomCard({
     super.key,
     required this.room,
-    this.userName,
-    this.contractStart,
-    this.contractEnd,
+    this.users = const [],
     this.onDetail,
     this.onRent,
     this.onAddUser,
     this.onFinishRepair,
   });
 
-  bool get isOccupied => room.status == 'Terisi';
+  // Status diturunkan dari data penghuni (source of truth), bukan dari
+  // kolom rooms.status yang bisa basi — supaya saling konsisten dengan
+  // detail kamar.
+  String get status {
+    if (isRepair) {
+      return 'Perbaikan';
+    }
 
-  bool get isEmpty => room.status == 'Kosong';
+    return isOccupied ? 'Terisi' : 'Kosong';
+  }
+
+  bool get isOccupied => users.isNotEmpty;
+
+  bool get isEmpty => !isOccupied && !isRepair;
 
   bool get isRepair => room.status == 'Perbaikan';
 
+  /// Penghuni pertama dipakai untuk kontrak tunggal di kartu; semua nama
+  /// tetap ditampilkan lewat [users] (lihat _buildUser).
+  Map<String, dynamic>? get _firstUser {
+    return users.isNotEmpty ? users.first : null;
+  }
+
+  String? get userName => _firstUser?['name']?.toString();
+
+  String? get contractStart => _firstUser?['contract_start']?.toString();
+
+  String? get contractEnd => _firstUser?['contract_end']?.toString();
+
   Color get statusColor {
-    switch (room.status) {
+    switch (status) {
       case 'Terisi':
         return Colors.green;
       case 'Kosong':
@@ -48,7 +69,7 @@ class RoomCard extends StatelessWidget {
   }
 
   IconData get statusIcon {
-    switch (room.status) {
+    switch (status) {
       case 'Terisi':
         return Icons.check_circle;
       case 'Kosong':
@@ -169,7 +190,7 @@ class RoomCard extends StatelessWidget {
                   const SizedBox(width: 5),
 
                   Text(
-                    room.status,
+                    status,
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -227,19 +248,46 @@ class RoomCard extends StatelessWidget {
   }
 
   Widget _buildUser() {
-    return Row(
-      children: [
-        const Icon(Icons.person_outline, size: 20),
-
-        const SizedBox(width: 8),
-
-        Expanded(
-          child: Text(
-            userName ?? 'Belum ada penghuni',
-            style: const TextStyle(fontWeight: FontWeight.w500),
+    if (users.isEmpty) {
+      return const Row(
+        children: [
+          Icon(Icons.person_outline, size: 20),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Belum ada penghuni',
+              style: TextStyle(color: Colors.grey),
+            ),
           ),
-        ),
-      ],
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: users.asMap().entries.map((entry) {
+        final index = entry.key;
+        final user = entry.value;
+
+        // hindari lint shadow; akses user tidak konflik pada slide nama
+        final name = user['name']?.toString();
+
+        return Padding(
+          padding: EdgeInsets.only(bottom: index == users.length - 1 ? 0 : 8),
+          child: Row(
+            children: [
+              const Icon(Icons.person_outline, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  name ?? 'Penghuni #${index + 1}',
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 

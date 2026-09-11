@@ -9,6 +9,7 @@ import '../widgets/stat_card.dart';
 import '../widgets/action_button_card.dart';
 import '../../../announcements/presentation/screens/add_announcement_screen.dart';
 import '../../../rooms/presentation/screens/add_room_screen.dart';
+import '../../../rooms/presentation/screens/admin_facilities_screen.dart';
 import '../../../payments/presentation/screens/admin_payment_methods_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
@@ -204,6 +205,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const AdminPaymentMethodsScreen(),
+                  ),
+                );
+              },
+            ),
+
+            ActionButtonCard(
+              title: 'Kelola Fasilitas',
+              icon: Icons.checklist_outlined,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AdminFacilitiesScreen(),
                   ),
                 );
               },
