@@ -6,6 +6,7 @@ import '../../data/services/tenant_service.dart';
 import '../widgets/tenant_list.dart';
 import '../widgets/tenant_search.dart';
 import '../widgets/tenant_summary.dart';
+import 'tenant_profile_screen.dart';
 
 class TenantsScreen extends StatefulWidget {
   const TenantsScreen({super.key});
@@ -76,10 +77,10 @@ class _TenantsScreenState extends State<TenantsScreen> {
   }
 
   void _handleDetail(TenantModel tenant) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Detail penghuni ${tenant.name}'),
-        behavior: SnackBarBehavior.floating,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TenantProfileScreen(tenant: tenant),
       ),
     );
   }

@@ -27,6 +27,20 @@ class ProfileService {
     return ProfileModel.fromMap(data);
   }
 
+  Future<ProfileModel?> getProfileById(String userId) async {
+    final data = await _supabase
+        .from('profiles')
+        .select()
+        .eq('id', userId)
+        .maybeSingle();
+
+    if (data == null) {
+      return null;
+    }
+
+    return ProfileModel.fromMap(data);
+  }
+
   Future<String?> getRole() async {
     final profile = await getProfile();
 
