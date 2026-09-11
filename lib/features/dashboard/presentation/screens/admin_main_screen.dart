@@ -15,12 +15,18 @@ class AdminMainScreen extends StatefulWidget {
 class _AdminMainScreenState extends State<AdminMainScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [
-    AdminDashboardScreen(),
-    AdminPaymentsScreen(),
-    RoomsScreen(),
-    ReportsScreen(),
-    AdminProfileScreen(),
+  late final List<Widget> _pages = [
+    AdminDashboardScreen(
+      onOpenProfile: () {
+        setState(() {
+          _currentIndex = 4;
+        });
+      },
+    ),
+    const AdminPaymentsScreen(),
+    const RoomsScreen(),
+    const ReportsScreen(),
+    const AdminProfileScreen(),
   ];
 
   @override

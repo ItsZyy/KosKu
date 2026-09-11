@@ -222,6 +222,32 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
   }
 
   Future<void> _logout() async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Keluar'),
+          content: const Text('Apakah Anda yakin ingin keluar dari akun?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+              child: const Text('Batal'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              child: const Text('Keluar'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldLogout != true) return;
+
     try {
       await _profileService.logout();
 
@@ -289,10 +315,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                 addressLabel: 'Alamat Kosan',
               ),
               const SizedBox(height: 20),
-              AccountSettingsCard(
-                onChangePassword: _changePassword,
-                onNotification: () {},
-              ),
+              AccountSettingsCard(onChangePassword: _changePassword),
               const SizedBox(height: 20),
               LogoutCard(onLogout: _logout),
               const SizedBox(height: 20),

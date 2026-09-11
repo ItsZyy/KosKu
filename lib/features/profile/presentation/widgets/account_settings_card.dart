@@ -3,12 +3,10 @@ import 'package:flutter/material.dart';
 
 class AccountSettingsCard extends StatelessWidget {
   final VoidCallback? onChangePassword;
-  final VoidCallback? onNotification;
 
   const AccountSettingsCard({
     super.key,
     this.onChangePassword,
-    this.onNotification,
   });
 
   @override
@@ -26,12 +24,6 @@ class AccountSettingsCard extends StatelessWidget {
             title: const Text('Ubah Password'),
             trailing: const Icon(Icons.chevron_right),
             onTap: onChangePassword,
-          ),
-          ListTile(
-            leading: const Icon(Icons.notifications_outlined),
-            title: const Text('Notifikasi'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: onNotification,
           ),
         ],
       ),

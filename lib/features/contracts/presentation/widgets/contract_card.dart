@@ -65,7 +65,7 @@ class ContractCard extends StatelessWidget {
     return '${format(start)} - ${format(end)}';
   }
 
-  Widget _buildAvatar({String? photoUrl}) {
+  Widget _buildAvatar({String? photoUrl, String? name}) {
     final hasPhoto = photoUrl != null && photoUrl.isNotEmpty;
 
     return CircleAvatar(
@@ -74,7 +74,12 @@ class ContractCard extends StatelessWidget {
       backgroundImage: hasPhoto ? NetworkImage(photoUrl) : null,
       child: hasPhoto
           ? null
-          : Icon(Icons.person, size: 24, color: AppColors.primary),
+          : Text(
+              (name != null && name.isNotEmpty) ? name[0].toUpperCase() : '?',
+              style: AppTextStyles.titleLarge.copyWith(
+                color: AppColors.primary,
+              ),
+            ),
     );
   }
 
@@ -101,7 +106,7 @@ class ContractCard extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildAvatar(photoUrl: resolvedPhotoUrl),
+                  _buildAvatar(photoUrl: resolvedPhotoUrl, name: contract.displayName),
 
                   const SizedBox(width: 12),
 

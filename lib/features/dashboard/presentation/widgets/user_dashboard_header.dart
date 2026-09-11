@@ -31,6 +31,11 @@ class UserDashboardHeader extends StatelessWidget {
       greeting = 'Selamat Malam';
     }
 
+    final avatarName = (userName == null || userName!.isEmpty)
+        ? 'Penghuni'
+        : userName!;
+    final initial = avatarName[0].toUpperCase();
+
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -89,6 +94,7 @@ class UserDashboardHeader extends StatelessWidget {
                           padding: const EdgeInsets.all(2),
                           decoration: const BoxDecoration(
                             shape: BoxShape.circle,
+                            color: Colors.white,
                             border: Border.fromBorderSide(
                               BorderSide(color: Colors.white, width: 2),
                             ),
@@ -101,17 +107,27 @@ class UserDashboardHeader extends StatelessWidget {
                                     fit: BoxFit.cover,
                                     errorBuilder:
                                         (context, error, stackTrace) {
-                                      return const Icon(
-                                        Icons.person_rounded,
-                                        color: AppColors.primary,
-                                        size: 23,
+                                      return Center(
+                                        child: Text(
+                                          initial,
+                                          style: const TextStyle(
+                                            color: AppColors.primary,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
                                       );
                                     },
                                   )
-                                : const Icon(
-                                    Icons.person_rounded,
-                                    color: AppColors.primary,
-                                    size: 23,
+                                : Center(
+                                    child: Text(
+                                      initial,
+                                      style: const TextStyle(
+                                        color: AppColors.primary,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                   ),
                           ),
                         ),

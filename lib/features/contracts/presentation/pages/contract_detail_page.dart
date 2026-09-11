@@ -220,10 +220,13 @@ class _ContractDetailPageState extends State<ContractDetailPage> {
               backgroundImage: hasPhoto ? NetworkImage(resolvedPhotoUrl) : null,
               child: hasPhoto
                   ? null
-                  : const Icon(
-                      Icons.person,
-                      size: 28,
-                      color: AppColors.primary,
+                  : Text(
+                      _data.displayName.isNotEmpty
+                          ? _data.displayName[0].toUpperCase()
+                          : '?',
+                      style: AppTextStyles.titleLarge.copyWith(
+                        color: AppColors.primary,
+                      ),
                     ),
             ),
             const SizedBox(width: 14),

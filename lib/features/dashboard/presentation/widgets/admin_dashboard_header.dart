@@ -1,0 +1,166 @@
+import 'package:flutter/material.dart';
+
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
+
+class AdminDashboardHeader extends StatelessWidget {
+  final String? userName;
+  final String? profilePhotoUrl;
+  final VoidCallback? onProfileTap;
+
+  const AdminDashboardHeader({
+    super.key,
+    this.userName,
+    this.profilePhotoUrl,
+    this.onProfileTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hour = DateTime.now().hour;
+
+    String greeting;
+
+    if (hour >= 5 && hour < 11) {
+      greeting = 'Selamat Pagi';
+    } else if (hour >= 11 && hour < 15) {
+      greeting = 'Selamat Siang';
+    } else if (hour >= 15 && hour < 18) {
+      greeting = 'Selamat Sore';
+    } else {
+      greeting = 'Selamat Malam';
+    }
+
+    final avatarName = (userName == null || userName!.isEmpty)
+        ? 'Pemilik Kos'
+        : userName!;
+    final initial = avatarName[0].toUpperCase();
+
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(25),
+          bottomRight: Radius.circular(25),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x1A000000),
+            offset: Offset(0, 10),
+            blurRadius: 15,
+            spreadRadius: -3,
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 48, 20, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Image.asset(
+                  'assets/images/k_logo.png',
+                  width: 32,
+                  height: 32,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(width: 2),
+                Transform.translate(
+                  offset: const Offset(0, 6),
+                  child: Text(
+                    'osKu',
+                    style: AppTextStyles.titleLarge.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 24,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                Material(
+                  color: Colors.transparent,
+                  shape: const CircleBorder(),
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: onProfileTap,
+                    child: Container(
+                      width: 46,
+                      height: 46,
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        border: Border.fromBorderSide(
+                          BorderSide(color: Colors.white, width: 2),
+                        ),
+                      ),
+child: ClipOval(
+                            child: profilePhotoUrl != null &&
+                                    profilePhotoUrl!.isNotEmpty
+                                ? Image.network(
+                                    profilePhotoUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Center(
+                                        child: Text(
+                                          initial,
+                                          style: const TextStyle(
+                                            color: AppColors.primary,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : Center(
+                                    child: Text(
+                                      initial,
+                                      style: const TextStyle(
+                                        color: AppColors.primary,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                          ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Text(
+              greeting,
+              style: AppTextStyles.titleMedium.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '${userName ?? 'Pemilik Kos'} 👋',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.headlineLarge.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 28,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Selamat datang kembali di Dashboard KosKu',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -42,7 +42,7 @@ class PaymentCard extends StatelessWidget {
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
-  Widget _buildAvatar({String? photoUrl}) {
+  Widget _buildAvatar({String? photoUrl, String? name}) {
     final hasPhoto = photoUrl != null && photoUrl.isNotEmpty;
 
     return CircleAvatar(
@@ -51,10 +51,13 @@ class PaymentCard extends StatelessWidget {
       backgroundImage: hasPhoto ? NetworkImage(photoUrl) : null,
       child: hasPhoto
           ? null
-          : Icon(
-              Icons.person,
-              size: 24,
-              color: AppColors.primary,
+          : Text(
+              (name != null && name.isNotEmpty) ? name[0].toUpperCase() : '?',
+              style: const TextStyle(
+                color: AppColors.primary,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
             ),
     );
   }
@@ -99,7 +102,7 @@ class PaymentCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildAvatar(photoUrl: resolvedPhotoUrl),
+                _buildAvatar(photoUrl: resolvedPhotoUrl, name: name),
 
                 const SizedBox(width: 12),
 

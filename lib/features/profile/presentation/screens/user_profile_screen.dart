@@ -230,12 +230,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  void _notification() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Pengaturan notifikasi akan segera dibuat')),
-    );
-  }
-
   Future<void> _logout() async {
     final shouldLogout = await showDialog<bool>(
       context: context,
@@ -387,10 +381,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                 ),
               const SizedBox(height: 20),
-              AccountSettingsCard(
-                onChangePassword: _changePassword,
-                onNotification: _notification,
-              ),
+              AccountSettingsCard(onChangePassword: _changePassword),
               const SizedBox(height: 20),
               LogoutCard(onLogout: _logout),
               const SizedBox(height: 20),
