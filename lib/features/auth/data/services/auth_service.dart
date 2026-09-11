@@ -59,6 +59,57 @@ class AuthService {
     throw Exception('Role pengguna tidak valid.');
   }
 
+  /// Memvalidasi session Supabase yang tersedia di device dan mengembalikan
+  /// role pengguna. Mengembalikan `null` jika session tidak ada, profile tidak
+  /// ditemukan, occupancy sudah tidak aktif, atau role tidak valid — dalam hal
+  /// ini signOut juga sudah dipanggil di dalam method ini.
+  Future<String?> resolveSessionRole() async {
+    final session = _supabase.auth.currentSession;
+
+    if (session == null) {
+      return null;
+    }
+
+    final user = session.user;
+
+    final profile = await _supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+    if (profile == null) {
+      await _supabase.auth.signOut();
+      return null;
+    }
+
+    final role = profile['role']?.toString().toLowerCase();
+
+    if (role == 'admin') {
+      return 'admin';
+    }
+
+    if (role == 'user') {
+      final occupancy = await _supabase
+          .from('occupancies')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .limit(1)
+          .maybeSingle();
+
+      if (occupancy == null) {
+        await _supabase.auth.signOut();
+        return null;
+      }
+
+      return 'user';
+    }
+
+    await _supabase.auth.signOut();
+    return null;
+  }
+
   Future<AuthResponse> register({
     required String email,
     required String password,
