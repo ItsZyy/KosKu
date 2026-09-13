@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../data/models/payment_model.dart';
+import '../../data/models/payment_status.dart';
 import '../../data/services/payment_method_service.dart';
 import '../../data/services/payment_service.dart';
 import '../widgets/payment_header_card.dart';
@@ -27,6 +28,7 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
 
   bool _isLoading = true;
   bool _showAllHistory = false;
+  String _historyFilter = 'Semua';
   String? _error;
 
   @override
@@ -112,6 +114,32 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
     });
   }
 
+  List<Map<String, dynamic>> get _filteredHistory {
+    if (_historyFilter == 'Semua') {
+      return _paymentHistory;
+    }
+
+    return _paymentHistory.where((payment) {
+      final rawStatus = payment['status']?.toString();
+
+      final proofUrl = payment['proof_url']?.toString();
+
+      final isCash =
+          payment['payment_method']?.toString().toLowerCase() == 'cash';
+
+      final dueDate = DateTime.tryParse(payment['due_date']?.toString() ?? '');
+
+      final display = resolvePaymentDisplayStatus(
+        status: rawStatus,
+        hasProof: proofUrl != null && proofUrl.isNotEmpty,
+        isCash: isCash,
+        dueDate: dueDate,
+      );
+
+      return display.label == _historyFilter;
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -132,10 +160,10 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
     final payment = _payment;
 
     final displayedHistory = _showAllHistory
-        ? _paymentHistory
-        : _paymentHistory.take(3).toList();
+        ? _filteredHistory
+        : _filteredHistory.take(3).toList();
 
-    final hasMoreHistory = _paymentHistory.length > 3;
+    final hasMoreHistory = _filteredHistory.length > 3;
 
     return RefreshIndicator(
       onRefresh: _loadPayments,
@@ -166,6 +194,8 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
             const SizedBox(height: 24),
             PaymentMethodCard(paymentInfo: _paymentInfo),
             const SizedBox(height: 24),
+            _buildHistoryFilter(),
+            const SizedBox(height: 12),
             PaymentHistoryCard(payments: displayedHistory),
             if (hasMoreHistory)
               Padding(
@@ -189,6 +219,47 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
             const SizedBox(height: 20),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildHistoryFilter() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (final filter in paymentStatusFilters)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: FilterChip(
+                label: Text(filter),
+                selected: _historyFilter == filter,
+                onSelected: (_) {
+                  setState(() {
+                    _historyFilter = filter;
+                  });
+                },
+                showCheckmark: false,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                labelStyle: AppTextStyles.bodySmall.copyWith(
+                  color: _historyFilter == filter
+                      ? AppColors.onPrimary
+                      : AppColors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+                backgroundColor: AppColors.surface,
+                selectedColor: AppColors.primary,
+                side: BorderSide(
+                  color: _historyFilter == filter
+                      ? AppColors.primary
+                      : AppColors.border.withValues(alpha: 0.5),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

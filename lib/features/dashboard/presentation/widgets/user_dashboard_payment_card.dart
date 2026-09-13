@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../payments/data/models/payment_status.dart';
 import '../../../payments/presentation/screens/payment_detail_screen.dart';
 
 class UserDashboardPaymentCard extends StatelessWidget {
@@ -29,6 +30,7 @@ class UserDashboardPaymentCard extends StatelessWidget {
     final status = payment?['status']?.toString().toLowerCase() ?? '';
     final proofUrl = payment?['proof_url']?.toString();
     final hasProof = proofUrl != null && proofUrl.isNotEmpty;
+    final isCash = payment?['payment_method']?.toString().toLowerCase() == 'cash';
 
     if (status == 'dikonfirmasi') {
       return _PaymentDisplayState.confirmed;
@@ -38,11 +40,17 @@ class UserDashboardPaymentCard extends StatelessWidget {
       return _PaymentDisplayState.rejected;
     }
 
-    if (status == 'menunggu' && hasProof) {
+    if (status == 'menunggu' && (hasProof || isCash)) {
       return _PaymentDisplayState.waitingConfirmation;
     }
 
-    if (status == 'menunggu' && !hasProof) {
+    if (status == 'menunggu') {
+      final dueDate = DateTime.tryParse(payment?['due_date']?.toString() ?? '');
+
+      if (isDueDatePassed(dueDate)) {
+        return _PaymentDisplayState.late;
+      }
+
       return _PaymentDisplayState.notPaid;
     }
 
@@ -147,7 +155,8 @@ class UserDashboardPaymentCard extends StatelessWidget {
 
   bool _canNavigate(_PaymentDisplayState state) {
     return state == _PaymentDisplayState.notPaid ||
-        state == _PaymentDisplayState.rejected;
+        state == _PaymentDisplayState.rejected ||
+        state == _PaymentDisplayState.late;
   }
 
   String _getStatusLabel(_PaymentDisplayState state) {
@@ -159,7 +168,9 @@ class UserDashboardPaymentCard extends StatelessWidget {
       case _PaymentDisplayState.rejected:
         return 'Ditolak';
       case _PaymentDisplayState.notPaid:
-        return 'Belum Dibayar';
+        return 'Belum Bayar';
+      case _PaymentDisplayState.late:
+        return 'Telat Bayar';
     }
   }
 
@@ -172,6 +183,8 @@ class UserDashboardPaymentCard extends StatelessWidget {
       case _PaymentDisplayState.rejected:
         return 'Kirim Ulang';
       case _PaymentDisplayState.notPaid:
+        return 'Bayar Sekarang';
+      case _PaymentDisplayState.late:
         return 'Bayar Sekarang';
     }
   }
@@ -186,6 +199,8 @@ class UserDashboardPaymentCard extends StatelessWidget {
         return Icons.refresh_rounded;
       case _PaymentDisplayState.notPaid:
         return Icons.receipt_long_rounded;
+      case _PaymentDisplayState.late:
+        return Icons.receipt_long_rounded;
     }
   }
 
@@ -199,6 +214,8 @@ class UserDashboardPaymentCard extends StatelessWidget {
         return AppColors.error;
       case _PaymentDisplayState.notPaid:
         return AppColors.warning;
+      case _PaymentDisplayState.late:
+        return AppColors.error;
     }
   }
 
@@ -212,6 +229,8 @@ class UserDashboardPaymentCard extends StatelessWidget {
         return AppColors.errorSoft;
       case _PaymentDisplayState.notPaid:
         return AppColors.warningSoft;
+      case _PaymentDisplayState.late:
+        return AppColors.errorSoft;
     }
   }
 
@@ -224,6 +243,8 @@ class UserDashboardPaymentCard extends StatelessWidget {
       case _PaymentDisplayState.rejected:
         return AppColors.primary;
       case _PaymentDisplayState.notPaid:
+        return AppColors.primary;
+      case _PaymentDisplayState.late:
         return AppColors.primary;
     }
   }
@@ -238,6 +259,8 @@ class UserDashboardPaymentCard extends StatelessWidget {
         return AppColors.onPrimary;
       case _PaymentDisplayState.notPaid:
         return AppColors.onPrimary;
+      case _PaymentDisplayState.late:
+        return AppColors.onPrimary;
     }
   }
 }
@@ -247,4 +270,5 @@ enum _PaymentDisplayState {
   waitingConfirmation,
   confirmed,
   rejected,
+  late,
 }

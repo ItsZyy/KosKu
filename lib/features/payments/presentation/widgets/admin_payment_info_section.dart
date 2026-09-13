@@ -82,20 +82,40 @@ class AdminPaymentInfoSection extends StatelessWidget {
   }
 
   Widget _buildStatusRow() {
-    const statusInfo = {
-      PaymentStatus.pending: ('Menunggu', AppColors.warning, Icons.access_time),
-      PaymentStatus.confirmed: (
-        'Lunas',
-        AppColors.success,
-        Icons.check_circle,
-      ),
-      PaymentStatus.rejected: ('Ditolak', AppColors.error, Icons.cancel),
-    };
+    final displayStatus = resolvePaymentDisplayStatus(
+      status: payment.status,
+      hasProof: payment.hasSubmittedPayment,
+      isCash: payment.isCash,
+      dueDate: payment.dueDate,
+    );
 
-    final status = PaymentStatus.tryParse(payment.status);
-    final (label, color, icon) =
-        statusInfo[status] ??
-        (payment.status, AppColors.textSecondary, Icons.help_outline);
+    final (label, color, icon) = switch (displayStatus) {
+      PaymentDisplayStatus.paid => (
+          displayStatus.label,
+          AppColors.success,
+          Icons.check_circle,
+        ),
+      PaymentDisplayStatus.rejected => (
+          displayStatus.label,
+          AppColors.error,
+          Icons.cancel,
+        ),
+      PaymentDisplayStatus.late => (
+          displayStatus.label,
+          AppColors.error,
+          Icons.error_outline,
+        ),
+      PaymentDisplayStatus.waitingConfirmation => (
+          displayStatus.label,
+          AppColors.warning,
+          Icons.access_time,
+        ),
+      PaymentDisplayStatus.notPaid => (
+          displayStatus.label,
+          AppColors.warning,
+          Icons.schedule,
+        ),
+    };
 
     return Row(
       children: [

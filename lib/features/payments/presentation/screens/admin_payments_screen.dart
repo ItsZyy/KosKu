@@ -89,14 +89,33 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
 
       final roomNumber = room?['room_number']?.toString().toLowerCase() ?? '';
 
+      final proofUrl = payment['proof_url']?.toString();
+
+      final hasProof = proofUrl != null && proofUrl.isNotEmpty;
+
+      final isCash =
+          payment['payment_method']?.toString().toLowerCase() == 'cash';
+
+      final dueDate = DateTime.tryParse(payment['due_date']?.toString() ?? '');
+
+      final displayStatus = resolvePaymentDisplayStatus(
+        status: status,
+        hasProof: hasProof,
+        isCash: isCash,
+        dueDate: dueDate,
+      );
+
       bool matchesFilter = true;
 
       if (_selectedFilter == 'Lunas') {
-        matchesFilter = status == PaymentStatus.confirmed.value;
-      } else if (_selectedFilter == 'Menunggu') {
-        matchesFilter = status == PaymentStatus.pending.value;
+        matchesFilter = displayStatus == PaymentDisplayStatus.paid;
+      } else if (_selectedFilter == 'Menunggu Konfirmasi') {
+        matchesFilter =
+            displayStatus == PaymentDisplayStatus.waitingConfirmation;
       } else if (_selectedFilter == 'Belum Bayar') {
-        matchesFilter = status == PaymentStatus.rejected.value;
+        matchesFilter = displayStatus == PaymentDisplayStatus.notPaid;
+      } else if (_selectedFilter == 'Telat Bayar') {
+        matchesFilter = displayStatus == PaymentDisplayStatus.late;
       }
 
       final matchesSearch =

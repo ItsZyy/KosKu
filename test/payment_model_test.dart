@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kosku/features/payments/data/models/payment_model.dart';
+import 'package:kosku/features/payments/data/models/payment_status.dart';
 
 void main() {
   group('Payment.fromMap - proof_url mapping', () {
@@ -63,6 +64,78 @@ void main() {
       expect(payment.proofUrl!.isEmpty, isFalse);
       expect(payment.isRejected, isTrue);
       expect(payment.hasSubmittedPayment, isTrue);
+    });
+  });
+
+  group('resolvePaymentDisplayStatus', () {
+    final futureDueDate = DateTime.now().add(const Duration(days: 30));
+
+    final pastDueDate = DateTime.now().subtract(const Duration(days: 30));
+
+    test('dikonfirmasi tampil Lunas meskipun jatuh tempo lewat', () {
+      final display = resolvePaymentDisplayStatus(
+        status: 'dikonfirmasi',
+        hasProof: true,
+        isCash: false,
+        dueDate: pastDueDate,
+      );
+
+      expect(display, PaymentDisplayStatus.paid);
+    });
+
+    test('menunggu + ada bukti tampil Menunggu Konfirmasi', () {
+      final display = resolvePaymentDisplayStatus(
+        status: 'menunggu',
+        hasProof: true,
+        isCash: false,
+        dueDate: pastDueDate,
+      );
+
+      expect(display, PaymentDisplayStatus.waitingConfirmation);
+    });
+
+    test('menunggu tunai tampil Menunggu Konfirmasi', () {
+      final display = resolvePaymentDisplayStatus(
+        status: 'menunggu',
+        hasProof: false,
+        isCash: true,
+        dueDate: pastDueDate,
+      );
+
+      expect(display, PaymentDisplayStatus.waitingConfirmation);
+    });
+
+    test('menunggu tanpa bukti sebelum jatuh tempo tampil Belum Bayar', () {
+      final display = resolvePaymentDisplayStatus(
+        status: 'menunggu',
+        hasProof: false,
+        isCash: false,
+        dueDate: futureDueDate,
+      );
+
+      expect(display, PaymentDisplayStatus.notPaid);
+    });
+
+    test('menunggu tanpa bukti setelah jatuh tempo tampil Telat Bayar', () {
+      final display = resolvePaymentDisplayStatus(
+        status: 'menunggu',
+        hasProof: false,
+        isCash: false,
+        dueDate: pastDueDate,
+      );
+
+      expect(display, PaymentDisplayStatus.late);
+    });
+
+    test('ditolak tampil Ditolak', () {
+      final display = resolvePaymentDisplayStatus(
+        status: 'ditolak',
+        hasProof: true,
+        isCash: false,
+        dueDate: pastDueDate,
+      );
+
+      expect(display, PaymentDisplayStatus.rejected);
     });
   });
 }

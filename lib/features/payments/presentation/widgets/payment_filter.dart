@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../data/models/payment_status.dart';
 
 class PaymentFilter extends StatelessWidget {
   final String selectedFilter;
@@ -99,10 +100,11 @@ class PaymentFilter extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  _buildFilterChip('Semua'),
-                  _buildFilterChip('Lunas'),
-                  _buildFilterChip('Menunggu'),
-                  _buildFilterChip('Belum Bayar'),
+                  for (final filter in paymentStatusFilters)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: _buildFilterChip(filter),
+                    ),
                 ],
               ),
             ),

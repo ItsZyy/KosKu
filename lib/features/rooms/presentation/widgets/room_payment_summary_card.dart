@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kosku/features/payments/data/models/payment_model.dart';
+import 'package:kosku/features/payments/data/models/payment_status.dart';
 
 class RoomPaymentSummaryCard extends StatelessWidget {
   final List<Payment> payments;
@@ -15,17 +16,27 @@ class RoomPaymentSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final total = grandTotal;
 
+    final confirmed = payments.where((payment) => payment.isConfirmed).length;
+
     final waiting = payments
-        .where((payment) => payment.status == 'menunggu')
+        .where((payment) => payment.isWaitingConfirmation)
         .length;
 
-    final confirmed = payments
-        .where((payment) => payment.status == 'dikonfirmasi')
+    final late = payments
+        .where((payment) =>
+            payment.isPending &&
+            !payment.isWaitingConfirmation &&
+            isDueDatePassed(payment.dueDate))
         .length;
 
-    final rejected = payments
-        .where((payment) => payment.status == 'ditolak')
+    final notPaid = payments
+        .where((payment) =>
+            payment.isPending &&
+            !payment.isWaitingConfirmation &&
+            !isDueDatePassed(payment.dueDate))
         .length;
+
+    final rejected = payments.where((payment) => payment.isRejected).length;
 
     return Container(
       width: double.infinity,
@@ -119,7 +130,15 @@ class RoomPaymentSummaryCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _StatusItem(
-                  label: 'Menunggu',
+                  label: 'Lunas',
+                  value: confirmed,
+                  color: Colors.green,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _StatusItem(
+                  label: 'Menunggu Konfirmasi',
                   value: waiting,
                   color: Colors.orange,
                 ),
@@ -127,9 +146,17 @@ class RoomPaymentSummaryCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: _StatusItem(
-                  label: 'Dikonfirmasi',
-                  value: confirmed,
-                  color: Colors.green,
+                  label: 'Belum Bayar',
+                  value: notPaid,
+                  color: Colors.orange,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _StatusItem(
+                  label: 'Telat Bayar',
+                  value: late,
+                  color: Colors.red,
                 ),
               ),
               const SizedBox(width: 8),

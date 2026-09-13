@@ -99,6 +99,8 @@ class PaymentHeaderCard extends StatelessWidget {
         PaymentStatusBadge(
           status: payment.status,
           hasProof: payment.hasSubmittedPayment,
+          isCash: payment.isCash,
+          dueDate: payment.dueDate,
         ),
       ],
     );
@@ -176,10 +178,11 @@ class PaymentHeaderCard extends StatelessWidget {
     }
 
     // ============================================
-    // 2. SUDAH KIRIM BUKTI
-    //    DAN MENUNGGU KONFIRMASI ADMIN
+    // 2. BUKTI SUDAH DIKIRIM (BANK/QRIS)
+    //    ATAU TUNAI SUDAH DILAPORKAN:
+    //    MENUNGGU KONFIRMASI ADMIN
     // ============================================
-    if (payment.hasSubmittedPayment && payment.isPending) {
+    if (payment.isWaitingConfirmation) {
       return SizedBox(
         width: double.infinity,
         child: ElevatedButton(

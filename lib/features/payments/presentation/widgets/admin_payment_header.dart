@@ -39,6 +39,8 @@ class AdminPaymentHeader extends StatelessWidget {
         PaymentStatusBadge(
           status: payment.status,
           hasProof: payment.hasSubmittedPayment,
+          isCash: payment.isCash,
+          dueDate: payment.dueDate,
         ),
       ],
     );

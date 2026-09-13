@@ -98,15 +98,17 @@ class PaymentCard extends StatelessWidget {
 
     final proofUrl = payment['proof_url']?.toString();
 
-    final paymentId = payment['id']?.toString();
+    final dueDate = DateTime.tryParse(payment['due_date']?.toString() ?? '');
 
-    // Tombol mengundang admin untuk aksi hanya saat pembayaran
-    // benar-benar bisa dikonfirmasi/ditolak: status menunggu DAN
-    // penghuni sudah mengirim bukti (badge "Menunggu Konfirmasi").
-    final canBeConfirmed =
+    final isCash = payment['payment_method']?.toString().toLowerCase() == 'cash';
+
+    final hasSubmittedPayment = proofUrl != null && proofUrl.isNotEmpty;
+
+    final isWaitingConfirmation =
         PaymentStatus.tryParse(status) == PaymentStatus.pending &&
-        proofUrl != null &&
-        proofUrl.isNotEmpty;
+        (hasSubmittedPayment || isCash);
+
+    final paymentId = payment['id']?.toString();
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -142,7 +144,9 @@ class PaymentCard extends StatelessWidget {
 
                 PaymentStatusBadge(
                   status: status,
-                  hasProof: proofUrl != null && proofUrl.isNotEmpty,
+                  hasProof: hasSubmittedPayment,
+                  isCash: isCash,
+                  dueDate: dueDate,
                 ),
               ],
             ),
@@ -204,7 +208,7 @@ class PaymentCard extends StatelessWidget {
               child: OutlinedButton(
                 onPressed: paymentId == null ? null : onTap,
                 child: Text(
-                  canBeConfirmed ? 'Konfirmasi Pembayaran' : 'Lihat Detail',
+                  isWaitingConfirmation ? 'Konfirmasi Pembayaran' : 'Lihat Detail',
                 ),
               ),
             ),

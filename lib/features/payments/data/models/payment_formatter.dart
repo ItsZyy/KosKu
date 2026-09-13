@@ -103,7 +103,7 @@ class PaymentFormatter {
       case PaymentStatus.rejected:
         return 'Ditolak';
       case PaymentStatus.pending:
-        return 'Menunggu Pembayaran';
+        return 'Menunggu Konfirmasi';
       case null:
         return status;
     }

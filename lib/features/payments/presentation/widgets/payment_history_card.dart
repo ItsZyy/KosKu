@@ -47,24 +47,30 @@ class PaymentHistoryCard extends StatelessWidget {
     return '${parsedDate.day} ${months[parsedDate.month - 1]} ${parsedDate.year}';
   }
 
-  String _getStatusLabel(dynamic status) {
-    switch (PaymentStatus.tryParse(status?.toString())) {
-      case PaymentStatus.confirmed:
-        return 'LUNAS';
+  String _getStatusLabel(Map<String, dynamic> payment) {
+    final rawStatus = payment['status']?.toString();
 
-      case PaymentStatus.rejected:
-        return 'DITOLAK';
-
-      case PaymentStatus.pending:
-        return 'MENUNGGU KONFIRMASI';
-
-      case null:
-        return status?.toString().toUpperCase() ?? '-';
+    if (PaymentStatus.tryParse(rawStatus) == null) {
+      return rawStatus ?? '-';
     }
+
+    final proofUrl = payment['proof_url']?.toString();
+
+    final isCash =
+        payment['payment_method']?.toString().toLowerCase() == 'cash';
+
+    final dueDate = DateTime.tryParse(payment['due_date']?.toString() ?? '');
+
+    return resolvePaymentDisplayStatus(
+      status: rawStatus,
+      hasProof: proofUrl != null && proofUrl.isNotEmpty,
+      isCash: isCash,
+      dueDate: dueDate,
+    ).label;
   }
 
-  IconData _getStatusIcon(dynamic status) {
-    switch (PaymentStatus.tryParse(status?.toString())) {
+  IconData _getStatusIcon(Map<String, dynamic> payment) {
+    switch (PaymentStatus.tryParse(payment['status']?.toString())) {
       case PaymentStatus.confirmed:
         return Icons.check_circle;
 
@@ -72,6 +78,28 @@ class PaymentHistoryCard extends StatelessWidget {
         return Icons.cancel;
 
       case PaymentStatus.pending:
+        final proofUrl = payment['proof_url']?.toString();
+
+        final isCash =
+            payment['payment_method']?.toString().toLowerCase() == 'cash';
+
+        final dueDate = DateTime.tryParse(payment['due_date']?.toString() ?? '');
+
+        final display = resolvePaymentDisplayStatus(
+          status: payment['status']?.toString(),
+          hasProof: proofUrl != null && proofUrl.isNotEmpty,
+          isCash: isCash,
+          dueDate: dueDate,
+        );
+
+        if (display == PaymentDisplayStatus.late) {
+          return Icons.error_outline;
+        }
+
+        if (display == PaymentDisplayStatus.notPaid) {
+          return Icons.schedule;
+        }
+
         return Icons.access_time;
 
       case null:
@@ -79,8 +107,8 @@ class PaymentHistoryCard extends StatelessWidget {
     }
   }
 
-  Color _getStatusColor(dynamic status) {
-    switch (PaymentStatus.tryParse(status?.toString())) {
+  Color _getStatusColor(Map<String, dynamic> payment) {
+    switch (PaymentStatus.tryParse(payment['status']?.toString())) {
       case PaymentStatus.confirmed:
         return Colors.green;
 
@@ -88,6 +116,19 @@ class PaymentHistoryCard extends StatelessWidget {
         return Colors.red;
 
       case PaymentStatus.pending:
+        final proofUrl = payment['proof_url']?.toString();
+
+        final isCash =
+            payment['payment_method']?.toString().toLowerCase() == 'cash';
+
+        if (isDueDatePassed(
+              DateTime.tryParse(payment['due_date']?.toString() ?? ''),
+            ) &&
+            proofUrl == null &&
+            !isCash) {
+          return Colors.red;
+        }
+
         return Colors.orange;
 
       case null:
@@ -131,8 +172,6 @@ class PaymentHistoryCard extends StatelessWidget {
               )
             else
               ...payments.map((payment) {
-                final status = payment['status'];
-
                 final items = payment['payment_items'];
 
                 final int amount;
@@ -163,9 +202,9 @@ class PaymentHistoryCard extends StatelessWidget {
                   date: _formatDate(
                     payment['confirmed_at'] ?? payment['created_at'],
                   ),
-                  status: _getStatusLabel(status),
-                  statusIcon: _getStatusIcon(status),
-                  statusColor: _getStatusColor(status),
+                  status: _getStatusLabel(payment),
+                  statusIcon: _getStatusIcon(payment),
+                  statusColor: _getStatusColor(payment),
                 );
               }),
           ],
