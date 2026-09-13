@@ -224,11 +224,18 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
   }
 
   Widget _buildHistoryFilter() {
+    const filters = [
+      'Semua',
+      'Lunas',
+      'Menunggu Konfirmasi',
+      'Ditolak',
+    ];
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          for (final filter in paymentStatusFilters)
+          for (final filter in filters)
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: FilterChip(

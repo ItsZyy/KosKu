@@ -1,6 +1,9 @@
 // Widget untuk RoomsScreen
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
+
 class RoomFilter extends StatelessWidget {
   final String selectedFilter;
   final ValueChanged<String> onFilterChanged;
@@ -27,14 +30,37 @@ class RoomFilter extends StatelessWidget {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: filters.map((filter) {
+              final isSelected = selectedFilter == filter;
+
               return Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: FilterChip(
                   label: Text(filter),
-                  selected: selectedFilter == filter,
+                  selected: isSelected,
                   onSelected: (_) {
                     onFilterChanged(filter);
                   },
+                  showCheckmark: false,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
+                  labelStyle: AppTextStyles.bodySmall.copyWith(
+                    color: isSelected
+                        ? AppColors.onPrimary
+                        : AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  backgroundColor: AppColors.surface,
+                  selectedColor: AppColors.primary,
+                  side: BorderSide(
+                    color: isSelected
+                        ? AppColors.primary
+                        : AppColors.border.withValues(alpha: 0.5),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               );
             }).toList(),

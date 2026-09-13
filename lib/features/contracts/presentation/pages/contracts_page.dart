@@ -210,16 +210,39 @@ class _ContractsPageState extends State<ContractsPage> {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: filters.map((filter) {
+              final isSelected = _selectedFilter == filter;
+
               return Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: FilterChip(
                   label: Text(filter),
-                  selected: _selectedFilter == filter,
+                  selected: isSelected,
                   onSelected: (_) {
                     setState(() {
                       _selectedFilter = filter;
                     });
                   },
+                  showCheckmark: false,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
+                  labelStyle: AppTextStyles.bodySmall.copyWith(
+                    color: isSelected
+                        ? AppColors.onPrimary
+                        : AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  backgroundColor: AppColors.surface,
+                  selectedColor: AppColors.primary,
+                  side: BorderSide(
+                    color: isSelected
+                        ? AppColors.primary
+                        : AppColors.border.withValues(alpha: 0.5),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               );
             }).toList(),
