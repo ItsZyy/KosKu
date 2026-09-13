@@ -10,6 +10,7 @@ import '../widgets/complaint_filter.dart';
 import '../widgets/complaint_card.dart';
 
 import 'user_complaint_detail_screen.dart';
+import 'add_complaint_screen.dart';
 
 class ComplaintsScreen extends StatefulWidget {
   const ComplaintsScreen({super.key});
@@ -120,9 +121,33 @@ class _ComplaintsScreenState extends State<ComplaintsScreen> {
     return complaint.userId == _currentUserId;
   }
 
+  Future<void> _openNewComplaint() async {
+    final created = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const AddComplaintScreen()),
+    );
+
+    if (created == true) {
+      _loadComplaints();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Laporan berhasil dikirim')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: _buildBody());
+    return Scaffold(
+      body: _buildBody(),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _openNewComplaint,
+        icon: const Icon(Icons.add),
+        label: const Text('Buat Laporan'),
+      ),
+    );
   }
 
   Widget _buildBody() {
