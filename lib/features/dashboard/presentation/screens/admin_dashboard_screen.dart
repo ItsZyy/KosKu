@@ -19,6 +19,7 @@ import '../../../rooms/presentation/screens/add_room_screen.dart';
 import '../../../rooms/presentation/screens/admin_facilities_screen.dart';
 import '../../../payments/presentation/screens/admin_payment_methods_screen.dart';
 import '../../../contracts/presentation/pages/contracts_page.dart';
+import '../../../payments/presentation/screens/admin_revenue_report_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   final VoidCallback? onOpenProfile;
@@ -262,6 +263,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 12),
+                    ActionButtonCard(
+                      title: 'Laporan Pendapatan',
+                      icon: Icons.bar_chart,
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AdminRevenueReportScreen(),
+                          ),
+                        );
+                      },
+                    ),
                     ActionButtonCard(
                       title: 'Tambah Kamar',
                       icon: Icons.add_home,

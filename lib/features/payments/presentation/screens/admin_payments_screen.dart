@@ -7,6 +7,7 @@ import '../widgets/payment_summary.dart';
 import '../widgets/payment_filter.dart';
 import 'generate_payment_screen.dart';
 import 'admin_payment_detail_screen.dart';
+import 'admin_revenue_report_screen.dart';
 
 class AdminPaymentsScreen extends StatefulWidget {
   const AdminPaymentsScreen({super.key});
@@ -175,6 +176,18 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
       appBar: AppBar(
         title: const Text('Tagihan'),
         actions: [
+          IconButton(
+            tooltip: 'Laporan Pendapatan',
+            icon: const Icon(Icons.bar_chart),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdminRevenueReportScreen(),
+                ),
+              );
+            },
+          ),
           IconButton(
             tooltip: 'Buat Tagihan',
             icon: const Icon(Icons.add),
