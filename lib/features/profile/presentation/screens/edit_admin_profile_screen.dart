@@ -189,6 +189,7 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
             const SizedBox(height: 28),
             EditProfileActions(
               isSaving: _isSaving,
+              horizontal: true,
               onSave: _saveProfile,
               onCancel: _cancel,
             ),

@@ -7,16 +7,70 @@ class EditProfileActions extends StatelessWidget {
   final VoidCallback? onSave;
   final VoidCallback? onCancel;
   final bool isSaving;
+  final bool horizontal;
 
   const EditProfileActions({
     super.key,
     this.onSave,
     this.onCancel,
     this.isSaving = false,
+    this.horizontal = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (horizontal) {
+      return Row(
+        children: [
+          Expanded(
+            child: SizedBox(
+              height: 52,
+              child: OutlinedButton(
+                onPressed: isSaving ? null : onCancel,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.error,
+                  side: const BorderSide(color: AppColors.error),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  'Batal',
+                  style: AppTextStyles.labelLarge.copyWith(
+                    color: AppColors.error,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: SizedBox(
+              height: 52,
+              child: FilledButton.icon(
+                onPressed: isSaving ? null : onSave,
+                icon: isSaving
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.onPrimary,
+                        ),
+                      )
+                    : const Icon(Icons.save_outlined),
+                label: Text(
+                  isSaving ? 'Menyimpan...' : 'Simpan',
+                  style: AppTextStyles.button,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
     return Column(
       children: [
         SizedBox(
@@ -35,7 +89,7 @@ class EditProfileActions extends StatelessWidget {
                   )
                 : const Icon(Icons.save_outlined),
             label: Text(
-              isSaving ? 'Menyimpan...' : 'Simpan Perubahan',
+              isSaving ? 'Menyimpan...' : 'Simpan',
               style: AppTextStyles.button,
             ),
           ),

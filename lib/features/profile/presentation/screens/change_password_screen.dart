@@ -173,6 +173,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             const SizedBox(height: 32),
             EditProfileActions(
               isSaving: _isSaving,
+              horizontal: true,
               onSave: _savePassword,
               onCancel: () {
                 if (!_isSaving) {

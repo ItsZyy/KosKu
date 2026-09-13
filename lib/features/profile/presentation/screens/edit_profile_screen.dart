@@ -380,6 +380,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const SizedBox(height: 28),
             EditProfileActions(
               isSaving: _isSaving,
+              horizontal: true,
               onSave: _saveProfile,
               onCancel: _cancel,
             ),
