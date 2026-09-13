@@ -7,8 +7,10 @@ import '../../features/announcements/presentation/screens/announcements_screen.d
 import '../../features/dashboard/presentation/screens/admin_main_screen.dart';
 import '../../features/complaints/presentation/screens/reports_screen.dart';
 import '../../features/auth/presentation/screens/register_account_screen.dart';
+import '../../features/splash/presentation/screens/splash_screen.dart';
 
 class AppRouter {
+  static const String splash = '/splash';
   static const String login = '/login';
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
@@ -18,6 +20,7 @@ class AppRouter {
   static const String reports = '/reports';
 
   static Map<String, WidgetBuilder> get routes => {
+    splash: (context) => const SplashScreen(),
     login: (context) => const LoginScreen(),
     register: (context) => const RegisterAccountScreen(),
     forgotPassword: (context) => const ForgotPasswordScreen(),
