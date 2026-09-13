@@ -35,7 +35,7 @@ class _UserDashboardBannerState extends State<UserDashboardBanner> {
       title:
           'Sujudmu di tanah rantau adalah bukti pada orang tuamu bahwa mereka tidak gagal mendidikmu.',
       description: '',
-      titleColor: Color(0xFF85FF67),
+      titleColor: Colors.white,
       descriptionColor: AppColors.onPrimary,
       imagePath: 'assets/images/avatar_santri.png',
       textAlignment: TextAlign.center,

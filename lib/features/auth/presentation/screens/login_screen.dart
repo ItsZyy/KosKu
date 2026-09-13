@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../data/services/auth_service.dart';
+import '../../data/services/login_error_message.dart';
 import '../../../profile/data/services/profile_service.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../widgets/login_header.dart';
 import '../widgets/login_card.dart';
 
@@ -75,18 +77,9 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      final message = e.toString().replaceFirst('Exception: ', '');
+      final message = friendlyLoginErrorMessage(e);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Login gagal: $message'),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
+      await _showLoginErrorDialog(message);
     } finally {
       if (mounted) {
         setState(() {
@@ -98,6 +91,37 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _handleForgotPassword() {
     Navigator.pushNamed(context, AppRouter.forgotPassword);
+  }
+
+  Future<void> _showLoginErrorDialog(String message) async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          icon: const Icon(
+            Icons.error_outline_rounded,
+            color: AppColors.error,
+            size: 40,
+          ),
+          title: const Text('Login Gagal'),
+          content: Text(
+            message,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyMedium,
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Coba Lagi'),
+            ),
+          ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        );
+      },
+    );
   }
 
   void _handleRegister() {
