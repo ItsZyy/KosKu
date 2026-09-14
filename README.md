@@ -1,17 +1,20 @@
-# kosku
+# KosKu
 
-A new Flutter project.
+KosKu adalah aplikasi manajemen kos berbasis mobile yang membantu pemilik mengelola dan memonitor kamar, penghuni, pembayaran, kontrak, dan keluhan secara digital. Penghuni juga dapat mengakses informasi kamarnya sendiri, riwayat pembayaran, serta menyampaikan keluhan melalui satu aplikasi.
 
-## Getting Started
+## Fitur
 
-This project is a starting point for a Flutter application.
+* Login dan registrasi
+* Informasi kamar
+* Data penghuni
+* Pembayaran
+* Upload bukti pembayaran
+* Pengaduan
+* Laporan
+* Profil pengguna
 
-A few resources to get you started if this is your first Flutter project:
+## Teknologi
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+* Flutter
+* Dart
+* Supabase
