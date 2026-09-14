@@ -1,3 +1,4 @@
+// Splash screen pemisah menuju login/dashboard
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -31,7 +32,6 @@ class _SplashScreenState extends State<SplashScreen> {
     });
   }
 
-
   @override
   void dispose() {
     _timer?.cancel();
@@ -64,10 +64,10 @@ class _SplashScreenState extends State<SplashScreen> {
                 const SizedBox(width: 4),
                 Padding(
                   padding: EdgeInsets.only(top: fontSize * 0.30),
-                  child: Text(
+                    child: Text(
                     'OSKU',
                     style: GoogleFonts.inter(
-                      color: Colors.white,
+                      color: AppColors.onPrimary,
                       fontWeight: FontWeight.w700,
                       fontSize: fontSize,
                       letterSpacing: 1.0,

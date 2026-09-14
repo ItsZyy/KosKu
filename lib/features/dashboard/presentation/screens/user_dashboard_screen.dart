@@ -1,5 +1,7 @@
+// Halaman dashboard utama penghuni
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../../profile/data/services/profile_service.dart';
 import '../../../rooms/data/services/room_service.dart';
 import '../../../payments/data/services/payment_service.dart';
@@ -130,7 +132,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEFEFEF),
+      backgroundColor: AppColors.backgroundSoft,
       body: CustomScrollView(
         clipBehavior: Clip.none,
         slivers: [

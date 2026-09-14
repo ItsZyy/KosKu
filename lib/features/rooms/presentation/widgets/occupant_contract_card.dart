@@ -1,7 +1,9 @@
+// Widget untuk AddOccupantScreen
 import 'package:flutter/material.dart';
 
 import 'package:kosku/core/theme/app_colors.dart';
 import 'package:kosku/core/theme/app_text_styles.dart';
+import 'package:kosku/core/utils/currency_formatter.dart';
 
 class OccupantContractCard extends StatelessWidget {
   final DateTime contractStart;
@@ -55,7 +57,7 @@ class OccupantContractCard extends StatelessWidget {
           Text('Harga Sewa (6 Bulan)', style: AppTextStyles.labelMedium),
           const SizedBox(height: 6),
 
-          _buildInfoField(value: _formatCurrency(rentPrice), isBold: true),
+          _buildInfoField(value: formatRupiah(rentPrice), isBold: true),
 
           const SizedBox(height: 16),
 
@@ -164,14 +166,5 @@ class OccupantContractCard extends StatelessWidget {
     ];
 
     return '${date.day} ${months[date.month - 1]} ${date.year}';
-  }
-
-  String _formatCurrency(double value) {
-    final formatted = value.round().toString().replaceAllMapped(
-      RegExp(r'\B(?=(\d{3})+(?!\d))'),
-      (match) => '.',
-    );
-
-    return 'Rp $formatted';
   }
 }

@@ -1,18 +1,12 @@
+import 'package:kosku/core/utils/currency_formatter.dart';
+
 import 'payment_status.dart';
 
 class PaymentFormatter {
   PaymentFormatter._();
 
   static String rupiah(dynamic amount) {
-    if (amount == null) return '-';
-
-    final value = int.tryParse(amount.toString());
-    if (value == null) return amount.toString();
-
-    return 'Rp ${value.toString().replaceAllMapped(
-      RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-      (match) => '${match[1]}.',
-    )}';
+    return formatRupiah(amount);
   }
 
   static String period(dynamic period) {

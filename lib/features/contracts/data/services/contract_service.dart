@@ -5,6 +5,7 @@ import '../models/contract_model.dart';
 class ContractService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
+  // Mengambil daftar kontrak
   Future<List<ContractModel>> getContracts({String? statusFilter}) async {
     final data = await _supabase
         .from('occupancies')
@@ -46,6 +47,7 @@ class ContractService {
     return contracts;
   }
 
+  // Mengambil detail kontrak
   Future<ContractModel?> getContractDetail(String occupancyId) async {
     final data = await _supabase
         .from('occupancies')
@@ -80,6 +82,7 @@ class ContractService {
     return ContractModel.fromMap(map);
   }
 
+  // Memperpanjang kontrak
   Future<bool> renewContract(String occupancyId) async {
     final result = await _supabase.rpc(
       'renew_contract',
@@ -89,6 +92,7 @@ class ContractService {
     return result == true;
   }
 
+  // Menyelesaikan kontrak
   Future<bool> completeContract(String occupancyId) async {
     final result = await _supabase.rpc(
       'complete_contract',
@@ -98,6 +102,7 @@ class ContractService {
     return result == true;
   }
 
+  // Melengkapi nomor kamar pada data hunian
   Future<void> _attachRoomNumbers(
     List<Map<String, dynamic>> occupancies,
   ) async {

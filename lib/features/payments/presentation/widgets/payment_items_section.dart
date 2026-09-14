@@ -6,7 +6,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../data/models/payment_formatter.dart';
 import '../../data/models/payment_model.dart';
 
-/// menampilkan rincian per-fasilitas.
+// File: item tagihan dibagi kamar vs fasilitas.
 class PaymentItemsSection extends StatelessWidget {
   final Payment payment;
 

@@ -1,5 +1,7 @@
+// Halaman tagihan pembayaran admin
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_text_styles.dart';
 import '../../data/models/payment_status.dart';
 import '../../data/services/payment_service.dart';
 import '../widgets/payment_card.dart';
@@ -47,8 +49,6 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
     _loadPayments();
   }
 
-  // LOAD DATA
-
   Future<void> _loadPayments() async {
     setState(() {
       _isLoading = true;
@@ -73,8 +73,6 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
       });
     }
   }
-
-  // FILTER + SEARCH
 
   List<Map<String, dynamic>> get _filteredPayments {
     final search = _searchController.text.trim().toLowerCase();
@@ -113,8 +111,6 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
       } else if (_selectedFilter == 'Menunggu Konfirmasi') {
         matchesFilter =
             displayStatus == PaymentDisplayStatus.waitingConfirmation;
-      } else if (_selectedFilter == 'Belum Bayar') {
-        matchesFilter = displayStatus == PaymentDisplayStatus.notPaid;
       } else if (_selectedFilter == 'Telat Bayar') {
         matchesFilter = displayStatus == PaymentDisplayStatus.late;
       }
@@ -125,8 +121,6 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
       return matchesFilter && matchesSearch;
     }).toList();
   }
-
-  // SUMMARY
 
   int _calcTotal(Map<String, dynamic> payment) {
     final items = payment['payment_items'];
@@ -213,9 +207,8 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => AdminPaymentDetailScreen(
-              paymentId: paymentId,
-            ),
+            builder: (context) =>
+                AdminPaymentDetailScreen(paymentId: paymentId),
           ),
         );
       }
@@ -236,7 +229,6 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // SUMMARY
           PaymentSummary(
             totalBill: _totalBill,
             paidBill: _paidBill,
@@ -245,7 +237,6 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
 
           const SizedBox(height: 16),
 
-          // FILTER + SEARCH
           PaymentFilter(
             selectedFilter: _selectedFilter,
             onFilterChanged: (filter) {
@@ -261,14 +252,11 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
 
           const SizedBox(height: 16),
 
-          // PAYMENT LIST
           ..._buildPaymentList(),
         ],
       ),
     );
   }
-
-  // ERROR
 
   Widget _buildError() {
     return Center(
@@ -279,9 +267,11 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
           children: [
             const Icon(Icons.error_outline, size: 48),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'Gagal memuat pembayaran',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: AppTextStyles.labelLarge.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
             Text(_error!, textAlign: TextAlign.center),
@@ -296,22 +286,22 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
     );
   }
 
-  // PAYMENT LIST
-
   List<Widget> _buildPaymentList() {
     final payments = _filteredPayments;
 
     if (payments.isEmpty) {
       return [
         const SizedBox(height: 40),
-        const Center(
+        Center(
           child: Column(
             children: [
-              Icon(Icons.receipt_long_outlined, size: 56),
-              SizedBox(height: 12),
+              const Icon(Icons.receipt_long_outlined, size: 56),
+              const SizedBox(height: 12),
               Text(
                 'Tidak ada tagihan',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: AppTextStyles.labelLarge.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -328,9 +318,8 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => AdminPaymentDetailScreen(
-                paymentId: paymentId,
-              ),
+              builder: (context) =>
+                  AdminPaymentDetailScreen(paymentId: paymentId),
             ),
           );
         },

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../data/models/complaint_model.dart';
 
 class UserComplaintDetailScreen extends StatelessWidget {
@@ -37,16 +39,16 @@ class UserComplaintDetailScreen extends StatelessWidget {
   Color _getStatusColor(BuildContext context) {
     switch (_getStatusLabel()) {
       case 'Menunggu':
-        return Colors.orange;
+        return AppColors.warning;
 
       case 'Diproses':
         return Theme.of(context).colorScheme.primary;
 
       case 'Selesai':
-        return Colors.green;
+        return AppColors.success;
 
       default:
-        return Colors.grey;
+        return AppColors.textSecondary;
     }
   }
 
@@ -110,9 +112,8 @@ class UserComplaintDetailScreen extends StatelessWidget {
                         Expanded(
                           child: Text(
                             complaint.type,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                            style: AppTextStyles.headlineMedium.copyWith(
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
@@ -128,9 +129,8 @@ class UserComplaintDetailScreen extends StatelessWidget {
                           ),
                           child: Text(
                             statusLabel,
-                            style: TextStyle(
+                            style: AppTextStyles.labelMedium.copyWith(
                               color: statusColor,
-                              fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -143,13 +143,13 @@ class UserComplaintDetailScreen extends StatelessWidget {
                         const Icon(
                           Icons.calendar_today_outlined,
                           size: 16,
-                          color: Colors.grey,
+                          color: AppColors.textSecondary,
                         ),
                         const SizedBox(width: 8),
                         Text(
                           _formatDate(complaint.createdAt),
                           style: const TextStyle(
-                            color: Colors.grey,
+                            color: AppColors.textSecondary,
                             fontSize: 13,
                           ),
                         ),
@@ -158,10 +158,7 @@ class UserComplaintDetailScreen extends StatelessWidget {
                     const SizedBox(height: 20),
                     const Text(
                       'Deskripsi Keluhan',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: AppTextStyles.labelLarge,
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -179,13 +176,12 @@ class UserComplaintDetailScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(20, 20, 20, 14),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 14),
                       child: Text(
                         'Foto Keluhan',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                        style: AppTextStyles.headlineSmall.copyWith(
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -203,12 +199,14 @@ class UserComplaintDetailScreen extends StatelessWidget {
                                 Icon(
                                   Icons.broken_image_outlined,
                                   size: 40,
-                                  color: Colors.grey,
+                                  color: AppColors.textSecondary,
                                 ),
                                 SizedBox(height: 8),
                                 Text(
                                   'Foto tidak dapat dimuat',
-                                  style: TextStyle(color: Colors.grey),
+                                  style: TextStyle(
+                                    color: AppColors.textSecondary,
+                                  ),
                                 ),
                               ],
                             ),
@@ -236,11 +234,10 @@ class UserComplaintDetailScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Status Keluhan',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                      style: AppTextStyles.headlineSmall.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -248,7 +245,7 @@ class UserComplaintDetailScreen extends StatelessWidget {
                       status: 'Menunggu',
                       active: statusIndex >= 0,
                       current: statusIndex == 0,
-                      color: Colors.orange,
+                      color: AppColors.warning,
                     ),
                     _StatusItem(
                       status: 'Diproses',
@@ -260,7 +257,7 @@ class UserComplaintDetailScreen extends StatelessWidget {
                       status: 'Selesai',
                       active: statusIndex >= 2,
                       current: statusIndex == 2,
-                      color: Colors.green,
+                      color: AppColors.success,
                       isLast: true,
                     ),
                   ],
@@ -300,7 +297,7 @@ class _StatusItem extends StatelessWidget {
               width: current ? 16 : 14,
               height: current ? 16 : 14,
               decoration: BoxDecoration(
-                color: active ? color : Colors.grey.shade300,
+                color: active ? color : AppColors.border,
                 shape: BoxShape.circle,
                 border: current
                     ? Border.all(color: color.withValues(alpha: 0.25), width: 4)
@@ -313,7 +310,7 @@ class _StatusItem extends StatelessWidget {
                 height: 32,
                 color: active && status != 'Selesai'
                     ? color.withValues(alpha: 0.25)
-                    : Colors.grey.shade300,
+                    : AppColors.border,
               ),
           ],
         ),
@@ -327,8 +324,8 @@ class _StatusItem extends StatelessWidget {
               color: current
                   ? color
                   : active
-                  ? Colors.black87
-                  : Colors.grey,
+                  ? AppColors.textPrimary
+                  : AppColors.textSecondary,
             ),
           ),
         ),

@@ -1,6 +1,7 @@
+// Halaman daftar kamar untuk admin
 import 'package:flutter/material.dart';
 
-import 'package:kosku/features/tenants/presentation/screen/tenants_screen.dart';
+import 'package:kosku/features/tenants/presentation/screens/tenants_screen.dart';
 
 import '../../data/models/room_model.dart';
 import '../../data/services/room_service.dart';

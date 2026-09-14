@@ -1,3 +1,4 @@
+// Halaman daftar kontrak penghuni
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -5,16 +6,16 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../data/models/contract_model.dart';
 import '../../data/services/contract_service.dart';
 import '../widgets/contract_card.dart';
-import 'contract_detail_page.dart';
+import 'contract_detail_screen.dart';
 
-class ContractsPage extends StatefulWidget {
-  const ContractsPage({super.key});
+class ContractsScreen extends StatefulWidget {
+  const ContractsScreen({super.key});
 
   @override
-  State<ContractsPage> createState() => _ContractsPageState();
+  State<ContractsScreen> createState() => _ContractsScreenState();
 }
 
-class _ContractsPageState extends State<ContractsPage> {
+class _ContractsScreenState extends State<ContractsScreen> {
   final ContractService _contractService = ContractService();
   final TextEditingController _searchController = TextEditingController();
 
@@ -69,7 +70,7 @@ class _ContractsPageState extends State<ContractsPage> {
 
   Future<void> _openContractDetail(ContractModel contract) async {
     final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => ContractDetailPage(contract: contract)),
+      MaterialPageRoute(builder: (_) => ContractDetailScreen(contract: contract)),
     );
 
     if (!mounted) {

@@ -180,7 +180,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
         color: AppColors.background,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: AppColors.textPrimary.withValues(alpha: 0.05),
             blurRadius: 2,
             offset: const Offset(0, 1),
           ),

@@ -1,5 +1,5 @@
+// Halaman detail kamar untuk admin (foto, info, fasilitas, pembayaran, penghuni)
 import 'package:flutter/material.dart';
-
 import 'package:kosku/features/payments/data/services/payment_service.dart';
 import 'package:kosku/features/rooms/data/models/room_detail_model.dart';
 import 'package:kosku/features/rooms/data/services/room_service.dart';

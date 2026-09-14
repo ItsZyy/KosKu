@@ -1,3 +1,4 @@
+// Halaman tagihan pembayaran penghuni
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -314,7 +315,7 @@ class _UserPaymentScreenState extends State<UserPaymentScreen> {
             const Icon(
               Icons.error_outline_rounded,
               size: 48,
-              color: Colors.red,
+              color: AppColors.error,
             ),
             const SizedBox(height: 12),
             Text(

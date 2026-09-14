@@ -1,14 +1,16 @@
 // Widget untuk RoomsScreen
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../data/models/room_model.dart';
 import '../../data/services/room_service.dart';
 
 class RoomCard extends StatelessWidget {
   final RoomModel room;
 
-  /// Daftar penghuni aktif (dari occupancy), bisa lebih dari satu karena
-  /// kapasitas kamar. Sebelumnya hanya user pertama yang ditampilkan.
+  // Daftar penghuni aktif dari occupancy; bisa lebih dari satu.
   final List<Map<String, dynamic>> users;
 
   final VoidCallback? onDetail;
@@ -43,8 +45,7 @@ class RoomCard extends StatelessWidget {
 
   bool get isRepair => room.status == 'Perbaikan';
 
-  /// Penghuni pertama dipakai untuk kontrak tunggal di kartu; semua nama
-  /// tetap ditampilkan lewat [users] (lihat _buildUser).
+  // Penghuni pertama untuk kontrak tunggal di kartu.
   Map<String, dynamic>? get _firstUser {
     return users.isNotEmpty ? users.first : null;
   }
@@ -58,13 +59,13 @@ class RoomCard extends StatelessWidget {
   Color get statusColor {
     switch (status) {
       case 'Terisi':
-        return Colors.green;
+        return AppColors.success;
       case 'Kosong':
-        return Colors.blue;
+        return AppColors.primary;
       case 'Perbaikan':
-        return Colors.red;
+        return AppColors.error;
       default:
-        return Colors.grey;
+        return AppColors.textSecondary;
     }
   }
 
@@ -82,18 +83,7 @@ class RoomCard extends StatelessWidget {
   }
 
   String _formatRupiah(double amount) {
-    final text = amount.toInt().toString();
-    final buffer = StringBuffer();
-
-    for (int i = 0; i < text.length; i++) {
-      if (i > 0 && (text.length - i) % 3 == 0) {
-        buffer.write('.');
-      }
-
-      buffer.write(text[i]);
-    }
-
-    return 'Rp ${buffer.toString()}';
+    return formatRupiah(amount);
   }
 
   @override
@@ -185,16 +175,15 @@ class RoomCard extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(statusIcon, color: Colors.white, size: 16),
+                  Icon(statusIcon, color: AppColors.onPrimary, size: 16),
 
                   const SizedBox(width: 5),
 
                   Text(
                     status,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                    style: AppTextStyles.labelMedium.copyWith(
+                      color: AppColors.onPrimary,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],
@@ -208,9 +197,13 @@ class RoomCard extends StatelessWidget {
 
   Widget _buildImagePlaceholder() {
     return Container(
-      color: Colors.grey.shade200,
+      color: AppColors.border,
       child: const Center(
-        child: Icon(Icons.image_outlined, size: 50, color: Colors.grey),
+        child: Icon(
+          Icons.image_outlined,
+          size: 50,
+          color: AppColors.textSecondary,
+        ),
       ),
     );
   }
@@ -233,15 +226,21 @@ class RoomCard extends StatelessWidget {
           ),
 
         if (isEmpty)
-          const Text(
+          Text(
             'Belum ada penghuni',
-            style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
           ),
 
         if (isRepair)
-          const Text(
+          Text(
             'Perbaikan',
-            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: AppColors.error,
+              fontWeight: FontWeight.bold,
+            ),
           ),
       ],
     );
@@ -256,7 +255,7 @@ class RoomCard extends StatelessWidget {
           Expanded(
             child: Text(
               'Belum ada penghuni',
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(color: AppColors.textSecondary),
             ),
           ),
         ],

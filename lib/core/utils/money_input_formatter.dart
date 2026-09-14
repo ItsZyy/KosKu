@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 
+// Formatter input uang dengan pemisah ribuan
 class MoneyInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(

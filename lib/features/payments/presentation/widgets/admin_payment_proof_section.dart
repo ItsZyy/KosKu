@@ -1,3 +1,4 @@
+// Widget untuk AdminPaymentDetailScreen
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -167,19 +168,21 @@ class AdminPaymentProofSection extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.black54,
+                    color: AppColors.scrim,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.zoom_in, size: 14, color: Colors.white),
-                      SizedBox(width: 4),
+                      const Icon(Icons.zoom_in, size: 14, color: AppColors.onPrimary),
+                      const SizedBox(width: 4),
                       Flexible(
                         child: Text(
                           'Ketuk untuk memperbesar',
-                          style: TextStyle(color: Colors.white, fontSize: 12),
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.onPrimary,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -205,7 +208,7 @@ class AdminPaymentProofSection extends StatelessWidget {
           SizedBox(height: 8),
           Text(
             'Gagal memuat bukti',
-            style: TextStyle(fontSize: 12),
+            style: AppTextStyles.bodySmall,
           ),
         ],
       ),

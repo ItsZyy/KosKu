@@ -1,7 +1,9 @@
+// Widget untuk UserDashboardScreen
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../payments/data/models/payment_status.dart';
 import '../../../payments/presentation/screens/payment_detail_screen.dart';
 
@@ -11,21 +13,10 @@ class UserDashboardPaymentCard extends StatelessWidget {
   const UserDashboardPaymentCard({super.key, required this.payment});
 
   String _formatAmount(dynamic amount) {
-    if (amount == null) {
-      return '-';
-    }
-
-    final value = double.tryParse(amount.toString());
-
-    if (value == null) {
-      return '-';
-    }
-
-    return 'Rp ${value.toStringAsFixed(0).replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (match) => '.')}';
+    return formatRupiah(amount);
   }
 
-  /// Derive display state from both `status` and `proof_url`.
-  /// The database `status` alone is NOT enough to determine user-facing state.
+  // Status tampilan ditentukan dari status, bukti, metode, dan jatuh tempo.
   _PaymentDisplayState _getDisplayState() {
     final status = payment?['status']?.toString().toLowerCase() ?? '';
     final proofUrl = payment?['proof_url']?.toString();
@@ -80,7 +71,6 @@ class UserDashboardPaymentCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // HEADER
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,12 +97,10 @@ class UserDashboardPaymentCard extends StatelessWidget {
 
           const SizedBox(height: 8),
 
-          // JUMLAH TAGIHAN
           Text(_formatAmount(amount), style: AppTextStyles.headlineMedium),
 
           const SizedBox(height: 18),
 
-          // BUTTON
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(

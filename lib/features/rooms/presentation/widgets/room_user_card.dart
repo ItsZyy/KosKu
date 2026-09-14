@@ -1,4 +1,7 @@
+// Widget untuk kartu detail penghuni kamar
 import 'package:flutter/material.dart';
+import 'package:kosku/core/theme/app_text_styles.dart';
+import 'package:kosku/core/utils/currency_formatter.dart';
 import 'package:kosku/features/rooms/data/models/room_detail_model.dart';
 
 class RoomUserCard extends StatelessWidget {
@@ -60,8 +63,7 @@ class RoomUserCard extends StatelessWidget {
                       user!.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 15,
+                      style: AppTextStyles.titleMedium.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -70,8 +72,7 @@ class RoomUserCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         user!.phone!,
-                        style: TextStyle(
-                          fontSize: 12,
+                        style: AppTextStyles.bodySmall.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
@@ -107,7 +108,7 @@ class RoomUserCard extends StatelessWidget {
           _InfoRow(
             icon: Icons.payments_outlined,
             label: 'Harga kamar per 6 bulan',
-            value: _formatPrice(user!.rentPrice),
+            value: formatRupiah(user!.rentPrice),
           ),
 
           const SizedBox(height: 18),
@@ -178,16 +179,15 @@ class RoomUserCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Expanded(
-              child: Text(
-                'Progress kontrak',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+            Text(
+              'Progress kontrak',
+              style: AppTextStyles.labelMedium.copyWith(
+                fontWeight: FontWeight.w600,
               ),
             ),
             Text(
               statusText,
-              style: TextStyle(
-                fontSize: 11,
+              style: AppTextStyles.caption.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
@@ -253,21 +253,6 @@ class RoomUserCard extends StatelessWidget {
 
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
-
-  String _formatPrice(double price) {
-    final value = price.toInt().toString();
-    final buffer = StringBuffer();
-
-    for (int i = 0; i < value.length; i++) {
-      if (i > 0 && (value.length - i) % 3 == 0) {
-        buffer.write('.');
-      }
-
-      buffer.write(value[i]);
-    }
-
-    return 'Rp$buffer';
-  }
 }
 
 class _InfoRow extends StatelessWidget {
@@ -290,15 +275,16 @@ class _InfoRow extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
+            style: AppTextStyles.bodySmall.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
         ),
         Text(
           value,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          style: AppTextStyles.labelMedium.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ],
     );

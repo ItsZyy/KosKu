@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../profile/data/services/profile_service.dart';
 import '../../data/models/contract_model.dart';
 import 'contract_status_badge.dart';
@@ -12,25 +13,6 @@ class ContractCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const ContractCard({super.key, required this.contract, this.onTap});
-
-  String _formatRupiah(double? amount) {
-    if (amount == null) {
-      return '-';
-    }
-
-    final text = amount.toInt().toString();
-    final buffer = StringBuffer();
-
-    for (int i = 0; i < text.length; i++) {
-      if (i > 0 && (text.length - i) % 3 == 0) {
-        buffer.write('.');
-      }
-
-      buffer.write(text[i]);
-    }
-
-    return 'Rp ${buffer.toString()}';
-  }
 
   String _formatPeriod(String? start, String? end) {
     String format(String? value) {
@@ -150,7 +132,7 @@ class ContractCard extends StatelessWidget {
               _buildInfoRow(
                 icon: Icons.payments_outlined,
                 label: 'Harga Sewa',
-                value: _formatRupiah(contract.rentPrice),
+                value: formatRupiah(contract.rentPrice),
               ),
             ],
           ),

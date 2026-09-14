@@ -7,6 +7,7 @@ import '../models/profile_model.dart';
 class ProfileService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
+  // Mengambil data profil
   Future<ProfileModel?> getProfile() async {
     final user = _supabase.auth.currentUser;
 
@@ -27,6 +28,7 @@ class ProfileService {
     return ProfileModel.fromMap(data);
   }
 
+  // Mengambil data profil berdasarkan ID
   Future<ProfileModel?> getProfileById(String userId) async {
     final data = await _supabase
         .from('profiles')
@@ -41,16 +43,19 @@ class ProfileService {
     return ProfileModel.fromMap(data);
   }
 
+  // Mengambil role pengguna
   Future<String?> getRole() async {
     final profile = await getProfile();
 
     return profile?.role;
   }
 
+  // Mengambil email pengguna terautentikasi
   String? getEmail() {
     return _supabase.auth.currentUser?.email;
   }
 
+  // Upload foto profil
   Future<String> uploadProfilePhoto({
     required Uint8List bytes,
     required String fileExtension,
@@ -84,6 +89,7 @@ class ProfileService {
     return filePath;
   }
 
+  // Menghapus foto profil
   Future<void> deleteProfilePhoto() async {
     final user = _supabase.auth.currentUser;
 
@@ -104,11 +110,7 @@ class ProfileService {
         .eq('id', user.id);
   }
 
-  /// Menyelesaikan nilai `profile_photo_url` menjadi URL yang bisa dirender.
-  ///
-  /// Nilai yang tersimpan bisa berupa path storage (misal `{userId}/profile.jpg`)
-  /// atau URL utuh. Bucket `profile-images` harus public agar path bisa diakses
-  /// oleh semua pengguna (penghuni, teman sekamar, admin).
+  // Menyelesaikan nilai profile_photo_url menjadi URL yang bisa dirender.
   static String? resolveProfilePhotoUrl(String? photoPath) {
     if (photoPath == null || photoPath.isEmpty) {
       return null;
@@ -125,6 +127,7 @@ class ProfileService {
         .getPublicUrl(value);
   }
 
+  // Mendapatkan URL foto profil dengan masa berlaku
   Future<String?> getProfilePhotoUrl(String? photoPath) async {
     if (photoPath == null || photoPath.isEmpty) {
       return null;
@@ -135,6 +138,7 @@ class ProfileService {
         .createSignedUrl(photoPath, 3600);
   }
 
+  // Memperbarui data profil
   Future<void> updateProfile({
     required String name,
     String? phone,
@@ -164,6 +168,7 @@ class ProfileService {
         .eq('id', user.id);
   }
 
+  // Keluar dari akun
   Future<void> logout() async {
     await _supabase.auth.signOut();
   }

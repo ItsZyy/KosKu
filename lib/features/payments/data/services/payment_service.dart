@@ -11,11 +11,18 @@ class PaymentService {
   static RealtimeChannel? _paymentsChannel;
   static final List<void Function()> _paymentsListeners = [];
 
+  // Mendapatkan ID admin yang sedang login
+  String? getAdminUserId() {
+    return _supabase.auth.currentUser?.id;
+  }
+
+  // Mendaftarkan listener perubahan data pembayaran secara realtime.
   void subscribeToPayments(void Function() onChanged) {
     _paymentsListeners.add(onChanged);
     _ensurePaymentsChannel();
   }
 
+  // Menghapus listener perubahan data pembayaran.
   void unsubscribeFromPayments(void Function() onChanged) {
     _paymentsListeners.remove(onChanged);
 
@@ -58,6 +65,7 @@ class PaymentService {
     } catch (_) {}
   }
 
+  // Membuat tagihan baru melalui RPC generate_payment.
   Future<String> generatePayment({
     required String userId,
     required String roomId,
@@ -87,6 +95,7 @@ class PaymentService {
     return paymentId.toString();
   }
 
+  // Mengambil detail tagihan beserta item, profil, dan kontrak.
   Future<Payment?> getPaymentDetail(String paymentId) async {
     final data = await _supabase
         .from('payments')
@@ -136,6 +145,7 @@ class PaymentService {
     return Payment.fromMap(map);
   }
 
+  // Mengambil daftar item sebuah tagihan.
   Future<List<PaymentItem>> getPaymentItems(String paymentId) async {
     final data = await _supabase
         .from('payment_items')
@@ -146,6 +156,7 @@ class PaymentService {
     return data.map<PaymentItem>((e) => PaymentItem.fromMap(e)).toList();
   }
 
+  // Mengunggah bukti pembayaran ke storage.
   Future<String> uploadPaymentProof({
     required String paymentId,
     required File file,
@@ -168,6 +179,7 @@ class PaymentService {
     return filePath;
   }
 
+  // Menyimpan bukti pembayaran dan mengubah status menjadi menunggu konfirmasi.
   Future<void> submitPaymentProof({
     required String paymentId,
     required String proofUrl,
@@ -250,6 +262,7 @@ class PaymentService {
     }
   }
 
+  // Melaporkan pembayaran tunai dan mengubah status menjadi menunggu konfirmasi.
   Future<void> submitCashPayment({required String paymentId}) async {
     final user = _supabase.auth.currentUser;
 
@@ -325,6 +338,7 @@ class PaymentService {
     }
   }
 
+  // Mengonfirmasi pembayaran sebagai admin.
   Future<void> confirmPayment({
     required String paymentId,
     required String adminUserId,
@@ -414,6 +428,7 @@ class PaymentService {
     }
   }
 
+  // Menolak pembayaran sebagai admin.
   Future<void> rejectPayment({required String paymentId}) async {
     final user = _supabase.auth.currentUser;
 
@@ -467,6 +482,7 @@ class PaymentService {
     }
   }
 
+  // Membuat URL sementara untuk menampilkan bukti pembayaran.
   Future<String?> getProofSignedUrl(String? proofPath) async {
     if (proofPath == null || proofPath.isEmpty) {
       return null;
@@ -481,6 +497,7 @@ class PaymentService {
     }
   }
 
+  // Mengambil tagihan terbaru milik pengguna yang login.
   Future<Map<String, dynamic>?> getPayment() async {
     final user = _supabase.auth.currentUser;
 
@@ -499,6 +516,7 @@ class PaymentService {
     return data;
   }
 
+  // Menghitung total pendapatan dari pembayaran terkonfirmasi.
   Future<int> getTotalIncome() async {
     final data = await _supabase
         .from('payments')
@@ -527,6 +545,7 @@ class PaymentService {
     return total;
   }
 
+  // Mengambil semua tagihan untuk admin.
   Future<List<Map<String, dynamic>>> getPayments() async {
     final data = await _supabase
         .from('payments')
@@ -567,6 +586,7 @@ class PaymentService {
     return payments;
   }
 
+  // Mengambil riwayat pembayaran milik pengguna yang login.
   Future<List<Map<String, dynamic>>> getPaymentHistory() async {
     final user = _supabase.auth.currentUser;
 
@@ -597,6 +617,7 @@ class PaymentService {
     return payments;
   }
 
+  // Mengambil info metode pembayaran dari tabel payment_info.
   Future<List<Map<String, dynamic>>> getPaymentInfo() async {
     try {
       final data = await _supabase
@@ -610,6 +631,7 @@ class PaymentService {
     }
   }
 
+  // Mengambil tagihan terbaru pengguna sebagai objek Payment.
   Future<Payment?> getCurrentPayment() async {
     final user = _supabase.auth.currentUser;
 
@@ -661,6 +683,7 @@ class PaymentService {
     return Payment.fromMap(map);
   }
 
+  // Mengambil riwayat pembayaran pengguna sebagai objek Payment.
   Future<List<Payment>> getPaymentHistoryTyped() async {
     final user = _supabase.auth.currentUser;
 

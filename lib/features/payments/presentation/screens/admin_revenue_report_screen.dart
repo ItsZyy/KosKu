@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../data/models/payment_status.dart';
 import '../../data/services/payment_service.dart';
 import '../widgets/payment_card.dart';
@@ -75,17 +76,7 @@ class _AdminRevenueReportScreenState extends State<AdminRevenueReportScreen> {
   }
 
   String _formatRupiah(int amount) {
-    final text = amount.toString();
-    final buffer = StringBuffer();
-
-    for (int i = 0; i < text.length; i++) {
-      if (i > 0 && (text.length - i) % 3 == 0) {
-        buffer.write('.');
-      }
-      buffer.write(text[i]);
-    }
-
-    return 'Rp ${buffer.toString()}';
+    return formatRupiah(amount);
   }
 
   List<Map<String, dynamic>> get _filteredPayments {
@@ -162,7 +153,7 @@ class _AdminRevenueReportScreenState extends State<AdminRevenueReportScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
@@ -224,18 +215,17 @@ class _AdminRevenueReportScreenState extends State<AdminRevenueReportScreen> {
       ),
       child: Column(
         children: [
-          const Text(
+          Text(
             'Total Pendapatan',
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 16,
+            style: AppTextStyles.bodyLarge.copyWith(
+              color: AppColors.overlayWhite,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             _formatRupiah(totalRevenue),
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.onPrimary,
               fontSize: 32,
               fontWeight: FontWeight.bold,
             ),
@@ -244,13 +234,13 @@ class _AdminRevenueReportScreenState extends State<AdminRevenueReportScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: AppColors.onPrimary.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
               '$totalTransactions Transaksi',
-              style: const TextStyle(
-                color: Colors.white,
+              style: AppTextStyles.labelLarge.copyWith(
+                color: AppColors.onPrimary,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -264,14 +254,17 @@ class _AdminRevenueReportScreenState extends State<AdminRevenueReportScreen> {
     if (payments.isEmpty) {
       return [
         const SizedBox(height: 40),
-        const Center(
+        Center(
           child: Column(
             children: [
-              Icon(Icons.receipt_long_outlined, size: 56, color: AppColors.textSecondary),
-              SizedBox(height: 12),
+              const Icon(Icons.receipt_long_outlined, size: 56, color: AppColors.textSecondary),
+              const SizedBox(height: 12),
               Text(
                 'Tidak ada transaksi pada periode ini',
-                style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                style: AppTextStyles.labelLarge.copyWith(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -307,9 +300,11 @@ class _AdminRevenueReportScreenState extends State<AdminRevenueReportScreen> {
           children: [
             const Icon(Icons.error_outline, size: 48),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'Gagal memuat laporan',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: AppTextStyles.labelLarge.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
             Text(_error!, textAlign: TextAlign.center),

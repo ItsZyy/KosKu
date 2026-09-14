@@ -1,3 +1,4 @@
+// Model data fasilitas
 class FacilityModel {
   final String id;
   final String name;

@@ -17,7 +17,6 @@ class RoomFilter extends StatelessWidget {
   static const List<String> filters = [
     'Semua',
     'Terisi',
-    'Perbaikan',
     'Kosong',
   ];
 

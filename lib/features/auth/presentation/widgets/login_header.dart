@@ -1,8 +1,8 @@
-// Widget untuk LoginScreen
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
+// Widget untuk LoginScreen
 class LoginHeader extends StatelessWidget {
   const LoginHeader({super.key});
 
@@ -10,7 +10,6 @@ class LoginHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Logo dengan container
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(

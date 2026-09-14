@@ -2,21 +2,22 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../profile/data/services/profile_service.dart';
 import '../../data/models/contract_model.dart';
 import '../../data/services/contract_service.dart';
 import '../widgets/contract_status_badge.dart';
 
-class ContractDetailPage extends StatefulWidget {
+class ContractDetailScreen extends StatefulWidget {
   final ContractModel contract;
 
-  const ContractDetailPage({super.key, required this.contract});
+  const ContractDetailScreen({super.key, required this.contract});
 
   @override
-  State<ContractDetailPage> createState() => _ContractDetailPageState();
+  State<ContractDetailScreen> createState() => _ContractDetailScreenState();
 }
 
-class _ContractDetailPageState extends State<ContractDetailPage> {
+class _ContractDetailScreenState extends State<ContractDetailScreen> {
   final ContractService _contractService = ContractService();
 
   ContractModel? _contract;
@@ -377,22 +378,7 @@ class _ContractDetailPageState extends State<ContractDetailPage> {
   }
 
   String _formatRupiah(double? amount) {
-    if (amount == null) {
-      return '-';
-    }
-
-    final text = amount.toInt().toString();
-    final buffer = StringBuffer();
-
-    for (int i = 0; i < text.length; i++) {
-      if (i > 0 && (text.length - i) % 3 == 0) {
-        buffer.write('.');
-      }
-
-      buffer.write(text[i]);
-    }
-
-    return 'Rp ${buffer.toString()}';
+    return formatRupiah(amount);
   }
 }
 

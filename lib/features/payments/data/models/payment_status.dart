@@ -42,7 +42,6 @@ const List<String> paymentStatusFilters = [
   'Semua',
   'Lunas',
   'Menunggu Konfirmasi',
-  'Belum Bayar',
   'Telat Bayar',
 ];
 

@@ -4,10 +4,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Mengubah error saat login menjadi pesan yang ramah pengguna.
-///
-/// Detail teknis dari Supabase (seperti `AuthApiException`,
-/// `Invalid login credentials`) tidak pernah ditampilkan langsung ke UI.
+// Mengubah error login menjadi pesan yang ramah pengguna.
 String friendlyLoginErrorMessage(Object error) {
   // Error jaringan / koneksi.
   final isNetworkError = error is AuthRetryableFetchException ||

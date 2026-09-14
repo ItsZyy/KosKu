@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 
-class QrisScreen {
+import '../../../../core/theme/app_text_styles.dart';
+
+// Bottom sheet untuk menampilkan QRIS pembayaran (dibuka dari PaymentMethodCard).
+class QrisBottomSheet {
   static Future<void> show(BuildContext context, {required String imageUrl}) {
     return showModalBottomSheet(
       context: context,
@@ -101,10 +104,12 @@ class _QrisBottomSheetState extends State<_QrisBottomSheet> {
             children: [
               const Icon(Icons.qr_code_2, size: 28),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Text(
                   'QRIS Pembayaran',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: AppTextStyles.headlineMedium.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               IconButton(
@@ -116,7 +121,7 @@ class _QrisBottomSheetState extends State<_QrisBottomSheet> {
           const SizedBox(height: 8),
           Text(
             'Scan QRIS menggunakan aplikasi pembayaran Anda.',
-            style: TextStyle(
+            style: AppTextStyles.bodyMedium.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),

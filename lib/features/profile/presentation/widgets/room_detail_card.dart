@@ -1,4 +1,8 @@
+// Widget untuk UserProfileScreen dan TenantProfileScreen
 import 'package:flutter/material.dart';
+
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class RoomDetailCard extends StatelessWidget {
   final String roomNumber;
@@ -63,9 +67,11 @@ class RoomDetailCard extends StatelessWidget {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 10),
-                const Text(
+                Text(
                   'Detail Kamar',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: AppTextStyles.headlineSmall.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -81,13 +87,13 @@ class RoomDetailCard extends StatelessWidget {
             const Divider(height: 24),
             _RoomInfoRow(title: 'Jatuh Tempo', value: dueDate),
             const Divider(height: 24),
-            const Text(
+            Text(
               'Fasilitas',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              style: AppTextStyles.labelLarge,
             ),
             const SizedBox(height: 14),
             facilities.isEmpty
-                ? const Text('-', style: TextStyle(color: Colors.grey))
+                ? const Text('-', style: TextStyle(color: AppColors.textSecondary))
                 : Wrap(
                     spacing: 18,
                     runSpacing: 16,
@@ -124,14 +130,14 @@ class _RoomInfoRow extends StatelessWidget {
         Expanded(
           child: Text(
             title,
-            style: const TextStyle(color: Colors.grey, fontSize: 13),
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
           ),
         ),
         const SizedBox(width: 12),
         Flexible(
           child: Text(
             value.isNotEmpty ? value : '-',
-            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+            style: AppTextStyles.titleSmall,
           ),
         ),
       ],
@@ -168,7 +174,7 @@ class _FacilityItem extends StatelessWidget {
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+            style: AppTextStyles.labelSmall,
           ),
         ],
       ),

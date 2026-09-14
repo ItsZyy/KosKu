@@ -1,7 +1,8 @@
+// Halaman keluhan dan laporan untuk admin
 import 'package:flutter/material.dart';
 
-import 'package:supabase_flutter/supabase_flutter.dart';
-
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../data/models/complaint_model.dart';
 import '../../data/services/complaint_service.dart';
 
@@ -36,7 +37,7 @@ class _ComplaintsScreenState extends State<ComplaintsScreen> {
   String _searchQuery = '';
 
   String? get _currentUserId {
-    return Supabase.instance.client.auth.currentUser?.id;
+    return _complaintService.getCurrentUserId();
   }
 
   @override
@@ -196,17 +197,17 @@ class _ComplaintsScreenState extends State<ComplaintsScreen> {
   }
 
   Widget _buildHeader() {
-    return const Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Laporan & keluhan',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+          style: AppTextStyles.headlineLarge.copyWith(fontWeight: FontWeight.w700),
         ),
-        SizedBox(height: 4),
-        Text(
+        const SizedBox(height: 4),
+        const Text(
           'Lihat riwayat keluhan.',
-          style: TextStyle(fontSize: 13, color: Colors.grey),
+          style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
         ),
       ],
     );

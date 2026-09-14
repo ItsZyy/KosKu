@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../data/models/complaint_model.dart';
 import '../../data/services/complaint_service.dart';
 
@@ -160,17 +162,17 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Widget _buildHeader() {
-    return const Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Kelola Keluhan',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+          style: AppTextStyles.headlineLarge.copyWith(fontWeight: FontWeight.w700),
         ),
-        SizedBox(height: 4),
-        Text(
+        const SizedBox(height: 4),
+        const Text(
           'Kelola laporan dari penghuni kos',
-          style: TextStyle(fontSize: 13, color: Colors.grey),
+          style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
         ),
       ],
     );

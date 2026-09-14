@@ -1,5 +1,9 @@
+// Widget untuk UserPaymentScreen
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../data/models/payment_formatter.dart';
 import '../../data/models/payment_status.dart';
 
@@ -9,15 +13,7 @@ class PaymentHistoryCard extends StatelessWidget {
   const PaymentHistoryCard({super.key, required this.payments});
 
   String _formatRupiah(dynamic amount) {
-    if (amount == null) return '-';
-
-    final value = int.tryParse(amount.toString());
-
-    if (value == null) {
-      return amount.toString();
-    }
-
-    return 'Rp ${value.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (match) => '${match[1]}.')}';
+    return formatRupiah(amount);
   }
 
   String _formatDate(dynamic date) {
@@ -110,10 +106,10 @@ class PaymentHistoryCard extends StatelessWidget {
   Color _getStatusColor(Map<String, dynamic> payment) {
     switch (PaymentStatus.tryParse(payment['status']?.toString())) {
       case PaymentStatus.confirmed:
-        return Colors.green;
+        return AppColors.success;
 
       case PaymentStatus.rejected:
-        return Colors.red;
+        return AppColors.error;
 
       case PaymentStatus.pending:
         final proofUrl = payment['proof_url']?.toString();
@@ -126,13 +122,13 @@ class PaymentHistoryCard extends StatelessWidget {
             ) &&
             proofUrl == null &&
             !isCash) {
-          return Colors.red;
+          return AppColors.error;
         }
 
-        return Colors.orange;
+        return AppColors.warning;
 
       case null:
-        return Colors.grey;
+        return AppColors.textSecondary;
     }
   }
 
@@ -147,10 +143,12 @@ class PaymentHistoryCard extends StatelessWidget {
               children: [
                 const Icon(Icons.history),
                 const SizedBox(width: 10),
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Riwayat Pembayaran',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: AppTextStyles.headlineSmall.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -165,7 +163,7 @@ class PaymentHistoryCard extends StatelessWidget {
                     SizedBox(height: 8),
                     Text(
                       'Belum ada riwayat pembayaran',
-                      style: TextStyle(color: Colors.grey),
+                      style: AppTextStyles.bodySmall,
                     ),
                   ],
                 ),
@@ -236,7 +234,7 @@ class _PaymentHistoryItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14),
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.black12)),
+        border: Border(bottom: BorderSide(color: AppColors.scrimLight)),
       ),
       child: Row(
         children: [
@@ -253,12 +251,12 @@ class _PaymentHistoryItem extends StatelessWidget {
               children: [
                 Text(
                   period,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                  style: AppTextStyles.labelLarge,
                 ),
                 const SizedBox(height: 4),
                 Text(
                   date,
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  style: AppTextStyles.bodySmall,
                 ),
               ],
             ),
@@ -266,7 +264,10 @@ class _PaymentHistoryItem extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(amount, style: const TextStyle(fontWeight: FontWeight.w600)),
+              Text(
+                amount,
+                style: AppTextStyles.labelLarge,
+              ),
               const SizedBox(height: 4),
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -275,8 +276,7 @@ class _PaymentHistoryItem extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     status,
-                    style: TextStyle(
-                      fontSize: 12,
+                    style: AppTextStyles.labelMedium.copyWith(
                       fontWeight: FontWeight.w600,
                       color: statusColor,
                     ),

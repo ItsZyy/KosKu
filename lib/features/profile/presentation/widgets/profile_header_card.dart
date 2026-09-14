@@ -1,4 +1,8 @@
+// Widget untuk UserProfileScreen, AdminProfileScreen, dan TenantProfileScreen
 import 'package:flutter/material.dart';
+
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class ProfileHeaderCard extends StatelessWidget {
   final String name;
@@ -58,12 +62,12 @@ class ProfileHeaderCard extends StatelessWidget {
                       child: InkWell(
                         onTap: isUploadingPhoto ? null : onEditPhoto,
                         customBorder: const CircleBorder(),
-                        child: const Padding(
-                          padding: EdgeInsets.all(7),
+                        child: Padding(
+                          padding: const EdgeInsets.all(7),
                           child: Icon(
                             Icons.camera_alt_outlined,
                             size: 18,
-                            color: Colors.white,
+                            color: AppColors.onPrimary,
                           ),
                         ),
                       ),
@@ -75,10 +79,12 @@ class ProfileHeaderCard extends StatelessWidget {
             Text(
               name,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: AppTextStyles.headlineMedium.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 4),
-            Text(roleLabel, style: const TextStyle(color: Colors.grey)),
+            Text(roleLabel, style: const TextStyle(color: AppColors.textSecondary)),
             if (roomNumber != null && roomNumber!.isNotEmpty) ...[
               const SizedBox(height: 4),
               Row(
@@ -88,7 +94,7 @@ class ProfileHeaderCard extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     'Kamar $roomNumber',
-                    style: const TextStyle(color: Colors.grey),
+                    style: const TextStyle(color: AppColors.textSecondary),
                   ),
                 ],
               ),

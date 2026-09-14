@@ -1,3 +1,4 @@
+// Widget untuk PaymentDetailScreen
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -34,12 +35,12 @@ class PaymentConfirmationButton extends StatelessWidget {
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Colors.white,
+                  color: AppColors.onPrimary,
                 ),
               )
             : Text(
                 label,
-                style: AppTextStyles.button.copyWith(color: Colors.white),
+                style: AppTextStyles.button,
               ),
       ),
     );

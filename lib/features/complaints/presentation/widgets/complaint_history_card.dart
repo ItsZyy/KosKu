@@ -1,6 +1,9 @@
 // Widget untuk ComplaintsScreen
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
+
 class ComplaintHistoryCard extends StatelessWidget {
   final List<Map<String, dynamic>> complaints;
   final VoidCallback? onViewAll;
@@ -35,19 +38,19 @@ class ComplaintHistoryCard extends StatelessWidget {
     switch (status?.toString().toLowerCase()) {
       case 'pending':
       case 'menunggu':
-        return Colors.blue;
+        return AppColors.primary;
 
       case 'process':
       case 'diproses':
       case 'in_process':
-        return Colors.orange;
+        return AppColors.warning;
 
       case 'completed':
       case 'selesai':
-        return Colors.green;
+        return AppColors.success;
 
       default:
-        return Colors.grey;
+        return AppColors.textSecondary;
     }
   }
 
@@ -81,10 +84,12 @@ class ComplaintHistoryCard extends StatelessWidget {
               children: [
                 const Icon(Icons.history),
                 const SizedBox(width: 10),
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Riwayat Keluhan',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: AppTextStyles.headlineSmall.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
                 if (complaints.isNotEmpty)
@@ -117,13 +122,13 @@ class ComplaintHistoryCard extends StatelessWidget {
                       SizedBox(height: 10),
                       Text(
                         'Belum ada riwayat keluhan',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                        style: AppTextStyles.labelLarge,
                       ),
                       SizedBox(height: 4),
                       Text(
                         'Keluhan yang Anda kirim akan muncul di sini.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.grey),
+                        style: TextStyle(color: AppColors.textSecondary),
                       ),
                     ],
                   ),
@@ -142,7 +147,7 @@ class ComplaintHistoryCard extends StatelessWidget {
                         width: double.infinity,
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.black12),
+                          border: Border.all(color: AppColors.scrimLight),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -217,10 +222,7 @@ class ComplaintHistoryCard extends StatelessWidget {
                                         complaint['room']?['room_number']
                                             ?.toString() ??
                                         'Kamar -',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
+                                    style: AppTextStyles.bodySmall,
                                   ),
 
                                   const SizedBox(height: 6),

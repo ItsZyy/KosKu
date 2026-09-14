@@ -1,3 +1,4 @@
+// Widget untuk EditProfileScreen
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -35,7 +36,7 @@ class EditProfilePhoto extends StatelessWidget {
                   BoxShadow(
                     blurRadius: 20,
                     offset: Offset(0, 8),
-                    color: Color(0x1A000000),
+                    color: AppColors.scrimLight,
                   ),
                 ],
               ),

@@ -7,6 +7,7 @@ import '../models/announcement_model.dart';
 class AnnouncementService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
+  // Mengambil daftar pengumuman
   Future<List<AnnouncementModel>> getAnnouncements() async {
     final data = await _supabase
         .from('announcements')
@@ -68,6 +69,7 @@ class AnnouncementService {
     });
   }
 
+  // Menghapus pengumuman
   Future<void> deleteAnnouncement(String id) async {
     await _supabase.from('announcements').delete().eq('id', id);
   }
