@@ -6,7 +6,6 @@ import '../models/activity_model.dart';
 class ActivityService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  // Mengambil aktivitas terbaru dari berbagai sumber
   Future<List<ActivityModel>> getRecentActivities({int limit = 20}) async {
     final results = await Future.wait([
       _getPaymentActivities(),
@@ -25,13 +24,13 @@ class ActivityService {
     return activities.take(limit).toList();
   }
 
-  // Mengambil aktivitas pembayaran
   Future<List<ActivityModel>> _getPaymentActivities() async {
     try {
       final data = await _supabase
           .from('payments')
           .select('''
             id,
+            user_id,
             amount,
             period,
             status,
@@ -39,16 +38,21 @@ class ActivityService {
             payment_method,
             confirmed_at,
             created_at,
-            profiles (
-              name,
-              profile_photo_url
-            ),
             rooms (
               room_number
             )
           ''')
           .order('created_at', ascending: false)
           .limit(10);
+
+      final profilesMap = await _fetchUserProfiles(data);
+
+      for (final item in data) {
+        final userId = item['user_id']?.toString();
+        if (userId != null && profilesMap.containsKey(userId)) {
+          item['profiles'] = profilesMap[userId];
+        }
+      }
 
       final activities = <ActivityModel>[];
 
@@ -58,7 +62,8 @@ class ActivityService {
         final roomNumber = _roomNumber(item);
         final period = item['period']?.toString();
         final proof = item['proof_url']?.toString().trim() ?? '';
-        final isCash = item['payment_method']?.toString().toLowerCase() == 'cash';
+        final isCash =
+            item['payment_method']?.toString().toLowerCase() == 'cash';
 
         String title;
         String? subtitle;
@@ -76,15 +81,13 @@ class ActivityService {
         } else if (status == 'ditolak') {
           title = 'Pembayaran $name ditolak';
 
-          subtitle = period != null && period.isNotEmpty
-              ? 'Periode $period'
-              : null;
+          subtitle =
+              period != null && period.isNotEmpty ? 'Periode $period' : null;
         } else if (proof.isNotEmpty || isCash) {
           title = '$name mengirim bukti pembayaran';
 
-          subtitle = period != null && period.isNotEmpty
-              ? 'Periode $period'
-              : null;
+          subtitle =
+              period != null && period.isNotEmpty ? 'Periode $period' : null;
         } else {
           title = 'Tagihan dibuat untuk $name';
 
@@ -110,7 +113,6 @@ class ActivityService {
     }
   }
 
-  // Mengambil aktivitas keluhan
   Future<List<ActivityModel>> _getComplaintActivities() async {
     try {
       final data = await _supabase
@@ -154,7 +156,6 @@ class ActivityService {
     }
   }
 
-  // Mengambil aktivitas pengumuman
   Future<List<ActivityModel>> _getAnnouncementActivities() async {
     try {
       final data = await _supabase
@@ -177,14 +178,13 @@ class ActivityService {
     }
   }
 
-  // Mengambil aktivitas penghuni baru
   Future<List<ActivityModel>> _getTenantActivities() async {
     try {
       final data = await _supabase
           .from('occupancies')
           .select('''
             contract_start,
-            profiles (
+            profiles!occupancies_user_id_fkey (
               name,
               profile_photo_url
             ),
@@ -219,7 +219,6 @@ class ActivityService {
     }
   }
 
-  // Mengambil aktivitas kamar
   Future<List<ActivityModel>> _getRoomActivities() async {
     try {
       final data = await _supabase
@@ -239,6 +238,32 @@ class ActivityService {
       }).toList();
     } catch (_) {
       return const [];
+    }
+  }
+
+  Future<Map<String, Map<String, dynamic>>> _fetchUserProfiles(
+    List<Map<String, dynamic>> items,
+  ) async {
+    final userIds = items
+        .map((item) => item['user_id']?.toString())
+        .whereType<String>()
+        .toSet()
+        .toList();
+
+    if (userIds.isEmpty) return {};
+
+    try {
+      final profiles = await _supabase
+          .from('profiles')
+          .select('id, name, profile_photo_url')
+          .inFilter('id', userIds);
+
+      return {
+        for (final profile in profiles)
+          profile['id'].toString(): Map<String, dynamic>.from(profile),
+      };
+    } catch (_) {
+      return {};
     }
   }
 

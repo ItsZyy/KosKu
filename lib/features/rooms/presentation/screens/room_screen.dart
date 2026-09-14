@@ -242,10 +242,6 @@ class _RoomsScreenState extends State<RoomsScreen> {
           _showMessage('Sewakan kamar ${room.roomNumber}');
         },
 
-        onAddUser: () {
-          _showMessage('Tambah user kamar ${room.roomNumber}');
-        },
-
         onFinishRepair: () {
           _showMessage('Selesaikan perbaikan kamar ${room.roomNumber}');
         },

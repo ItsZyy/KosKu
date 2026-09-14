@@ -169,12 +169,12 @@ class _RegisterPersonalFormState extends State<RegisterPersonalForm> {
           ),
           const SizedBox(height: 18),
           CustomTextField(
-            label: 'Alamat Asal',
-            hintText: 'Masukkan alamat asal',
+            label: 'Kota Asal',
+            hintText: 'Masukkan kota asal',
             prefixIcon: Icons.home_outlined,
             controller: _addressController,
             keyboardType: TextInputType.streetAddress,
-            validator: (value) => _requiredValidator(value, 'Alamat'),
+            validator: (value) => _requiredValidator(value, 'Kota asal'),
           ),
           const SizedBox(height: 28),
           Align(

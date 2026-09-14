@@ -15,7 +15,6 @@ class RoomCard extends StatelessWidget {
 
   final VoidCallback? onDetail;
   final VoidCallback? onRent;
-  final VoidCallback? onAddUser;
   final VoidCallback? onFinishRepair;
 
   const RoomCard({
@@ -24,7 +23,6 @@ class RoomCard extends StatelessWidget {
     this.users = const [],
     this.onDetail,
     this.onRent,
-    this.onAddUser,
     this.onFinishRepair,
   });
 
@@ -347,16 +345,6 @@ class RoomCard extends StatelessWidget {
   }
 
   Widget _buildActions() {
-    if (isOccupied) {
-      return SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: onDetail,
-          child: const Text('Lihat Detail Kamar'),
-        ),
-      );
-    }
-
     if (isRepair) {
       return Row(
         children: [
@@ -369,31 +357,20 @@ class RoomCard extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: ElevatedButton(
-              onPressed: onAddUser,
-              child: const Text('Tambah Penghuni'),
+              onPressed: onDetail,
+              child: const Text('Lihat Detail Kamar'),
             ),
           ),
         ],
       );
     }
 
-    // Kamar kosong
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedButton(
-            onPressed: onDetail,
-            child: const Text('Lihat Detail Kamar'),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: ElevatedButton(
-            onPressed: onAddUser,
-            child: const Text('Tambah Penghuni'),
-          ),
-        ),
-      ],
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: onDetail,
+        child: const Text('Lihat Detail Kamar'),
+      ),
     );
   }
 }
