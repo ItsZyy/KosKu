@@ -1,0 +1,340 @@
+import 'package:flutter/material.dart';
+
+import '../../data/models/payment_status.dart';
+import '../../data/services/payment_service.dart';
+import '../widgets/payment_card.dart';
+import '../widgets/payment_summary.dart';
+import '../widgets/payment_filter.dart';
+import 'generate_payment_screen.dart';
+import 'admin_payment_detail_screen.dart';
+import 'admin_revenue_report_screen.dart';
+
+class AdminPaymentsScreen extends StatefulWidget {
+  const AdminPaymentsScreen({super.key});
+
+  @override
+  State<AdminPaymentsScreen> createState() => _AdminPaymentsScreenState();
+}
+
+class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
+  final PaymentService _paymentService = PaymentService();
+
+  List<Map<String, dynamic>> _payments = [];
+
+  bool _isLoading = true;
+  String? _error;
+
+  String _selectedFilter = 'Semua';
+
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _paymentService.subscribeToPayments(_onPaymentsChanged);
+    _loadPayments();
+  }
+
+  @override
+  void dispose() {
+    _paymentService.unsubscribeFromPayments(_onPaymentsChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onPaymentsChanged() {
+    if (!mounted) return;
+    _loadPayments();
+  }
+
+  // LOAD DATA
+
+  Future<void> _loadPayments() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final data = await _paymentService.getPayments();
+
+      if (!mounted) return;
+
+      setState(() {
+        _payments = data;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  // FILTER + SEARCH
+
+  List<Map<String, dynamic>> get _filteredPayments {
+    final search = _searchController.text.trim().toLowerCase();
+
+    return _payments.where((payment) {
+      final status = payment['status']?.toString() ?? '';
+
+      final profile = payment['profiles'] as Map<String, dynamic>?;
+
+      final room = payment['rooms'] as Map<String, dynamic>?;
+
+      final name = profile?['name']?.toString().toLowerCase() ?? '';
+
+      final roomNumber = room?['room_number']?.toString().toLowerCase() ?? '';
+
+      final proofUrl = payment['proof_url']?.toString();
+
+      final hasProof = proofUrl != null && proofUrl.isNotEmpty;
+
+      final isCash =
+          payment['payment_method']?.toString().toLowerCase() == 'cash';
+
+      final dueDate = DateTime.tryParse(payment['due_date']?.toString() ?? '');
+
+      final displayStatus = resolvePaymentDisplayStatus(
+        status: status,
+        hasProof: hasProof,
+        isCash: isCash,
+        dueDate: dueDate,
+      );
+
+      bool matchesFilter = true;
+
+      if (_selectedFilter == 'Lunas') {
+        matchesFilter = displayStatus == PaymentDisplayStatus.paid;
+      } else if (_selectedFilter == 'Menunggu Konfirmasi') {
+        matchesFilter =
+            displayStatus == PaymentDisplayStatus.waitingConfirmation;
+      } else if (_selectedFilter == 'Belum Bayar') {
+        matchesFilter = displayStatus == PaymentDisplayStatus.notPaid;
+      } else if (_selectedFilter == 'Telat Bayar') {
+        matchesFilter = displayStatus == PaymentDisplayStatus.late;
+      }
+
+      final matchesSearch =
+          name.contains(search) || roomNumber.contains(search);
+
+      return matchesFilter && matchesSearch;
+    }).toList();
+  }
+
+  // SUMMARY
+
+  int _calcTotal(Map<String, dynamic> payment) {
+    final items = payment['payment_items'];
+
+    if (items is List && items.isNotEmpty) {
+      int sum = 0;
+
+      for (final item in items) {
+        sum += (item['amount'] as num?)?.toInt() ?? 0;
+      }
+
+      return sum;
+    }
+
+    return (payment['amount'] as num?)?.toInt() ?? 0;
+  }
+
+  int get _totalBill {
+    int total = 0;
+
+    for (final payment in _payments) {
+      total += _calcTotal(payment);
+    }
+
+    return total;
+  }
+
+  int get _paidBill {
+    int total = 0;
+
+    for (final payment in _payments) {
+      if (payment['status']?.toString() == PaymentStatus.confirmed.value) {
+        total += _calcTotal(payment);
+      }
+    }
+
+    return total;
+  }
+
+  int get _unpaidBill {
+    return _totalBill - _paidBill;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Tagihan'),
+        actions: [
+          IconButton(
+            tooltip: 'Laporan Pendapatan',
+            icon: const Icon(Icons.bar_chart),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdminRevenueReportScreen(),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            tooltip: 'Buat Tagihan',
+            icon: const Icon(Icons.add),
+            onPressed: _openGeneratePayment,
+          ),
+        ],
+      ),
+      body: _buildBody(),
+    );
+  }
+
+  Future<void> _openGeneratePayment() async {
+    final result = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(builder: (context) => const GeneratePaymentScreen()),
+    );
+
+    if (result != null && mounted) {
+      _loadPayments();
+
+      final paymentId = result['payment_id']?.toString();
+      if (paymentId != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AdminPaymentDetailScreen(
+              paymentId: paymentId,
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_error != null) {
+      return _buildError();
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadPayments,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // SUMMARY
+          PaymentSummary(
+            totalBill: _totalBill,
+            paidBill: _paidBill,
+            unpaidBill: _unpaidBill,
+          ),
+
+          const SizedBox(height: 16),
+
+          // FILTER + SEARCH
+          PaymentFilter(
+            selectedFilter: _selectedFilter,
+            onFilterChanged: (filter) {
+              setState(() {
+                _selectedFilter = filter;
+              });
+            },
+            searchController: _searchController,
+            onSearchChanged: (_) {
+              setState(() {});
+            },
+          ),
+
+          const SizedBox(height: 16),
+
+          // PAYMENT LIST
+          ..._buildPaymentList(),
+        ],
+      ),
+    );
+  }
+
+  // ERROR
+
+  Widget _buildError() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48),
+            const SizedBox(height: 12),
+            const Text(
+              'Gagal memuat pembayaran',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(_error!, textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadPayments,
+              child: const Text('Coba Lagi'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // PAYMENT LIST
+
+  List<Widget> _buildPaymentList() {
+    final payments = _filteredPayments;
+
+    if (payments.isEmpty) {
+      return [
+        const SizedBox(height: 40),
+        const Center(
+          child: Column(
+            children: [
+              Icon(Icons.receipt_long_outlined, size: 56),
+              SizedBox(height: 12),
+              Text(
+                'Tidak ada tagihan',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
+      ];
+    }
+
+    return payments.map((payment) {
+      return PaymentCard(
+        payment: payment,
+        onTap: () {
+          final paymentId = payment['id']?.toString();
+          if (paymentId == null) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AdminPaymentDetailScreen(
+                paymentId: paymentId,
+              ),
+            ),
+          );
+        },
+      );
+    }).toList();
+  }
+}
