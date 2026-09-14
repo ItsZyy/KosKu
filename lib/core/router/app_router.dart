@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
+import '../../features/auth/presentation/screens/reset_password_screen.dart';
 import '../../features/dashboard/presentation/screens/user_main_screen.dart';
 import '../../features/announcements/presentation/screens/announcements_screen.dart';
 import '../../features/dashboard/presentation/screens/admin_main_screen.dart';
@@ -14,6 +15,7 @@ class AppRouter {
   static const String login = '/login';
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
+  static const String resetPassword = '/reset-password';
   static const String userDashboard = '/user-dashboard';
   static const String adminDashboard = '/admin-dashboard';
   static const String announcements = '/announcements';
@@ -24,6 +26,7 @@ class AppRouter {
     login: (context) => const LoginScreen(),
     register: (context) => const RegisterAccountScreen(),
     forgotPassword: (context) => const ForgotPasswordScreen(),
+    resetPassword: (context) => const ResetPasswordScreen(),
     userDashboard: (context) => const UserMainScreen(),
     adminDashboard: (context) => const AdminMainScreen(),
     announcements: (context) => const AnnouncementsScreen(),

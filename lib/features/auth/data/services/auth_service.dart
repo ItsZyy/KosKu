@@ -1,6 +1,10 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthService {
+  // Deep link yang dipakai Supabase untuk mengembalikan user ke aplikasi
+  // setelah membuka link reset password dari email.
+  static const String passwordRecoveryRedirectUrl = 'kosku://reset-password';
+
   final SupabaseClient _supabase = Supabase.instance.client;
 
   SupabaseClient get supabase => _supabase;
@@ -117,8 +121,22 @@ class AuthService {
   }
 
   // Mengirim link reset password
-  Future<void> resetPassword({required String email}) async {
-    await _supabase.auth.resetPasswordForEmail(email);
+  Future<void> resetPassword({
+    required String email,
+    String? redirectTo,
+  }) async {
+    await _supabase.auth.resetPasswordForEmail(
+      email,
+      redirectTo: redirectTo ?? passwordRecoveryRedirectUrl,
+    );
+  }
+
+  // Mengubah password dari alur forgot-password/recovery.
+  // Tidak membutuhkan password lama karena sesi recovery sudah valid
+  // dari deep link Supabase. Dipisahkan dari changePassword() yang hanya
+  // untuk user yang sudah login.
+  Future<void> updatePassword({required String newPassword}) async {
+    await _supabase.auth.updateUser(UserAttributes(password: newPassword));
   }
 
   // Mengubah password pengguna

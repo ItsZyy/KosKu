@@ -27,6 +27,18 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
 
+            <!-- Deep link untuk flow reset password Supabase.
+                 Email reset akan menuju ke kosku://reset-password dan
+                 membuka aplikasi KosKu. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="kosku"
+                    android:host="reset-password"/>
+            </intent-filter>
+
         </activity>
 
         <meta-data

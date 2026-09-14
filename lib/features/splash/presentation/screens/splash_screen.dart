@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/router/auth_gate.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../main.dart' show passwordRecoveryInProgress;
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -24,7 +25,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void _startTimer() {
     _timer = Timer(const Duration(seconds: 2), () {
-      if (mounted) {
+      // Jangan lanjut ke AuthGate jika user sedang membuka link reset
+      // password; navigator sudah diarahkan ke halaman create password.
+      if (mounted && !passwordRecoveryInProgress) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const AuthGate()),
         );
