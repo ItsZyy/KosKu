@@ -7,6 +7,7 @@ class FacilityService {
 
   static const String _tableFacilities = 'facilities';
 
+  // Mengambil daftar fasilitas
   Future<List<FacilityModel>> getFacilities() async {
     final data = await _supabase
         .from(_tableFacilities)
@@ -20,6 +21,7 @@ class FacilityService {
         .toList();
   }
 
+  // Memperbarui harga fasilitas
   Future<FacilityModel> updateFacilityPrice({
     required String id,
     required double price,

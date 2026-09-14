@@ -1,3 +1,4 @@
+// Widget untuk EditProfileScreen, EditAdminProfileScreen, dan ChangePasswordScreen
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -49,7 +50,7 @@ class EditProfileSection extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
             boxShadow: const [
               BoxShadow(
-                color: Color(0x0D000000),
+                color: AppColors.overlayLight,
                 blurRadius: 4,
                 offset: Offset(0, 1),
               ),

@@ -7,6 +7,7 @@ import '../models/payment_method_model.dart';
 class PaymentMethodService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
+  // Mendapatkan semua metode pembayaran.
   Future<List<PaymentMethodModel>> getPaymentMethods() async {
     final data = await _supabase
         .from('payment_info')
@@ -18,6 +19,7 @@ class PaymentMethodService {
         .toList();
   }
 
+  // Menambah metode pembayaran bank.
   Future<PaymentMethodModel> createBank({
     required String bankName,
     required String accountNumber,
@@ -37,6 +39,7 @@ class PaymentMethodService {
     return PaymentMethodModel.fromMap(data);
   }
 
+  // Menambah metode pembayaran QRIS.
   Future<PaymentMethodModel> createQris({required String qrisImageUrl}) async {
     final data = await _supabase
         .from('payment_info')
@@ -47,6 +50,7 @@ class PaymentMethodService {
     return PaymentMethodModel.fromMap(data);
   }
 
+  // Mengunggah gambar QRIS ke storage.
   Future<String> uploadQris(File image) async {
     final extension = image.path.split('.').last.toLowerCase();
 
@@ -61,10 +65,7 @@ class PaymentMethodService {
     return filePath;
   }
 
-  // =========================
-  // UPDATE BANK
-  // =========================
-
+  // Memperbarui metode pembayaran bank.
   Future<PaymentMethodModel> updateBank({
     required String id,
     required String bankName,
@@ -88,10 +89,7 @@ class PaymentMethodService {
     return PaymentMethodModel.fromMap(data);
   }
 
-  // =========================
-  // UPDATE QRIS
-  // =========================
-
+  // Memperbarui metode pembayaran QRIS.
   Future<PaymentMethodModel> updateQris({
     required String id,
     String? qrisImageUrl,
@@ -118,10 +116,7 @@ class PaymentMethodService {
     return PaymentMethodModel.fromMap(data);
   }
 
-  // =========================
-  // SIGNED URL QRIS
-  // =========================
-
+  // Membuat URL sementara untuk menampilkan gambar QRIS.
   Future<String?> getQrisSignedUrl(String? path) async {
     if (path == null || path.isEmpty) {
       return null;
@@ -138,18 +133,12 @@ class PaymentMethodService {
     }
   }
 
-  // =========================
-  // DELETE
-  // =========================
-
+  // Menghapus metode pembayaran.
   Future<void> deletePaymentMethod(String id) async {
     await _supabase.from('payment_info').delete().eq('id', id);
   }
 
-  // =========================
-  // USER PAYMENT METHODS
-  // =========================
-
+  // Mengambil metode pembayaran untuk pengguna, QRIS diberi URL sementara.
   Future<List<Map<String, dynamic>>> getPaymentMethodsForUser() async {
     final data = await _supabase
         .from('payment_info')

@@ -1,4 +1,8 @@
+// Widget untuk RoomDetailScreen & UserRoomDetailScreen
 import 'package:flutter/material.dart';
+import 'package:kosku/core/theme/app_colors.dart';
+import 'package:kosku/core/theme/app_text_styles.dart';
+import 'package:kosku/core/utils/currency_formatter.dart';
 import 'package:kosku/features/rooms/data/models/room_model.dart';
 
 class RoomInfoCard extends StatelessWidget {
@@ -48,9 +52,7 @@ class RoomInfoCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               room.description!,
-              style: TextStyle(
-                fontSize: 14,
-                height: 1.5,
+              style: AppTextStyles.bodyMedium.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
@@ -65,8 +67,7 @@ class RoomInfoCard extends StatelessWidget {
           // Label harga
           Text(
             'HARGA KAMAR',
-            style: TextStyle(
-              fontSize: 11,
+            style: AppTextStyles.labelSmall.copyWith(
               fontWeight: FontWeight.w700,
               letterSpacing: 1,
               color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -80,9 +81,8 @@ class RoomInfoCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                _formatPrice(room.price),
-                style: TextStyle(
-                  fontSize: 26,
+                formatRupiah(room.price),
+                style: AppTextStyles.displaySmall.copyWith(
                   fontWeight: FontWeight.w800,
                   color: Theme.of(context).colorScheme.primary,
                 ),
@@ -169,8 +169,7 @@ class RoomInfoCard extends StatelessWidget {
           const SizedBox(width: 5),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
+            style: AppTextStyles.labelMedium.copyWith(
               fontWeight: FontWeight.w600,
               color: _getStatusColor(context, status),
             ),
@@ -183,33 +182,18 @@ class RoomInfoCard extends StatelessWidget {
   Color _getStatusColor(BuildContext context, String status) {
     switch (status) {
       case 'terisi':
-        return Colors.orange;
+        return AppColors.warning;
 
       case 'perbaikan':
-        return Colors.red;
+        return AppColors.error;
 
       case 'booking':
       case 'dipesan':
-        return Colors.blue;
+        return AppColors.primary;
 
       case 'kosong':
       default:
-        return Colors.green;
+        return AppColors.success;
     }
-  }
-
-  String _formatPrice(double price) {
-    final value = price.toInt().toString();
-    final buffer = StringBuffer();
-
-    for (int i = 0; i < value.length; i++) {
-      if (i > 0 && (value.length - i) % 3 == 0) {
-        buffer.write('.');
-      }
-
-      buffer.write(value[i]);
-    }
-
-    return 'Rp$buffer';
   }
 }

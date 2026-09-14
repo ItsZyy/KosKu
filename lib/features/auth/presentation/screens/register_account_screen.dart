@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../rooms/data/models/room_model.dart';
 import '../../../rooms/data/services/room_service.dart';
 import '../../data/services/auth_service.dart';
@@ -283,7 +284,7 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
                   onPressed: () => Navigator.pop(context),
                   child: Text(
                     'Sudah punya akun? Login',
-                    style: TextStyle(color: AppColors.primary),
+                    style: AppTextStyles.link,
                   ),
                 ),
             ],

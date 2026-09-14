@@ -1,4 +1,4 @@
-// widget untuk add & edit room screen
+// Widget untuk AddRoomScreen & EditRoomScreen
 import 'dart:io';
 
 import 'package:flutter/material.dart';

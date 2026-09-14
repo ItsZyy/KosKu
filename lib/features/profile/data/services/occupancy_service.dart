@@ -5,6 +5,7 @@ import '../models/occupancy_model.dart';
 class OccupancyService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
+  // Mengambil hunian aktif pengguna
   Future<OccupancyModel?> getActiveOccupancy() async {
     final user = _supabase.auth.currentUser;
 
@@ -44,6 +45,7 @@ class OccupancyService {
     return OccupancyModel.fromMap(data);
   }
 
+  // Mengambil hunian aktif berdasarkan ID pengguna
   Future<OccupancyModel?> getActiveOccupancyByUserId(String userId) async {
     final data = await _supabase
         .from('occupancies')

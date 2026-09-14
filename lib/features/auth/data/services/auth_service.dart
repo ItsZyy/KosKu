@@ -5,6 +5,7 @@ class AuthService {
 
   SupabaseClient get supabase => _supabase;
 
+  // Login pengguna
   Future<AuthResponse> login({
     required String email,
     required String password,
@@ -59,10 +60,7 @@ class AuthService {
     throw Exception('Role pengguna tidak valid.');
   }
 
-  /// Memvalidasi session Supabase yang tersedia di device dan mengembalikan
-  /// role pengguna. Mengembalikan `null` jika session tidak ada, profile tidak
-  /// ditemukan, occupancy sudah tidak aktif, atau role tidak valid — dalam hal
-  /// ini signOut juga sudah dipanggil di dalam method ini.
+  // Mengecek session dan role pengguna
   Future<String?> resolveSessionRole() async {
     final session = _supabase.auth.currentSession;
 
@@ -110,6 +108,7 @@ class AuthService {
     return null;
   }
 
+  // Mendaftarkan akun baru
   Future<AuthResponse> register({
     required String email,
     required String password,
@@ -117,10 +116,12 @@ class AuthService {
     return await _supabase.auth.signUp(email: email, password: password);
   }
 
+  // Mengirim link reset password
   Future<void> resetPassword({required String email}) async {
     await _supabase.auth.resetPasswordForEmail(email);
   }
 
+  // Mengubah password pengguna
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
@@ -140,6 +141,7 @@ class AuthService {
     await _supabase.auth.updateUser(UserAttributes(password: newPassword));
   }
 
+  // Logout pengguna
   Future<void> logout() async {
     await _supabase.auth.signOut();
   }

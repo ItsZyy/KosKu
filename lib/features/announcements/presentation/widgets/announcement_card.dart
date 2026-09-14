@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../data/models/announcement_model.dart';
 
 class AnnouncementCard extends StatelessWidget {
@@ -61,17 +62,14 @@ class AnnouncementCard extends StatelessWidget {
               children: [
                 Text(
                   announcement.title,
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: AppTextStyles.titleLarge.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   announcement.message,
-                  style: const TextStyle(
-                    fontSize: 14,
+                  style: AppTextStyles.bodyMedium.copyWith(
                     height: 1.4,
                     color: AppColors.textSecondary,
                   ),
@@ -89,10 +87,7 @@ class AnnouncementCard extends StatelessWidget {
                       '${announcement.createdAt.day}/'
                       '${announcement.createdAt.month}/'
                       '${announcement.createdAt.year}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textHint,
-                      ),
+                      style: AppTextStyles.bodySmall.copyWith(color: AppColors.textHint),
                     ),
                   ],
                 ),

@@ -1,3 +1,4 @@
+// Widget untuk ComplaintDetailScreen
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -64,7 +65,7 @@ class ComplaintDetailHeaderCard extends StatelessWidget {
         border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: AppColors.textPrimary.withValues(alpha: 0.05),
             blurRadius: 2,
             offset: const Offset(0, 1),
           ),

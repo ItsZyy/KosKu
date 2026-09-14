@@ -1,4 +1,8 @@
+// Widget untuk RoomDetailScreen
 import 'package:flutter/material.dart';
+import 'package:kosku/core/theme/app_colors.dart';
+import 'package:kosku/core/theme/app_text_styles.dart';
+import 'package:kosku/core/utils/currency_formatter.dart';
 import 'package:kosku/features/payments/data/models/payment_model.dart';
 import 'package:kosku/features/payments/data/models/payment_status.dart';
 
@@ -71,8 +75,7 @@ class RoomPaymentSummaryCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       '${payments.length} transaksi',
-                      style: TextStyle(
-                        fontSize: 12,
+                      style: AppTextStyles.bodySmall.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
@@ -112,7 +115,7 @@ class RoomPaymentSummaryCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  _formatPrice(total.toDouble()),
+                  formatRupiah(total),
                   style: TextStyle(
                     fontSize: 21,
                     fontWeight: FontWeight.w800,
@@ -132,7 +135,7 @@ class RoomPaymentSummaryCard extends StatelessWidget {
                 child: _StatusItem(
                   label: 'Lunas',
                   value: confirmed,
-                  color: Colors.green,
+                  color: AppColors.success,
                 ),
               ),
               const SizedBox(width: 8),
@@ -140,7 +143,7 @@ class RoomPaymentSummaryCard extends StatelessWidget {
                 child: _StatusItem(
                   label: 'Menunggu Konfirmasi',
                   value: waiting,
-                  color: Colors.orange,
+                  color: AppColors.warning,
                 ),
               ),
               const SizedBox(width: 8),
@@ -148,7 +151,7 @@ class RoomPaymentSummaryCard extends StatelessWidget {
                 child: _StatusItem(
                   label: 'Belum Bayar',
                   value: notPaid,
-                  color: Colors.orange,
+                  color: AppColors.warning,
                 ),
               ),
               const SizedBox(width: 8),
@@ -156,7 +159,7 @@ class RoomPaymentSummaryCard extends StatelessWidget {
                 child: _StatusItem(
                   label: 'Telat Bayar',
                   value: late,
-                  color: Colors.red,
+                  color: AppColors.error,
                 ),
               ),
               const SizedBox(width: 8),
@@ -164,7 +167,7 @@ class RoomPaymentSummaryCard extends StatelessWidget {
                 child: _StatusItem(
                   label: 'Ditolak',
                   value: rejected,
-                  color: Colors.red,
+                  color: AppColors.error,
                 ),
               ),
             ],
@@ -184,8 +187,7 @@ class RoomPaymentSummaryCard extends StatelessWidget {
               child: Text(
                 'Belum ada riwayat pembayaran.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 12,
+                style: AppTextStyles.bodySmall.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
@@ -194,21 +196,6 @@ class RoomPaymentSummaryCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatPrice(double price) {
-    final value = price.toInt().toString();
-    final buffer = StringBuffer();
-
-    for (int i = 0; i < value.length; i++) {
-      if (i > 0 && (value.length - i) % 3 == 0) {
-        buffer.write('.');
-      }
-
-      buffer.write(value[i]);
-    }
-
-    return 'Rp$buffer';
   }
 }
 
@@ -235,8 +222,7 @@ class _StatusItem extends StatelessWidget {
         children: [
           Text(
             value.toString(),
-            style: TextStyle(
-              fontSize: 16,
+            style: AppTextStyles.titleLarge.copyWith(
               fontWeight: FontWeight.w700,
               color: color,
             ),

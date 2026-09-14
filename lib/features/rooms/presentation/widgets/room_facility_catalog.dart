@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import '../../data/models/facility_model.dart';
 import 'room_facilities_card.dart';
 
-/// Pemetaan icon untuk nama fasilitas yang umum.
-/// Bisa diperluas bila ada fasilitas baru yang perlu icon tertentu.
+// Pemetaan icon untuk nama fasilitas yang umum.
 IconData iconForFacility(String name) {
   final n = name.toLowerCase();
   if (n.contains('kasur') || n.contains('bed')) {
@@ -37,8 +36,7 @@ IconData iconForFacility(String name) {
   return Icons.check_circle_outline;
 }
 
-/// Mengonversi daftar [FacilityModel] dari database menjadi
-/// opsi yang siap dipakai oleh [RoomFacilitiesCard].
+// Mengonversi daftar fasilitas menjadi opsi untuk RoomFacilitiesCard.
 List<RoomFacilityOption> buildRoomFacilityOptions(
   List<FacilityModel> facilities,
 ) {

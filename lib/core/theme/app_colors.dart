@@ -7,6 +7,9 @@ class AppColors {
   static const Color primary = Color(0xFF2563EB);
   static const Color primaryHover = Color(0xFF1D4ED8);
   static const Color primarySoft = Color(0xFFEFF4FF);
+  static const Color primaryBright = Color(0xFF5283EF);
+  static const Color primaryDeep = Color(0xFF2F4B89);
+  static const Color primaryPale = Color(0xFFD9E3F6);
 
   static const Color secondary = Color(0xFFFACC15);
   static const Color secondarySoft = Color(0xFFFEF9C3);
@@ -32,6 +35,7 @@ class AppColors {
 
   // Background & Surface
   static const Color background = Color(0xFFF8FAFC);
+  static const Color backgroundSoft = Color(0xFFEFEFEF);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color card = Color(0xFFFFFFFF);
   static const Color inputBackground = Color(0xFFF1F5F9);
@@ -39,6 +43,12 @@ class AppColors {
   // Border
   static const Color border = Color(0xFFE2E8F0);
   static const Color divider = Color(0xFFE5E7EB);
+
+  // Overlay & Shadow
+  static const Color scrim = Color(0x8A000000);
+  static const Color scrimLight = Color(0x1A000000);
+  static const Color overlayLight = Color(0x0D000000);
+  static const Color overlayWhite = Color(0xB3FFFFFF);
 
   // On Colors
   static const Color onPrimary = Color(0xFFFFFFFF);

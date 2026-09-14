@@ -1,4 +1,7 @@
+// Widget untuk RoomDetailScreen & UserRoomDetailScreen
 import 'package:flutter/material.dart';
+
+import 'package:kosku/core/theme/app_text_styles.dart';
 
 class RoomDetailHeader extends StatelessWidget {
   final String title;
@@ -20,7 +23,7 @@ class RoomDetailHeader extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              style: AppTextStyles.headlineSmall,
             ),
           ),
         ],

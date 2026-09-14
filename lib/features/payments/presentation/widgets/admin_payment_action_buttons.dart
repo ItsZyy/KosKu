@@ -1,3 +1,4 @@
+// Widget untuk AdminPaymentDetailScreen
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -58,7 +59,7 @@ class AdminPaymentActionButtons extends StatelessWidget {
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Colors.white,
+                        color: AppColors.onPrimary,
                       ),
                     )
                   : Text(

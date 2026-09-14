@@ -1,6 +1,9 @@
 // Widget untuk UserProfileScreen dan AdminProfileScreen
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
+
 class LogoutCard extends StatelessWidget {
   final VoidCallback onLogout;
 
@@ -10,10 +13,10 @@ class LogoutCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
-        leading: const Icon(Icons.logout, color: Colors.red),
-        title: const Text(
+        leading: const Icon(Icons.logout, color: AppColors.error),
+        title: Text(
           'Keluar / Logout',
-          style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
+          style: AppTextStyles.labelLarge.copyWith(color: AppColors.error),
         ),
         onTap: onLogout,
       ),

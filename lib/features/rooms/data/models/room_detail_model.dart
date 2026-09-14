@@ -1,3 +1,4 @@
+// Model detail kamar beserta penghuni, fasilitas, pembayaran, dan komplain
 import 'package:kosku/features/complaints/data/models/complaint_model.dart';
 import 'package:kosku/features/payments/data/models/payment_model.dart';
 import 'package:kosku/features/rooms/data/models/facility_model.dart';

@@ -1,3 +1,4 @@
+// Widget untuk AdminPaymentMethodsScreen
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -231,7 +232,7 @@ class _AdminPaymentMethodCardState extends State<AdminPaymentMethodCard> {
               child: Container(
                 width: double.infinity,
                 constraints: const BoxConstraints(maxHeight: 400),
-                color: Colors.white,
+                color: AppColors.surface,
                 child: Image.network(
                   _qrisSignedUrl!,
                   width: double.infinity,

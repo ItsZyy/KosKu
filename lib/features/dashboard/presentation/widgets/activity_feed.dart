@@ -1,6 +1,8 @@
+// Widget untuk AdminDashboardScreen & ActivitiesScreen
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../activities/data/models/activity_model.dart';
 import '../../../profile/data/services/profile_service.dart';
 
@@ -48,11 +50,7 @@ class _ActivityTile extends StatelessWidget {
       leading: _buildLeading(activity, visual),
       title: Text(
         activity.title,
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
-        ),
+        style: AppTextStyles.labelLarge,
       ),
       subtitle: _buildSubtitle(activity),
       isThreeLine: activity.subtitle != null,

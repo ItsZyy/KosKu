@@ -1,9 +1,10 @@
+// Widget untuk UserPaymentScreen
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import 'qris_screen.dart';
+import 'qris_bottom_sheet.dart';
 
 class PaymentMethodCard extends StatelessWidget {
   final List<Map<String, dynamic>> paymentInfo;
@@ -27,7 +28,7 @@ class PaymentMethodCard extends StatelessWidget {
   }
 
   void _openQris(BuildContext context, String imageUrl) {
-    QrisScreen.show(context, imageUrl: imageUrl);
+    QrisBottomSheet.show(context, imageUrl: imageUrl);
   }
 
   @override

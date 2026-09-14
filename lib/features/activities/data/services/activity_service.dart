@@ -1,10 +1,12 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/utils/currency_formatter.dart';
 import '../models/activity_model.dart';
 
 class ActivityService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
+  // Mengambil aktivitas terbaru dari berbagai sumber
   Future<List<ActivityModel>> getRecentActivities({int limit = 20}) async {
     final results = await Future.wait([
       _getPaymentActivities(),
@@ -23,6 +25,7 @@ class ActivityService {
     return activities.take(limit).toList();
   }
 
+  // Mengambil aktivitas pembayaran
   Future<List<ActivityModel>> _getPaymentActivities() async {
     try {
       final data = await _supabase
@@ -67,7 +70,7 @@ class ActivityService {
 
           subtitle = [
             if (period != null && period.isNotEmpty) 'Periode $period',
-            if (amount > 0) _formatRupiah(amount),
+            if (amount > 0) formatRupiah(amount),
             item['confirmed_at'] != null ? 'Dikonfirmasi admin' : null,
           ].whereType<String>().join(' · ');
         } else if (status == 'ditolak') {
@@ -107,6 +110,7 @@ class ActivityService {
     }
   }
 
+  // Mengambil aktivitas keluhan
   Future<List<ActivityModel>> _getComplaintActivities() async {
     try {
       final data = await _supabase
@@ -150,6 +154,7 @@ class ActivityService {
     }
   }
 
+  // Mengambil aktivitas pengumuman
   Future<List<ActivityModel>> _getAnnouncementActivities() async {
     try {
       final data = await _supabase
@@ -172,6 +177,7 @@ class ActivityService {
     }
   }
 
+  // Mengambil aktivitas penghuni baru
   Future<List<ActivityModel>> _getTenantActivities() async {
     try {
       final data = await _supabase
@@ -213,6 +219,7 @@ class ActivityService {
     }
   }
 
+  // Mengambil aktivitas kamar
   Future<List<ActivityModel>> _getRoomActivities() async {
     try {
       final data = await _supabase
@@ -233,21 +240,6 @@ class ActivityService {
     } catch (_) {
       return const [];
     }
-  }
-
-  String _formatRupiah(int amount) {
-    final text = amount.toString();
-    final buffer = StringBuffer();
-
-    for (int i = 0; i < text.length; i++) {
-      if (i > 0 && (text.length - i) % 3 == 0) {
-        buffer.write('.');
-      }
-
-      buffer.write(text[i]);
-    }
-
-    return 'Rp $buffer';
   }
 
   String? _profileName(dynamic map) {

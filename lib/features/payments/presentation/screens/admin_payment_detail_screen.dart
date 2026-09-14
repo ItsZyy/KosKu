@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -121,7 +120,7 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
       return;
     }
 
-    final admin = Supabase.instance.client.auth.currentUser;
+    final admin = _paymentService.getAdminUserId();
 
     if (admin == null) {
       _showSnack('Anda harus login sebagai admin terlebih dahulu.');
@@ -141,7 +140,7 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
     try {
       await _paymentService.confirmPayment(
         paymentId: payment.id!,
-        adminUserId: admin.id,
+        adminUserId: admin,
       );
 
       final refreshed = await _refreshSilently();
@@ -180,7 +179,7 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
       return;
     }
 
-    final admin = Supabase.instance.client.auth.currentUser;
+    final admin = _paymentService.getAdminUserId();
 
     if (admin == null) {
       _showSnack('Anda harus login sebagai admin terlebih dahulu.');

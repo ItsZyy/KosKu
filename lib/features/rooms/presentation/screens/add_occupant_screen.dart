@@ -1,3 +1,4 @@
+// Halaman menambahkan penghuni ke kamar beserta kontrak sewa
 import 'package:flutter/material.dart';
 
 import 'package:kosku/core/theme/app_colors.dart';

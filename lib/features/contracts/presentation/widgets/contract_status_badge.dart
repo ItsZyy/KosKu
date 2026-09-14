@@ -5,9 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
 class ContractStatusBadge extends StatelessWidget {
-  /// Status kontrak dari `occupancies.status`:
-  ///   - `active`   → kontrak berjalan
-  ///   - `inactive` → kontrak selesai
+  // Status kontrak dari occupancies.status: active = berjalan, inactive = selesai
   final String status;
 
   const ContractStatusBadge({super.key, required this.status});

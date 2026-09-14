@@ -1,4 +1,7 @@
+// Widget untuk UserProfileScreen, AdminProfileScreen, dan TenantProfileScreen
 import 'package:flutter/material.dart';
+
+import '../../../../core/theme/app_text_styles.dart';
 
 class ProfileInfoCard extends StatelessWidget {
   final String title;
@@ -41,7 +44,9 @@ class ProfileInfoCard extends StatelessWidget {
           children: [
             Text(
               title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: AppTextStyles.headlineSmall.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 18),
             _InfoItem(
@@ -104,12 +109,12 @@ class _InfoItem extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                style: AppTextStyles.bodySmall,
               ),
               const SizedBox(height: 4),
               Text(
                 value.isNotEmpty ? value : '-',
-                style: const TextStyle(fontWeight: FontWeight.w500),
+                style: AppTextStyles.titleSmall,
               ),
             ],
           ),
@@ -141,9 +146,9 @@ class _EmergencySection extends StatelessWidget {
           children: [
             Icon(Icons.contact_emergency_outlined, size: 21, color: primary),
             const SizedBox(width: 12),
-            const Text(
+            Text(
               'Kontak Darurat',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              style: AppTextStyles.labelLarge,
             ),
           ],
         ),
@@ -190,12 +195,12 @@ class _EmergencyItem extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                style: AppTextStyles.bodySmall,
               ),
               const SizedBox(height: 4),
               Text(
                 value.isNotEmpty ? value : '-',
-                style: const TextStyle(fontWeight: FontWeight.w500),
+                style: AppTextStyles.titleSmall,
               ),
             ],
           ),

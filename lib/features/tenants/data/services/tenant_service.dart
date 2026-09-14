@@ -5,6 +5,7 @@ import '../models/tenant_model.dart';
 class TenantService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
+  // Mengambil daftar penghuni
   Future<List<TenantModel>> getTenants() async {
     final occupancies = await _supabase
         .from('occupancies')
@@ -71,6 +72,7 @@ class TenantService {
     }).toList();
   }
 
+  // Menonaktifkan penghuni
   Future<void> deactivateTenant(String occupancyId) async {
     final result = await _supabase.rpc(
       'deactivate_tenant',
@@ -82,6 +84,7 @@ class TenantService {
     }
   }
 
+  // Mengaktifkan kembali penghuni
   Future<void> activateTenant(String occupancyId) async {
     final result = await _supabase.rpc(
       'activate_tenant',

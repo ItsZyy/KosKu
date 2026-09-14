@@ -1,3 +1,4 @@
+// Halaman detail kamar untuk user (tampilan read-only)
 import 'package:flutter/material.dart';
 
 import 'package:kosku/features/rooms/data/models/room_detail_model.dart';

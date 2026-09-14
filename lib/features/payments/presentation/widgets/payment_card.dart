@@ -1,8 +1,9 @@
-// Widget untuk AdminPaymentsScreen
+// Widget untuk AdminPaymentsScreen & AdminRevenueReportScreen
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../profile/data/services/profile_service.dart';
 import '../../data/models/payment_status.dart';
 import 'payment_status_badge.dart';
@@ -14,18 +15,7 @@ class PaymentCard extends StatelessWidget {
   const PaymentCard({super.key, required this.payment, this.onTap});
 
   String _formatRupiah(int amount) {
-    final text = amount.toString();
-    final buffer = StringBuffer();
-
-    for (int i = 0; i < text.length; i++) {
-      if (i > 0 && (text.length - i) % 3 == 0) {
-        buffer.write('.');
-      }
-
-      buffer.write(text[i]);
-    }
-
-    return 'Rp ${buffer.toString()}';
+    return formatRupiah(amount);
   }
 
   String _formatDate(String? value) {
@@ -54,10 +44,9 @@ class PaymentCard extends StatelessWidget {
           ? null
           : Text(
               (name != null && name.isNotEmpty) ? name[0].toUpperCase() : '?',
-              style: const TextStyle(
+              style: AppTextStyles.headlineMedium.copyWith(
                 color: AppColors.primary,
                 fontWeight: FontWeight.bold,
-                fontSize: 20,
               ),
             ),
     );

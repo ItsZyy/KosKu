@@ -127,7 +127,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               width: 89,
               height: 87,
               decoration: BoxDecoration(
-                color: const Color(0xFFD9E3F6),
+                color: AppColors.primaryPale,
                 shape: BoxShape.circle,
                 border: Border.all(color: AppColors.background, width: 4),
               ),

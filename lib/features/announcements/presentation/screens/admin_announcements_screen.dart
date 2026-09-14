@@ -1,3 +1,4 @@
+// Halaman kelola pengumuman (admin)
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -172,7 +173,7 @@ class _AdminAnnouncementsScreenState extends State<AdminAnnouncementsScreen> {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
+                        color: AppColors.scrimLight,
                         blurRadius: 4,
                       ),
                     ],

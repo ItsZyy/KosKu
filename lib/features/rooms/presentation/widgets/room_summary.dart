@@ -1,6 +1,8 @@
 // Widget untuk RoomsScreen
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
+
 class RoomSummary extends StatelessWidget {
   final int totalRooms;
   final int totalTenants;
@@ -68,7 +70,10 @@ class _SummaryCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               title,
-              style: const TextStyle(fontSize: 13, color: Colors.grey),
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+              ),
             ),
             const SizedBox(height: 4),
             Text(

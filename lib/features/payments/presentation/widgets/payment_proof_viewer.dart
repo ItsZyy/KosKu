@@ -1,6 +1,8 @@
+// Widget untuk viewer bukti pembayaran (AdminPaymentDetailScreen & PaymentDetailScreen)
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class PaymentProofViewer extends StatelessWidget {
   final String imageUrl;
@@ -13,7 +15,7 @@ class PaymentProofViewer extends StatelessWidget {
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.onPrimary,
         elevation: 0,
         title: const Text('Bukti Pembayaran'),
       ),
@@ -35,7 +37,7 @@ class PaymentProofViewer extends StatelessWidget {
                       if (progress == null) return child;
                       return const Center(
                         child: CircularProgressIndicator(
-                          color: Colors.white70,
+                          color: AppColors.overlayWhite,
                         ),
                       );
                     },
@@ -46,11 +48,13 @@ class PaymentProofViewer extends StatelessWidget {
                 ),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 12, 16, 12),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
               child: Text(
                 'Gunakan dua jari untuk memperbesar dan memindahkan gambar.',
-                style: TextStyle(color: Colors.white70, fontSize: 12),
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.overlayWhite,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -71,7 +75,7 @@ class PaymentProofViewer extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 24),
             child: Text(
               'Bukti pembayaran gagal dimuat.',
-              style: TextStyle(color: Colors.white70, fontSize: 14),
+              style: AppTextStyles.bodyMedium,
               textAlign: TextAlign.center,
             ),
           ),

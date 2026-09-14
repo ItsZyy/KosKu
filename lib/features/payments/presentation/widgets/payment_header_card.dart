@@ -1,3 +1,4 @@
+// Widget untuk UserPaymentScreen
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -167,9 +168,7 @@ class PaymentHeaderCard extends StatelessWidget {
   }
 
   Widget _buildPayButton() {
-    // ============================================
-    // 1. SUDAH DIKONFIRMASI ADMIN
-    // ============================================
+    // 1. Sudah dikonfirmasi admin
     if (payment.isConfirmed) {
       return SizedBox(
         width: double.infinity,
@@ -177,11 +176,7 @@ class PaymentHeaderCard extends StatelessWidget {
       );
     }
 
-    // ============================================
-    // 2. BUKTI SUDAH DIKIRIM (BANK/QRIS)
-    //    ATAU TUNAI SUDAH DILAPORKAN:
-    //    MENUNGGU KONFIRMASI ADMIN
-    // ============================================
+    // 2. Bukti sudah dikirim (bank/QRIS) atau tunai sudah dilaporkan
     if (payment.isWaitingConfirmation) {
       return SizedBox(
         width: double.infinity,
@@ -192,10 +187,7 @@ class PaymentHeaderCard extends StatelessWidget {
       );
     }
 
-    // ============================================
-    // 3. PEMBAYARAN DITOLAK
-    //    USER BOLEH KIRIM ULANG
-    // ============================================
+    // 3. Pembayaran ditolak: user boleh kirim ulang
     if (payment.isRejected) {
       return SizedBox(
         width: double.infinity,
@@ -206,10 +198,7 @@ class PaymentHeaderCard extends StatelessWidget {
       );
     }
 
-    // ============================================
-    // 4. BELUM BAYAR
-    //    USER MASIH BOLEH MASUK DETAIL PEMBAYARAN
-    // ============================================
+    // 4. Belum bayar: user masih boleh masuk detail pembayaran
     if (payment.isPending && !payment.hasSubmittedPayment) {
       return SizedBox(
         width: double.infinity,
@@ -220,9 +209,7 @@ class PaymentHeaderCard extends StatelessWidget {
       );
     }
 
-    // ============================================
-    // 5. FALLBACK
-    // ============================================
+    // 5. Fallback
     return const SizedBox.shrink();
   }
 }

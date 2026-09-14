@@ -1,4 +1,4 @@
-// widget untuk dashboard user screen
+// Widget untuk UserDashboardScreen
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';

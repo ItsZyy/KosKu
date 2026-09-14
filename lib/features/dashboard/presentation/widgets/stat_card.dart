@@ -1,6 +1,9 @@
 // Widget untuk AdminDashboardScreen
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
+
 class StatCard extends StatelessWidget {
   final String title;
   final String value;
@@ -25,14 +28,19 @@ class StatCard extends StatelessWidget {
           children: [
             Icon(icon),
             const SizedBox(height: 12),
-            Text(title, style: const TextStyle(fontSize: 14)),
+            Text(title, style: AppTextStyles.bodyMedium),
             const SizedBox(height: 4),
             Text(
               value,
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
-            Text(subtitle, style: const TextStyle(color: Colors.grey)),
+            Text(
+              subtitle,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
           ],
         ),
       ),

@@ -1,3 +1,4 @@
+// Model keluhan yang dilaporkan penghuni
 class ComplaintModel {
   final String id;
   final String roomId;

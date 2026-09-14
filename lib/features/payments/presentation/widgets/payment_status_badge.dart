@@ -1,4 +1,4 @@
-// Widget untuk PaymentDetailScreen
+// Widget untuk menampilkan status pembayaran (dipakai di banyak layar)
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';

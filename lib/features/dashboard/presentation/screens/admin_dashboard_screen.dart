@@ -1,8 +1,11 @@
+// Halaman dashboard utama admin
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 
 import '../../../rooms/data/services/room_service.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../payments/data/services/payment_service.dart';
 import '../../../complaints/data/services/complaint_service.dart';
 import '../../../profile/data/services/profile_service.dart';
@@ -10,6 +13,7 @@ import '../../../activities/data/models/activity_model.dart';
 import '../../../activities/data/services/activity_service.dart';
 import '../../../activities/presentation/screens/activities_screen.dart';
 import '../../data/services/dashboard_service.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/action_button_card.dart';
 import '../widgets/activity_feed.dart';
@@ -18,7 +22,7 @@ import '../../../announcements/presentation/screens/admin_announcements_screen.d
 import '../../../rooms/presentation/screens/add_room_screen.dart';
 import '../../../rooms/presentation/screens/admin_facilities_screen.dart';
 import '../../../payments/presentation/screens/admin_payment_methods_screen.dart';
-import '../../../contracts/presentation/pages/contracts_page.dart';
+import '../../../contracts/presentation/screens/contracts_screen.dart';
 import '../../../payments/presentation/screens/admin_revenue_report_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
@@ -158,7 +162,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEFEFEF),
+      backgroundColor: AppColors.backgroundSoft,
       body: RefreshIndicator(
         onRefresh: _refreshAll,
         child: CustomScrollView(
@@ -213,7 +217,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         Expanded(
                           child: StatCard(
                             title: 'Pendapatan',
-                            value: 'Rp $totalIncome',
+                            value: formatRupiah(totalIncome),
                             subtitle: 'Total pemasukan',
                             icon: Icons.payments,
                           ),
@@ -232,10 +236,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     const SizedBox(height: 28),
                     Row(
                       children: [
-                        const Text(
+                        Text(
                           'Aktivitas Terkini',
-                          style: TextStyle(
-                            fontSize: 18,
+                          style: AppTextStyles.headlineSmall.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -258,9 +261,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     else
                       ActivityFeed(activities: activities!.take(3).toList()),
                     const SizedBox(height: 28),
-                    const Text(
+                    Text(
                       'Aksi Cepat',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: AppTextStyles.headlineSmall.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     ActionButtonCard(
@@ -294,7 +299,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ContractsPage(),
+                            builder: (context) => const ContractsScreen(),
                           ),
                         );
                       },

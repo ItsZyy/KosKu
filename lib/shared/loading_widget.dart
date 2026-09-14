@@ -1,3 +1,4 @@
+// Indikator loading di tengah layar (dipakai AuthGate)
 import 'package:flutter/material.dart';
 
 class LoadingWidget extends StatelessWidget {

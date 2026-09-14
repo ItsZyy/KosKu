@@ -16,12 +16,14 @@ class RoomService {
   static const String _tableFacilities = 'facilities';
   static const String _tableRoomFacilities = 'room_facilities';
 
+  // Mengubah path storage menjadi URL publik
   static String storagePathToPublicUrl(String path) {
     return Supabase.instance.client.storage
         .from(_storageBucket)
         .getPublicUrl(path);
   }
 
+  // Upload foto kamar ke storage
   Future<List<String>> uploadImages({
     required String roomId,
     required List<File> images,
@@ -57,6 +59,7 @@ class RoomService {
     return paths;
   }
 
+  // Mengurai string JSON daftar path foto menjadi List<String>
   static List<String> parseImageUrls(dynamic value) {
     if (value == null) {
       return [];
@@ -83,10 +86,12 @@ class RoomService {
     return [];
   }
 
+  // Mengubah daftar path foto menjadi string JSON
   static String encodeImageUrls(List<String> paths) {
     return jsonEncode(paths);
   }
 
+  // Mengambil kamar aktif milik user yang sedang login
   Future<Map<String, dynamic>?> getRoom() async {
     final user = _supabase.auth.currentUser;
 
@@ -137,6 +142,7 @@ class RoomService {
     };
   }
 
+  // Menghitung statistik kamar (total & terisi)
   Future<Map<String, int>> getRoomStats() async {
     final data = await _supabase.from(_tableRooms).select('id, status');
 
@@ -163,6 +169,7 @@ class RoomService {
     return {'total': total, 'terisi': terisi};
   }
 
+  // Mengambil daftar semua kamar
   Future<List<RoomModel>> getRooms() async {
     final data = await _supabase
         .from(_tableRooms)
@@ -172,6 +179,7 @@ class RoomService {
     return data.map<RoomModel>((item) => RoomModel.fromMap(item)).toList();
   }
 
+  // Mengambil detail kamar lengkap dengan penghuni, fasilitas, pembayaran, komplain
   Future<RoomDetailModel?> getRoomDetail(String roomId) async {
     final roomData = await _supabase
         .from(_tableRooms)
@@ -312,6 +320,7 @@ class RoomService {
     );
   }
 
+  // Mengambil daftar user yang belum memiliki kamar aktif
   Future<List<Map<String, dynamic>>> getAvailableUsers() async {
     final activeOccupancies = await _supabase
         .from('occupancies')
@@ -349,6 +358,7 @@ class RoomService {
         .toList();
   }
 
+  // Menambahkan penghuni ke kamar (occupancy)
   Future<void> addOccupancy({
     required String roomId,
     required String userId,
@@ -414,6 +424,7 @@ class RoomService {
         .eq('id', roomId);
   }
 
+  // Mengeluarkan penghuni dari kamar via RPC
   Future<void> removeOccupant({
     required String userId,
     required String roomId,
@@ -436,6 +447,7 @@ class RoomService {
     }
   }
 
+  // Mengambil daftar penghuni per kamar untuk daftar kamar admin
   Future<Map<String, List<Map<String, dynamic>>>> getRoomUsers() async {
     final data = await _supabase
         .from('occupancies')
@@ -482,6 +494,7 @@ class RoomService {
     return users;
   }
 
+  // Mengambil daftar fasilitas aktif
   Future<List<FacilityModel>> getFacilities({bool activeOnly = true}) async {
     var query = _supabase.from(_tableFacilities).select();
 
@@ -496,6 +509,7 @@ class RoomService {
         .toList();
   }
 
+  // Mengambil fasilitas milik sebuah kamar
   Future<List<FacilityModel>> getRoomFacilities(String roomId) async {
     final data = await _supabase
         .from(_tableRoomFacilities)
@@ -526,6 +540,7 @@ class RoomService {
     return result;
   }
 
+  // Membuat kamar baru beserta fasilitas dan foto
   Future<RoomModel> createRoom({
     required String roomNumber,
     required double price,
@@ -587,6 +602,7 @@ class RoomService {
     return RoomModel.fromMap(data);
   }
 
+  // Memperbarui data kamar, fasilitas, dan foto
   Future<void> updateRoom({
     required String id,
     required String roomNumber,
@@ -649,6 +665,7 @@ class RoomService {
     await _replaceRoomFacilities(id, facilityIds);
   }
 
+  // Menghapus kamar beserta fasilitas dan foto storage
   Future<void> deleteRoom(String id) async {
     await _supabase.from(_tableRoomFacilities).delete().eq('room_id', id);
 
@@ -703,6 +720,7 @@ class RoomService {
     return DateTime.tryParse(value.toString());
   }
 
+  // Mengambil daftar user untuk dipilih sebagai penghuni
   Future<List<Map<String, dynamic>>> getUsersForOccupantSelection() async {
     final response = await _supabase
         .from('profiles')
@@ -759,6 +777,7 @@ class RoomService {
     }).toList();
   }
 
+  // Mengambil daftar kamar yang masih tersedia (belum penuh/tidak diperbaiki)
   Future<List<RoomModel>> getAvailableRooms() async {
     final roomsData = await _supabase
         .from(_tableRooms)

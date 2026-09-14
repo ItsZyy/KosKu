@@ -1,4 +1,8 @@
+// Widget untuk aksi bawah detail kamar
 import 'package:flutter/material.dart';
+
+import 'package:kosku/core/theme/app_colors.dart';
+import 'package:kosku/core/theme/app_text_styles.dart';
 
 class RoomDetailBottomAction extends StatelessWidget {
   final String label;
@@ -40,7 +44,9 @@ class RoomDetailBottomAction extends StatelessWidget {
             icon: Icon(icon),
             label: Text(
               label,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              style: AppTextStyles.labelLarge.copyWith(
+                color: AppColors.onPrimary,
+              ),
             ),
           ),
         ),

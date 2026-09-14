@@ -1,3 +1,4 @@
+// Widget untuk UserDashboardScreen
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -35,7 +36,7 @@ class _UserDashboardBannerState extends State<UserDashboardBanner> {
       title:
           'Sujudmu di tanah rantau adalah bukti pada orang tuamu bahwa mereka tidak gagal mendidikmu.',
       description: '',
-      titleColor: Colors.white,
+      titleColor: AppColors.onPrimary,
       descriptionColor: AppColors.onPrimary,
       imagePath: 'assets/images/avatar_santri.png',
       textAlignment: TextAlign.center,
@@ -106,7 +107,7 @@ class _UserDashboardBannerState extends State<UserDashboardBanner> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           stops: [0.62, 0.90],
-          colors: [Color(0xFF5283EF), Color(0xFF2F4B89)],
+          colors: [AppColors.primaryBright, AppColors.primaryDeep],
         ),
         borderRadius: BorderRadius.circular(24),
       ),
@@ -127,7 +128,6 @@ class _UserDashboardBannerState extends State<UserDashboardBanner> {
             ),
           ),
 
-          // Konten teks
           Padding(
             padding: EdgeInsets.only(left: 125, right: 20, top: 20, bottom: 20),
             child: Align(

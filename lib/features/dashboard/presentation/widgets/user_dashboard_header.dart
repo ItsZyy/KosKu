@@ -1,3 +1,4 @@
+// Widget untuk UserDashboardScreen
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -46,7 +47,7 @@ class UserDashboardHeader extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Color(0x1A000000),
+            color: AppColors.scrimLight,
             offset: Offset(0, 10),
             blurRadius: 15,
             spreadRadius: -3,
@@ -75,7 +76,7 @@ class UserDashboardHeader extends StatelessWidget {
                       child: Text(
                         'osKu',
                         style: AppTextStyles.titleLarge.copyWith(
-                          color: Colors.white,
+                          color: AppColors.onPrimary,
                           fontWeight: FontWeight.w700,
                           fontSize: 24,
                         ),
@@ -94,9 +95,9 @@ class UserDashboardHeader extends StatelessWidget {
                           padding: const EdgeInsets.all(2),
                           decoration: const BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white,
+                            color: AppColors.onPrimary,
                             border: Border.fromBorderSide(
-                              BorderSide(color: Colors.white, width: 2),
+                              BorderSide(color: AppColors.onPrimary, width: 2),
                             ),
                           ),
                           child: ClipOval(
@@ -110,9 +111,8 @@ class UserDashboardHeader extends StatelessWidget {
                                       return Center(
                                         child: Text(
                                           initial,
-                                          style: const TextStyle(
+                                          style: AppTextStyles.headlineMedium.copyWith(
                                             color: AppColors.primary,
-                                            fontSize: 20,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
@@ -122,9 +122,8 @@ class UserDashboardHeader extends StatelessWidget {
                                 : Center(
                                     child: Text(
                                       initial,
-                                      style: const TextStyle(
+                                      style: AppTextStyles.headlineMedium.copyWith(
                                         color: AppColors.primary,
-                                        fontSize: 20,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -139,7 +138,7 @@ class UserDashboardHeader extends StatelessWidget {
                 Text(
                   greeting,
                   style: AppTextStyles.titleMedium.copyWith(
-                    color: Colors.white,
+                    color: AppColors.onPrimary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -149,7 +148,7 @@ class UserDashboardHeader extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.headlineLarge.copyWith(
-                    color: Colors.white,
+                    color: AppColors.onPrimary,
                     fontWeight: FontWeight.w700,
                     fontSize: 28,
                   ),
@@ -159,7 +158,7 @@ class UserDashboardHeader extends StatelessWidget {
                   'Selamat datang kembali di Aplikasi KosKu',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
+                  style: AppTextStyles.bodyMedium.copyWith(color: AppColors.onPrimary),
                 ),
               ],
             ),

@@ -1,7 +1,10 @@
-// Widget untuk ComplaintsScreen
+// Widget untuk AddComplaintScreen
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class ComplaintFormCard extends StatelessWidget {
   final TextEditingController titleController;
@@ -33,10 +36,12 @@ class ComplaintFormCard extends StatelessWidget {
               children: [
                 const Icon(Icons.edit_note),
                 const SizedBox(width: 10),
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Buat Laporan atau Keluhan Baru',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: AppTextStyles.headlineSmall.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
@@ -46,15 +51,14 @@ class ComplaintFormCard extends StatelessWidget {
 
             const Text(
               'Sampaikan kendala Anda agar kami segera tindak lanjuti.',
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(color: AppColors.textSecondary),
             ),
 
             const SizedBox(height: 20),
 
-            // JUDUL LAPORAN
             const Text(
               'Judul Laporan',
-              style: TextStyle(fontWeight: FontWeight.w600),
+              style: AppTextStyles.labelLarge,
             ),
 
             const SizedBox(height: 8),
@@ -73,10 +77,9 @@ class ComplaintFormCard extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // DESKRIPSI
             const Text(
               'Deskripsi',
-              style: TextStyle(fontWeight: FontWeight.w600),
+              style: AppTextStyles.labelLarge,
             ),
 
             const SizedBox(height: 8),
@@ -99,10 +102,9 @@ class ComplaintFormCard extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // UPLOAD FOTO
             const Text(
               'Unggah Foto',
-              style: TextStyle(fontWeight: FontWeight.w600),
+              style: AppTextStyles.labelLarge,
             ),
 
             const SizedBox(height: 8),
@@ -113,7 +115,7 @@ class ComplaintFormCard extends StatelessWidget {
                 width: double.infinity,
                 constraints: const BoxConstraints(minHeight: 140),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black12),
+                  border: Border.all(color: AppColors.scrimLight),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: selectedImage == null
@@ -124,12 +126,12 @@ class ComplaintFormCard extends StatelessWidget {
                           SizedBox(height: 8),
                           Text(
                             'Tambahkan Foto (Opsional)',
-                            style: TextStyle(fontWeight: FontWeight.w500),
+                            style: AppTextStyles.titleSmall,
                           ),
                           SizedBox(height: 4),
                           Text(
                             'Ketuk untuk memilih foto',
-                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                            style: AppTextStyles.bodySmall,
                           ),
                         ],
                       )
@@ -159,7 +161,6 @@ class ComplaintFormCard extends StatelessWidget {
 
             const SizedBox(height: 8),
 
-            // SUBMIT
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(

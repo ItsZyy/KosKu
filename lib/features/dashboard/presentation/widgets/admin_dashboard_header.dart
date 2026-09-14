@@ -1,3 +1,4 @@
+// Widget untuk AdminDashboardScreen
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -46,7 +47,7 @@ class AdminDashboardHeader extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Color(0x1A000000),
+            color: AppColors.scrimLight,
             offset: Offset(0, 10),
             blurRadius: 15,
             spreadRadius: -3,
@@ -73,7 +74,7 @@ class AdminDashboardHeader extends StatelessWidget {
                   child: Text(
                     'osKu',
                     style: AppTextStyles.titleLarge.copyWith(
-                      color: Colors.white,
+                      color: AppColors.onPrimary,
                       fontWeight: FontWeight.w700,
                       fontSize: 24,
                     ),
@@ -92,9 +93,9 @@ class AdminDashboardHeader extends StatelessWidget {
                       padding: const EdgeInsets.all(2),
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white,
+                        color: AppColors.onPrimary,
                         border: Border.fromBorderSide(
-                          BorderSide(color: Colors.white, width: 2),
+                          BorderSide(color: AppColors.onPrimary, width: 2),
                         ),
                       ),
 child: ClipOval(
@@ -107,9 +108,8 @@ child: ClipOval(
                                       return Center(
                                         child: Text(
                                           initial,
-                                          style: const TextStyle(
+                                          style: AppTextStyles.headlineMedium.copyWith(
                                             color: AppColors.primary,
-                                            fontSize: 20,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
@@ -119,9 +119,8 @@ child: ClipOval(
                                 : Center(
                                     child: Text(
                                       initial,
-                                      style: const TextStyle(
+                                      style: AppTextStyles.headlineMedium.copyWith(
                                         color: AppColors.primary,
-                                        fontSize: 20,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -135,28 +134,28 @@ child: ClipOval(
             const SizedBox(height: 20),
             Text(
               greeting,
-              style: AppTextStyles.titleMedium.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w500,
-              ),
+style: AppTextStyles.titleMedium.copyWith(
+                    color: AppColors.onPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
             ),
             const SizedBox(height: 2),
             Text(
               '${userName ?? 'Pemilik Kos'} 👋',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.headlineLarge.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 28,
-              ),
+style: AppTextStyles.headlineLarge.copyWith(
+                    color: AppColors.onPrimary,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 28,
+                  ),
             ),
             const SizedBox(height: 4),
             Text(
               'Selamat datang kembali di Dashboard KosKu',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.onPrimary),
             ),
           ],
         ),

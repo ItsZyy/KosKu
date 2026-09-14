@@ -1,3 +1,4 @@
+// Widget untuk PaymentDetailScreen
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -137,17 +138,19 @@ class PaymentProofSection extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.black54,
+                color: AppColors.scrim,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Icon(Icons.edit_outlined, size: 16, color: Colors.white),
-                  SizedBox(width: 4),
+                children: [
+                  const Icon(Icons.edit_outlined, size: 16, color: AppColors.onPrimary),
+                  const SizedBox(width: 4),
                   Text(
                     'Ganti',
-                    style: TextStyle(color: Colors.white, fontSize: 12),
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.onPrimary,
+                    ),
                   ),
                 ],
               ),

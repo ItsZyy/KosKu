@@ -6,7 +6,7 @@ import '../../../tenants/data/models/tenant_model.dart';
 import '../../../tenants/data/services/tenant_service.dart';
 import '../../data/services/payment_service.dart';
 
-/// Admin -> pilih penghuni -> periode -> jatuh tempo -> generate_payment().
+// Membuat tagihan baru: pilih penghuni, periode, dan jatuh tempo.
 class GeneratePaymentScreen extends StatefulWidget {
   const GeneratePaymentScreen({super.key});
 
